@@ -602,6 +602,50 @@ h2.l-h .grad{background:linear-gradient(120deg,var(--primary-dark),var(--accent-
 .lib-empty p{font-size:13.5px;line-height:1.55;max-width:420px;margin:0 auto 12px}
 .lib-empty .em-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 
+/* Organogram tree */
+.org-canvas{padding:30px 12px 20px;overflow-x:auto;min-height:240px;background:linear-gradient(180deg,var(--card-tint),transparent 60%)}
+.org-tree{display:flex;flex-direction:column;align-items:center;gap:0;min-width:fit-content;margin:0 auto}
+.org-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:flex-start;position:relative;padding-top:18px}
+.org-row:first-child{padding-top:0}
+.org-row:before{content:'';position:absolute;top:0;left:50%;width:2px;height:18px;background:var(--accent);transform:translateX(-1px)}
+.org-row:first-child:before{display:none}
+.org-branch{display:flex;flex-direction:column;align-items:center;position:relative}
+.org-branch + .org-branch:before{content:'';position:absolute;top:9px;left:-7px;width:14px;height:2px;background:var(--accent)}
+.org-node{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border-radius:10px;padding:9px 14px;min-width:155px;max-width:200px;text-align:center;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer;transition:transform .12s,box-shadow .12s}
+.org-node:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.22)}
+.org-node.gold{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--primary-darker)}
+.org-node.green{background:linear-gradient(135deg,#3a8460,#1f5f4a);color:#fff}
+.org-node.lav{background:linear-gradient(135deg,#9484c8,#6d5fa3);color:#fff}
+.org-node.empty-add{background:var(--card-tint);border:2px dashed var(--line);color:var(--muted);cursor:pointer;padding:10px 14px;font-size:13px}
+.org-node.empty-add:hover{border-color:var(--accent);color:var(--primary-dark)}
+.org-node-title{font-weight:800;font-size:13px;line-height:1.25}
+.org-node-name{font-size:11.5px;opacity:.92;margin-top:3px;font-style:italic}
+.org-node-acts{display:flex;gap:3px;justify-content:center;margin-top:6px;opacity:.85}
+.org-node-acts button{background:rgba(255,255,255,.18);border:none;color:inherit;width:22px;height:22px;border-radius:5px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.org-node-acts button:hover{background:rgba(255,255,255,.35)}
+.org-node.gold .org-node-acts button{background:rgba(26,46,79,.15)}
+.org-node.gold .org-node-acts button:hover{background:rgba(26,46,79,.28)}
+.org-children{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:6px;position:relative}
+.org-children:before{content:'';position:absolute;top:0;left:50%;width:2px;height:14px;background:var(--accent);transform:translateX(-1px)}
+.org-children .org-row{padding-top:14px}
+.org-children .org-row:before{height:14px}
+.org-empty-state{text-align:center;color:var(--muted);padding:50px 20px;font-size:14.5px}
+.org-empty-state h4{font-size:16px;color:var(--primary-darker);margin-bottom:10px;font-weight:800}
+.org-empty-state .em-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+@media print{
+  .page-actions,.sidebar,.scrim,.header,.footer{display:none!important}
+  .org-canvas{background:none;padding:10px 0}
+  .org-node{box-shadow:none;border:1px solid #1A2E4F;background:#fff!important;color:#1A2E4F!important}
+  .org-node.gold{background:#FAF1DA!important;color:#1A2E4F!important}
+  .org-node-acts{display:none}
+}
+@media(max-width:680px){
+  .org-row{flex-direction:column;align-items:center;gap:14px}
+  .org-row:before{display:none}
+  .org-branch + .org-branch:before{display:none}
+  .org-node{min-width:200px}
+}
+
 /* Worksheet builder rows */
 .wb-q-row{display:grid;grid-template-columns:auto 1fr 1fr 60px 30px;gap:8px;padding:8px 0;align-items:center;border-bottom:1px solid var(--line-soft)}
 .wb-q-row .num{font-weight:800;color:var(--accent-dark);width:24px;text-align:center}
@@ -1082,6 +1126,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
     <div class="sb-section-title school-only">Leadership</div>
     <nav class="sb-nav school-only">
       <button class="sb-item" data-page="headmaster"><span class="ico">🏫</span>Headmaster View</button>
+      <button class="sb-item" data-page="organogram"><span class="ico">🌳</span>Organogram</button>
       <button class="sb-item" data-page="staff"><span class="ico">🧑‍🏫</span>Staff Roster</button>
       <button class="sb-item" data-page="directory"><span class="ico">📒</span>School Directory</button>
     </nav>
@@ -1711,6 +1756,22 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       </div>
     </section>
 
+    <!-- ORGANOGRAM (school edition only) -->
+    <section class="page" id="page-organogram" style="display:none">
+      <div class="page-head">
+        <div><span class="tag">School Edition</span><h1>🌳 School Organogram</h1><p>Your school's staff structure — at a glance. Head/Principal at the top, HODs and Deputy below, teachers under each HOD, support staff in their branch. Click any block to rename it, tap ＋ to add a person, × to remove. Add your own blocks (Sports Master, Chaplain, IT, Matron…). Printable.</p></div>
+        <div class="page-actions">
+          <button class="btn btn-soft btn-sm" onclick="loadOrganogramTemplate('secondary')">🏫 Secondary template</button>
+          <button class="btn btn-soft btn-sm" onclick="loadOrganogramTemplate('primary')">🎒 Primary template</button>
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+          <button class="btn btn-danger btn-sm" onclick="clearOrganogram()">Clear all</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="org-canvas" class="org-canvas"></div>
+      </div>
+    </section>
+
     <!-- HEADMASTER (school edition only) -->
     <section class="page" id="page-headmaster" style="display:none">
       <div class="page-head">
@@ -2101,6 +2162,7 @@ function defaultState(){
     graduation: {title:'',date:'',time:'',venue:'',theme:'',dressCode:'',status:'planning',notes:'',graduates:[],programme:[],budget:[]},
     library: {pastPapers:[], schemes:[], worksheets:[], questionBank:[]},
     dailyAssessments: [],
+    organogram: {nodes:[]},
     lastBackup: null,
     welcomed: false
   };
@@ -3538,6 +3600,315 @@ renderers.broadcast = function(){
   seedBroadcastTemplatesIfNeeded();
   _origBroadcastRenderSeed();
 };
+
+/* ============================================================
+   ORGANOGRAM — editable hierarchical org chart
+   ============================================================ */
+const ORG_TEMPLATES = {
+  secondary: [
+    {id:'org_head',     parentId:null,         title:'Head / Principal',       color:'navy'},
+    {id:'org_dep',      parentId:'org_head',   title:'Deputy Head',            color:'navy'},
+    {id:'org_bursar',   parentId:'org_head',   title:'Bursar',                 color:'gold'},
+    {id:'org_sec',      parentId:'org_head',   title:'School Secretary',       color:'gold'},
+    {id:'org_st_a',     parentId:'org_dep',    title:'Senior Teacher · Academic',  color:'gold'},
+    {id:'org_st_d',     parentId:'org_dep',    title:'Senior Teacher · Discipline',color:'gold'},
+    {id:'org_hod_sci',  parentId:'org_dep',    title:'HOD Sciences',           color:'gold'},
+    {id:'org_hod_lang', parentId:'org_dep',    title:'HOD Languages',          color:'gold'},
+    {id:'org_hod_comm', parentId:'org_dep',    title:'HOD Commercials',        color:'gold'},
+    {id:'org_hod_hum',  parentId:'org_dep',    title:'HOD Humanities',         color:'gold'},
+    {id:'org_hod_pa',   parentId:'org_dep',    title:'HOD Practicals & Arts',  color:'gold'},
+    {id:'org_hod_tech', parentId:'org_dep',    title:'HOD Technical & ICT',    color:'gold'},
+    {id:'org_t_maths',  parentId:'org_hod_sci',  title:'Mathematics Teacher',  color:'green'},
+    {id:'org_t_phys',   parentId:'org_hod_sci',  title:'Physics Teacher',      color:'green'},
+    {id:'org_t_chem',   parentId:'org_hod_sci',  title:'Chemistry Teacher',    color:'green'},
+    {id:'org_t_bio',    parentId:'org_hod_sci',  title:'Biology Teacher',      color:'green'},
+    {id:'org_lab',      parentId:'org_hod_sci',  title:'Laboratory Assistant', color:'lav'},
+    {id:'org_t_eng',    parentId:'org_hod_lang', title:'English Teacher',      color:'green'},
+    {id:'org_t_shona',  parentId:'org_hod_lang', title:'Shona Teacher',        color:'green'},
+    {id:'org_t_ndebele',parentId:'org_hod_lang', title:'Ndebele Teacher',      color:'green'},
+    {id:'org_t_acc',    parentId:'org_hod_comm', title:'Accounting Teacher',   color:'green'},
+    {id:'org_t_bus',    parentId:'org_hod_comm', title:'Business Studies Teacher', color:'green'},
+    {id:'org_t_econ',   parentId:'org_hod_comm', title:'Economics Teacher',    color:'green'},
+    {id:'org_t_hist',   parentId:'org_hod_hum',  title:'History Teacher',      color:'green'},
+    {id:'org_t_geo',    parentId:'org_hod_hum',  title:'Geography Teacher',    color:'green'},
+    {id:'org_t_rs',     parentId:'org_hod_hum',  title:'Religious Studies Teacher', color:'green'},
+    {id:'org_t_agr',    parentId:'org_hod_pa',   title:'Agriculture Teacher',  color:'green'},
+    {id:'org_t_pe',     parentId:'org_hod_pa',   title:'Physical Education Teacher', color:'green'},
+    {id:'org_t_art',    parentId:'org_hod_pa',   title:'Music / Arts Teacher', color:'green'},
+    {id:'org_t_ict',    parentId:'org_hod_tech', title:'ICT Teacher',          color:'green'},
+    {id:'org_t_tg',     parentId:'org_hod_tech', title:'Technical Graphics Teacher', color:'green'},
+    {id:'org_t_wood',   parentId:'org_hod_tech', title:'Wood Technology Teacher', color:'green'},
+    {id:'org_acc1',     parentId:'org_bursar', title:'Accounts Clerk',         color:'lav'},
+    {id:'org_cash',     parentId:'org_bursar', title:'Cashier',                color:'lav'},
+    {id:'org_recep',    parentId:'org_sec',    title:'Receptionist',           color:'lav'},
+    {id:'org_grd',      parentId:'org_head',   title:'Groundsperson Supervisor', color:'gold'},
+    {id:'org_grd1',     parentId:'org_grd',    title:'Groundsperson',          color:'lav'},
+    {id:'org_grd2',     parentId:'org_grd',    title:'Groundsperson',          color:'lav'},
+    {id:'org_security', parentId:'org_head',   title:'Head of Security',       color:'gold'}
+  ],
+  primary: [
+    {id:'orgP_head',  parentId:null,         title:'Head / Principal',     color:'navy'},
+    {id:'orgP_dep',   parentId:'orgP_head',  title:'Deputy Head',          color:'navy'},
+    {id:'orgP_bursar',parentId:'orgP_head',  title:'Bursar',               color:'gold'},
+    {id:'orgP_sec',   parentId:'orgP_head',  title:'School Secretary',     color:'gold'},
+    {id:'orgP_st',    parentId:'orgP_dep',   title:'Senior Teacher',       color:'gold'},
+    {id:'orgP_hod_in',parentId:'orgP_dep',   title:'HOD Infants (ECD – Gr 2)', color:'gold'},
+    {id:'orgP_hod_jr',parentId:'orgP_dep',   title:'HOD Juniors (Gr 3 – 7)', color:'gold'},
+    {id:'orgP_t_ecdA',parentId:'orgP_hod_in', title:'ECD A Teacher',       color:'green'},
+    {id:'orgP_t_ecdB',parentId:'orgP_hod_in', title:'ECD B Teacher',       color:'green'},
+    {id:'orgP_t_g1',  parentId:'orgP_hod_in', title:'Grade 1 Class Teacher', color:'green'},
+    {id:'orgP_t_g2',  parentId:'orgP_hod_in', title:'Grade 2 Class Teacher', color:'green'},
+    {id:'orgP_t_g3',  parentId:'orgP_hod_jr', title:'Grade 3 Class Teacher', color:'green'},
+    {id:'orgP_t_g4',  parentId:'orgP_hod_jr', title:'Grade 4 Class Teacher', color:'green'},
+    {id:'orgP_t_g5',  parentId:'orgP_hod_jr', title:'Grade 5 Class Teacher', color:'green'},
+    {id:'orgP_t_g6',  parentId:'orgP_hod_jr', title:'Grade 6 Class Teacher', color:'green'},
+    {id:'orgP_t_g7',  parentId:'orgP_hod_jr', title:'Grade 7 Class Teacher', color:'green'},
+    {id:'orgP_aide_ecdA',parentId:'orgP_t_ecdA',title:'Teacher Aide',      color:'lav'},
+    {id:'orgP_aide_ecdB',parentId:'orgP_t_ecdB',title:'Teacher Aide',      color:'lav'},
+    {id:'orgP_grd',   parentId:'orgP_head',  title:'General Hand Supervisor', color:'gold'},
+    {id:'orgP_grd1',  parentId:'orgP_grd',   title:'General Hand',         color:'lav'},
+    {id:'orgP_grd2',  parentId:'orgP_grd',   title:'General Hand',         color:'lav'}
+  ]
+};
+
+renderers.organogram = function(){
+  state.organogram = state.organogram || {nodes:[]};
+  const canvas = document.getElementById('org-canvas');
+  if(!canvas) return;
+  const nodes = state.organogram.nodes;
+  if(!nodes.length){
+    canvas.innerHTML = `<div class="org-empty-state">
+      <h4>🌳 No organogram yet</h4>
+      <p>Start with a template — you can edit every block, add custom roles (Sports Master, Chaplain, Matron…), and remove anything you don\'t need.</p>
+      <div class="em-actions">
+        <button class="btn btn-primary btn-sm" onclick="loadOrganogramTemplate('secondary')">🏫 Use Secondary template</button>
+        <button class="btn btn-primary btn-sm" onclick="loadOrganogramTemplate('primary')">🎒 Use Primary template</button>
+        <button class="btn btn-soft btn-sm" onclick="addOrgNode(null)">＋ Start blank</button>
+      </div>
+    </div>`;
+    return;
+  }
+  // Build children map
+  const childrenOf = {};
+  nodes.forEach(n=>{
+    const p = n.parentId || '__root__';
+    childrenOf[p] = childrenOf[p] || [];
+    childrenOf[p].push(n);
+  });
+  function renderNode(n){
+    const kids = childrenOf[n.id] || [];
+    return `<div class="org-branch">
+      <div class="org-node ${esc(n.color||'navy')}" onclick="event.stopPropagation();editOrgNode('${n.id}')">
+        <div class="org-node-title">${esc(n.title||'(no title)')}</div>
+        ${n.name?`<div class="org-node-name">${esc(n.name)}</div>`:''}
+        <div class="org-node-acts" onclick="event.stopPropagation()">
+          <button onclick="addOrgNode('${n.id}')" title="Add subordinate">＋</button>
+          <button onclick="editOrgNode('${n.id}')" title="Edit">✎</button>
+          <button onclick="deleteOrgNode('${n.id}')" title="Delete">×</button>
+        </div>
+      </div>
+      ${kids.length ? `<div class="org-children"><div class="org-row">${kids.map(renderNode).join('')}</div></div>` : ''}
+    </div>`;
+  }
+  const roots = childrenOf['__root__'] || [];
+  canvas.innerHTML = `<div class="org-tree"><div class="org-row">${roots.map(renderNode).join('')}</div></div>`;
+};
+
+function loadOrganogramTemplate(which){
+  if((state.organogram?.nodes||[]).length && !confirm('Replace the current organogram with the ' + which + ' template? Your current structure will be lost.')) return;
+  state.organogram = {nodes: ORG_TEMPLATES[which].map(n=>({...n}))};
+  save(); renderers.organogram(); toast('Loaded ' + which + ' template');
+}
+function clearOrganogram(){
+  if(!confirm('Clear the entire organogram? This cannot be undone.')) return;
+  state.organogram = {nodes:[]};
+  save(); renderers.organogram();
+}
+function addOrgNode(parentId){
+  editOrgNodeModal(null, parentId);
+}
+function editOrgNode(id){
+  editOrgNodeModal(id, null);
+}
+function editOrgNodeModal(id, parentId){
+  const isNew = !id;
+  const node = isNew ? {id:'org_'+Date.now(), parentId:parentId||null, title:'', name:'', color:'navy'} : state.organogram.nodes.find(n=>n.id===id);
+  if(!node) return;
+  const colors = [
+    {k:'navy', n:'Navy (Leadership)'},
+    {k:'gold', n:'Gold (HOD / Senior)'},
+    {k:'green',n:'Green (Teacher)'},
+    {k:'lav',  n:'Lavender (Support)'}
+  ];
+  showModal(`
+    <h3>${isNew?'Add':'Edit'} role</h3>
+    <div class="field"><label class="label">Role / Title</label>
+      <input class="input" id="org-title" value="${esc(node.title||'')}" placeholder="e.g. HOD Sciences, Sports Master, Chaplain">
+    </div>
+    <div class="field"><label class="label">Person\'s name (optional)</label>
+      <input class="input" id="org-name" value="${esc(node.name||'')}" placeholder="e.g. Mr T. Moyo">
+    </div>
+    <div class="field"><label class="label">Block colour</label>
+      <select class="select" id="org-color">
+        ${colors.map(c=>`<option value="${c.k}" ${node.color===c.k?'selected':''}>${esc(c.n)}</option>`).join('')}
+      </select>
+    </div>
+    ${!isNew ? `<div class="field"><label class="label">Reports to (parent block)</label>
+      <select class="select" id="org-parent">
+        <option value="">— Top level —</option>
+        ${state.organogram.nodes.filter(n=>n.id!==id && !isDescendantOf(n.id, id)).map(n=>`<option value="${n.id}" ${node.parentId===n.id?'selected':''}>${esc(n.title)}</option>`).join('')}
+      </select>
+    </div>` : ''}
+    <div class="modal-actions">
+      ${!isNew ? `<button class="btn btn-danger" onclick="deleteOrgNode('${node.id}')">Delete</button>` : ''}
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrgNode('${node.id}',${isNew})">Save</button>
+    </div>
+  `);
+  setTimeout(()=>document.getElementById('org-title').focus(),50);
+}
+function isDescendantOf(candidate, ancestor){
+  // Walk up from candidate to root — if we hit ancestor, it's a descendant
+  const map = {}; state.organogram.nodes.forEach(n=>map[n.id]=n);
+  let cur = map[candidate];
+  while(cur){
+    if(cur.parentId === ancestor) return true;
+    cur = map[cur.parentId];
+  }
+  return false;
+}
+function saveOrgNode(id, isNew){
+  const data = {
+    id,
+    title: document.getElementById('org-title').value.trim(),
+    name:  document.getElementById('org-name').value.trim(),
+    color: document.getElementById('org-color').value
+  };
+  if(!data.title){ toast('Title is required'); return; }
+  state.organogram = state.organogram || {nodes:[]};
+  if(isNew){
+    // parentId comes from the modal-opening context, stored on the node itself
+    const orig = state.organogram.nodes.find(n=>n.id===id);
+    if(!orig){
+      // pull parentId from form context if available — fall back to null (top-level)
+      data.parentId = null;
+      // Try last-clicked add button context (we stored on node id when calling addOrgNode)
+    } else {
+      data.parentId = orig.parentId;
+    }
+    state.organogram.nodes.push(data);
+  } else {
+    const ex = state.organogram.nodes.find(n=>n.id===id);
+    Object.assign(ex, data);
+    const newParent = document.getElementById('org-parent');
+    if(newParent) ex.parentId = newParent.value || null;
+  }
+  save(); closeModal(); renderers.organogram(); toast(isNew?'Added':'Updated');
+}
+// Override addOrgNode to pre-set parentId properly
+function addOrgNode(parentId){
+  const tmpId = 'org_'+Date.now();
+  // Stash a tentative node so saveOrgNode can find parentId
+  state.organogram = state.organogram || {nodes:[]};
+  state.organogram.nodes.push({id:tmpId, parentId:parentId||null, title:'', name:'', color:'navy', _draft:true});
+  editOrgNodeModal(tmpId, parentId);
+  // If user cancels, we need to clean the draft — patch closeModal? Simpler: clean on next render if title is empty
+}
+// Patch closeModal to clean drafts
+const _origCloseModal = closeModal;
+window.closeModal = function(){
+  if(state.organogram && state.organogram.nodes){
+    state.organogram.nodes = state.organogram.nodes.filter(n=>!(n._draft && !n.title));
+  }
+  _origCloseModal();
+};
+function deleteOrgNode(id){
+  const n = state.organogram.nodes.find(x=>x.id===id);
+  if(!n) return;
+  // Count descendants
+  const allDesc = [];
+  function collect(pid){ state.organogram.nodes.filter(x=>x.parentId===pid).forEach(c=>{ allDesc.push(c.id); collect(c.id); }); }
+  collect(id);
+  const msg = allDesc.length ? `Delete "${n.title}" and ${allDesc.length} block(s) below it?` : `Delete "${n.title}"?`;
+  if(!confirm(msg)) return;
+  const toRemove = new Set([id, ...allDesc]);
+  state.organogram.nodes = state.organogram.nodes.filter(x=>!toRemove.has(x.id));
+  save(); closeModal(); renderers.organogram();
+}
+
+/* ============================================================
+   SYLLABUS_PRESETS — expansion patch (ZIMSEC, all levels)
+   Adds Infant + Junior + Ordinary + Advanced subjects to match
+   the official ZIMSEC subject list the user provided.
+   ============================================================ */
+(function expandZimSyllabus(){
+  const z = SYLLABUS_PRESETS.zimsec;
+  // ---------- ECD (Infant Level: ECD A & B) ----------
+  z.ecd = Object.assign(z.ecd || {}, {
+    'Mathematics': ['Counting 1–20','Number Recognition','Shapes & Patterns','Sorting & Matching','Size, Length & Weight','Time of Day','Basic Addition (with objects)','Money (coins)'],
+    'English': ['Listening & Speaking','Phonics & Letter Sounds','Vocabulary','Rhymes & Songs','Storytelling','Picture Reading','Pre-writing Skills','Letter Formation'],
+    'Indigenous Languages': ['Greetings & Politeness (Shona/Ndebele)','Vocabulary — Family & Body','Songs & Rhymes','Storytelling','Listening & Speaking','Letter Sounds','Picture Reading','Cultural Values'],
+    'Physical Education': ['Movement & Coordination','Running & Jumping','Ball Skills (Throw/Catch)','Games & Play','Body Awareness','Safety in Movement','Outdoor Activities'],
+    'Visual & Performing Arts': ['Drawing & Colouring','Painting','Clay Modelling','Singing','Music & Rhythm','Dance & Movement','Role Play & Drama','Crafts with Recycled Material'],
+    'Science and Technology': ['My Body & Senses','Animals Around Us','Plants Around Us','Weather','Water','Day & Night','Simple Tools at Home','Caring for the Environment'],
+    'Social Studies': ['Myself & My Family','My Home','My School','My Community','Helpers in Society','Safety at Home & School','Traffic Safety','Manners & Sharing'],
+    'Heritage Studies': ['Who Am I (Identity)','My Family Heritage','National Symbols','Zimbabwean Songs & Dances','Local Foods','Traditional Games','Respect for Elders','Important Days']
+  });
+  // ---------- Primary (Grade 1–7) — Infant Gr 1-2 + Junior Gr 3-7 ----------
+  z.primary = Object.assign(z.primary || {}, {
+    'English': ['Listening & Speaking','Reading Comprehension','Vocabulary','Grammar (Nouns/Pronouns/Verbs)','Tenses (Past/Present/Future)','Punctuation','Direct & Indirect Speech','Active & Passive Voice','Composition Writing','Letter Writing','Summary Writing','Poetry & Storytelling'],
+    'Mathematics': ['Whole Numbers','Fractions','Decimals','Percentages','Ratio & Proportion','Measures (Length/Mass/Capacity)','Money','Time','Geometry & Shapes','Symmetry & Patterns','Algebra Basics','Statistics & Graphs','Word Problems'],
+    'Indigenous Languages': ['Shona — Tsika neMagariro','Shona — Ngano','Shona — Detembo','Shona — Tsumo neMadimikira','Shona — Mhando dzeMashoko','Ndebele — Inganekwane','Ndebele — Izaga lezisho','Ndebele — Izakhi zolimi','Ndebele — Imibhalo','Listening, Reading & Writing','Composition'],
+    'Agriculture': ['Soil & Soil Preparation','Crops & Crop Care','Livestock','Tools & Equipment','Pests & Diseases','Vegetable Gardening','Poultry Keeping','Conservation Farming','Beekeeping','Aquaculture Basics'],
+    'Science and Technology': ['Plants & Animals','Human Body','Health & Hygiene','Matter (Solids/Liquids/Gases)','Forces & Motion','Energy & Light','Sound','Magnets & Electricity Basics','Weather & Seasons','Soil & Water','Technology in Daily Life','Environment & Conservation','Simple Machines','Computers in Society'],
+    'Social Sciences': ['Map Skills','Provinces & Districts','Population','Trade & Markets','Transport & Communication','Climate & Vegetation','Tourism','Environmental Issues','Settlement Patterns'],
+    'Social Studies': ['Family & Community','Citizenship','Rights & Responsibilities','Zimbabwean History','National Symbols','Governance','Conflict Resolution','Gender Equality','Civic Education'],
+    'Heritage Studies': ['Zimbabwean History','Great Zimbabwe','National Symbols','Independence & Heroes','Culture & Tradition','Governance & Citizenship','Indigenous Knowledge','Ubuntu / Hunhu','Pan-Africanism'],
+    'Physical Education': ['Athletics','Ball Games (Football/Netball/Basketball)','Gymnastics','Traditional Games','Personal Fitness','Sportsmanship & Fair Play','Safety in PE','Healthy Lifestyle','Swimming Basics'],
+    'Arts': ['Drawing','Painting','Sculpture & Modelling','Crafts','Print Making','Traditional Zimbabwean Art','Art Appreciation'],
+    'Visual & Performing Arts': ['Drawing & Painting','Sculpture & Modelling','Crafts','Music Basics','Singing & Choral Work','Dance & Movement','Drama & Role-Play','Traditional Zimbabwean Art'],
+    'ICT': ['Parts of a Computer','Input & Output Devices','Keyboard & Mouse Skills','File Management','Word Processing Basics','Internet Safety','Email Basics','Spreadsheet Basics','Presentations Basics','Coding for Kids (Scratch)'],
+    'Religious & Moral Education': ['God & Creation','Old Testament Stories','New Testament Stories','Christian Values','Other Religions in Zimbabwe','Ubuntu / Hunhu','Right & Wrong','Forgiveness & Reconciliation']
+  });
+  // ---------- O-Level / Form 12 (Ordinary Level — Forms 1-4) ----------
+  const olevelExtras = {
+    'Additional Mathematics': ['Sets & Functions','Quadratic Functions','Polynomials','Indices & Logarithms','Coordinate Geometry','Trigonometric Identities','Sequences & Series','Calculus Introduction','Permutations & Combinations','Vectors'],
+    'Sociology': ['Sociological Perspectives','Family & Marriage','Education','Religion','Work & Economy','Social Stratification','Gender','Crime & Deviance','Research Methods'],
+    'Statistics': ['Data Collection','Frequency Distributions','Measures of Central Tendency','Measures of Dispersion','Probability','Sampling','Correlation','Bivariate Data','Index Numbers'],
+    'Design & Technology': ['Design Process','Sketching & Drawing','Materials & Properties','Mechanisms & Structures','Electronics & Control','Manufacturing Processes','Sustainability in Design','Project Realisation'],
+    'Technical Graphics': ['Geometric Construction','Orthographic Projection','Isometric Drawing','Sectional Views','Pictorial Drawing','Surface Development','Building & Site Plans','CAD Basics'],
+    'Building Technology': ['Building Materials','Foundations','Walls & Brickwork','Roofs & Roofing','Doors & Windows','Plumbing Basics','Electrical Wiring Basics','Site Planning','Health & Safety'],
+    'Wood Technology': ['Timber & Wood Products','Hand Tools','Power Tools','Joints & Joinery','Furniture Making','Finishes','Workshop Safety','Project Work'],
+    'Metal Technology': ['Ferrous & Non-Ferrous Metals','Marking Out','Cutting & Filing','Drilling','Welding & Brazing','Sheet Metal Work','Forging','Workshop Safety','Project Work'],
+    'Textile Technology': ['Fibres & Fabrics','Fabric Construction','Garment Design','Pattern Cutting','Sewing Techniques','Decoration & Finishes','Textile Care','Project Work'],
+    'Food Technology & Design': ['Nutrition & Health','Food Groups','Meal Planning','Food Hygiene & Safety','Food Preparation','Cookery Methods','Food Preservation','Practical Tasks','Catering & Service'],
+    'Commercial Studies': ['Office Procedures','Business Documents','Communication in Business','Banking Services','Insurance','Marketing Basics','Stock Records','Customer Care'],
+    'Guidance & Counselling': ['Self-Awareness','Decision Making','Career Choice','Study Skills','Relationships','Substance Abuse','Mental Health','Conflict Resolution','HIV/AIDS Education'],
+    'Business Enterprise & Skills': ['Entrepreneurship','Business Planning','Marketing & Sales','Costing & Pricing','Bookkeeping','Risk Management','Customer Service','Innovation'],
+    'Theatre Arts': ['Theatre History','Acting Techniques','Voice & Movement','Stagecraft','Scriptwriting','Directing','Costume & Make-up','Performance Analysis'],
+    'Dance': ['Dance History & Traditions','Movement Vocabulary','Choreography','Performance Skills','Music & Rhythm','Composition','Health & Safety','Cultural Dances'],
+    'Musical Arts': ['Music Theory','Sight Reading','Listening & Appraisal','Performance (Voice/Instrument)','Composition','Traditional Zimbabwean Music','Music Technology','Ensemble Skills']
+  };
+  z.olevel = Object.assign(z.olevel || {}, olevelExtras);
+  z.form12 = Object.assign(z.form12 || z.olevel, z.olevel); // mirror Forms 1-2 to same subjects
+  // ---------- A-Level (Forms 5–6) ----------
+  const alevelExtras = {
+    'Mathematics': ['Algebra & Equations','Coordinate Geometry','Trigonometry','Differentiation','Integration','Vectors','Statistics Fundamentals','Mechanics Fundamentals','Sequences & Series'],
+    'Mechanical Mathematics': ['Vectors & Forces','Statics & Equilibrium','Newton\'s Laws','Friction','Projectile Motion','Circular Motion','Work, Energy, Power','Momentum & Impulse','Simple Harmonic Motion'],
+    'Software Engineering': ['Software Development Life Cycle','Requirements Engineering','UML Modelling','Object-Oriented Design','Programming (Java/Python)','Testing & Debugging','Version Control','Agile Methodologies','Software Quality'],
+    'Economic History': ['Industrial Revolution','Colonial Economies of Africa','Zimbabwe Economic History','Globalisation','Trade Patterns','Land & Labour in History','Economic Nationalism','Structural Adjustment'],
+    'Animal Science': ['Animal Anatomy & Physiology','Animal Nutrition','Animal Health & Disease','Beef Cattle Production','Dairy Production','Poultry Production','Piggery','Small Stock','Breeding & Genetics','Animal Welfare'],
+    'Crop Science': ['Plant Anatomy & Physiology','Soil & Plant Nutrition','Crop Establishment','Field Crops','Horticultural Crops','Pest & Disease Management','Weed Control','Crop Improvement','Post-Harvest Handling'],
+    'Horticulture': ['Vegetable Production','Fruit Production','Floriculture','Ornamental Plants','Greenhouse Management','Nursery Management','Plant Propagation','Marketing of Horticultural Produce'],
+    'Theatre Arts': ['Theatre History','Acting & Improvisation','Directing','Playwriting','Stage Management','Theatre Design','African Theatre','Performance Studies'],
+    'Music': ['Music Theory','History of Music','Performance (Voice/Instrument)','Composition','Aural Skills','Traditional & World Music','Music Technology','Critical Listening'],
+    'Sport Management': ['Sports Organisation','Sports Marketing','Sports Finance','Event Management','Facility Management','Sponsorship','Sports Law & Ethics','Coaching & Officiating'],
+    'Design & Technology': ['Advanced Design Process','Materials Science','CAD & CAM','Production Systems','Sustainability','Industrial Design','Engineering Drawing','Major Project']
+  };
+  z.alevel = Object.assign(z.alevel || {}, alevelExtras);
+})();
+
+/* ---- Boot: render organogram on demand ---- */
 function loadBroadcastTemplate(){
   const id = document.getElementById('bc-template').value; if(!id) return;
   const b = (state.broadcasts||[]).find(x=>x.id===id); if(!b) return;
