@@ -3724,13 +3724,11 @@ function clearOrganogram(){
   state.organogram = {nodes:[]};
   save(); renderers.organogram();
 }
-function addOrgNode(parentId){
-  editOrgNodeModal(null, parentId);
-}
 function editOrgNode(id){
   editOrgNodeModal(id, null);
 }
 function editOrgNodeModal(id, parentId){
+  state.organogram = state.organogram || {nodes:[]};
   const isNew = !id;
   const node = isNew ? {id:'org_'+Date.now(), parentId:parentId||null, title:'', name:'', color:'navy'} : state.organogram.nodes.find(n=>n.id===id);
   if(!node) return;
@@ -3779,48 +3777,38 @@ function isDescendantOf(candidate, ancestor){
 }
 function saveOrgNode(id, isNew){
   const data = {
-    id,
     title: document.getElementById('org-title').value.trim(),
     name:  document.getElementById('org-name').value.trim(),
     color: document.getElementById('org-color').value
   };
   if(!data.title){ toast('Title is required'); return; }
   state.organogram = state.organogram || {nodes:[]};
-  if(isNew){
-    // parentId comes from the modal-opening context, stored on the node itself
-    const orig = state.organogram.nodes.find(n=>n.id===id);
-    if(!orig){
-      // pull parentId from form context if available — fall back to null (top-level)
-      data.parentId = null;
-      // Try last-clicked add button context (we stored on node id when calling addOrgNode)
-    } else {
-      data.parentId = orig.parentId;
-    }
-    state.organogram.nodes.push(data);
-  } else {
-    const ex = state.organogram.nodes.find(n=>n.id===id);
+  const ex = state.organogram.nodes.find(n=>n.id===id);
+  if(ex){
     Object.assign(ex, data);
+    delete ex._draft;
     const newParent = document.getElementById('org-parent');
     if(newParent) ex.parentId = newParent.value || null;
+  } else {
+    state.organogram.nodes.push({id, parentId:null, ...data});
   }
   save(); closeModal(); renderers.organogram(); toast(isNew?'Added':'Updated');
 }
-// Override addOrgNode to pre-set parentId properly
 function addOrgNode(parentId){
   const tmpId = 'org_'+Date.now();
-  // Stash a tentative node so saveOrgNode can find parentId
   state.organogram = state.organogram || {nodes:[]};
   state.organogram.nodes.push({id:tmpId, parentId:parentId||null, title:'', name:'', color:'navy', _draft:true});
   editOrgNodeModal(tmpId, parentId);
-  // If user cancels, we need to clean the draft — patch closeModal? Simpler: clean on next render if title is empty
 }
-// Patch closeModal to clean drafts
-const _origCloseModal = closeModal;
+/* Defensive closeModal patch: clean draft nodes if any */
+const _origCloseModalOrg = window.closeModal || closeModal;
 window.closeModal = function(){
-  if(state.organogram && state.organogram.nodes){
-    state.organogram.nodes = state.organogram.nodes.filter(n=>!(n._draft && !n.title));
-  }
-  _origCloseModal();
+  try {
+    if(typeof state !== 'undefined' && state && state.organogram && Array.isArray(state.organogram.nodes)){
+      state.organogram.nodes = state.organogram.nodes.filter(n=>!(n._draft && !n.title));
+    }
+  } catch(e){ /* ignore — don't let cleanup break modal close */ }
+  if(typeof _origCloseModalOrg === 'function') _origCloseModalOrg();
 };
 function deleteOrgNode(id){
   const n = state.organogram.nodes.find(x=>x.id===id);
