@@ -3795,15 +3795,38 @@ const ZIMSEC_PAPERS = [
   {t:'Wood Technology and Design 6027/03',                   s:'Wood Technology',                   l:'alevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-6027-03/'},
   {t:'Animal Science 6028/01',                               s:'Animal Science',                    l:'alevel', u:'https://www5.zimsec.co.zw/download/animal-science-6028-01/'}
 ];
+/* Build the same-origin proxy URL for any ZIMSEC PDF. The Cloudflare Worker
+   at /zimsec-proxy fetches it server-side, the Service Worker caches it
+   client-side. Net result: tap once → paper opens; tap again offline → still opens. */
+function zimsecPdfUrl(rawUrl){
+  if(!rawUrl) return rawUrl;
+  if(rawUrl.startsWith('/zimsec-proxy')) return rawUrl;
+  if(rawUrl.startsWith('https://www5.zimsec.co.zw/')){
+    return '/zimsec-proxy?url=' + encodeURIComponent(rawUrl);
+  }
+  return rawUrl;
+}
+
 function seedZimsecPapersIfNeeded(){
-  if(state.zimsecPapersSeeded) return;
   state.library = state.library || {pastPapers:[], schemes:[], worksheets:[], questionBank:[]};
   state.library.pastPapers = state.library.pastPapers || [];
   const existing = state.library.pastPapers;
+  /* Migrate previously-seeded entries that still point at raw ZIMSEC URLs. */
+  let migrated = 0;
+  existing.forEach(p=>{
+    if(p.source === 'zimsec-seed' && p.url && p.url.startsWith('https://www5.zimsec.co.zw/')){
+      p.rawUrl = p.url;
+      p.url = zimsecPdfUrl(p.url);
+      migrated++;
+    }
+  });
+  if(migrated) save();
+  if(state.zimsecPapersSeeded) return;
   const today = localDateStr(new Date());
   let added = 0;
   ZIMSEC_PAPERS.forEach((p,i)=>{
-    if(existing.some(x=>x.url === p.u)) return;
+    const proxyUrl = zimsecPdfUrl(p.u);
+    if(existing.some(x => x.url === proxyUrl || x.rawUrl === p.u)) return;
     existing.push({
       id: 'pp_zim_'+i+'_'+Date.now(),
       title: p.t,
@@ -3811,8 +3834,9 @@ function seedZimsecPapersIfNeeded(){
       level: p.l,
       examBoard: 'ZIMSEC',
       paperNumber: (p.t.match(/\d{4}\/\d{2}/)||p.t.match(/Paper \d/)||[''])[0],
-      url: p.u,
-      notes: 'Official ZIMSEC specimen. Tap 🔗 to open on the ZIMSEC website.',
+      url: proxyUrl,
+      rawUrl: p.u,
+      notes: 'Official ZIMSEC specimen. Tap ⬇️ to open the PDF. First open downloads; after that it\'s available offline.',
       dateAdded: today,
       source: 'zimsec-seed'
     });
@@ -3829,6 +3853,121 @@ function reloadZimsecPapers(){
   if(typeof renderers.library === 'function') renderers.library();
   toast('ZIMSEC papers refreshed');
 }
+
+/* ============================================================
+   Offline PDF prefetch — download papers in bulk on Wi-Fi
+   ============================================================ */
+const PREFETCH = { active:false, done:0, total:0, errors:0, bytes:0, cancel:false, batchSize:4 };
+
+function checkPaperCached(proxyUrl){
+  return new Promise(resolve=>{
+    if(!('serviceWorker' in navigator) || !navigator.serviceWorker.controller){ resolve(false); return; }
+    const chan = new MessageChannel();
+    const timer = setTimeout(()=>resolve(false), 1500);
+    chan.port1.onmessage = (e)=>{ clearTimeout(timer); resolve(!!(e.data && e.data.cached)); };
+    navigator.serviceWorker.controller.postMessage({type:'CHECK_PAPER', url: proxyUrl}, [chan.port2]);
+  });
+}
+
+function countCachedPapers(){
+  return new Promise(resolve=>{
+    if(!('serviceWorker' in navigator) || !navigator.serviceWorker.controller){ resolve(0); return; }
+    const chan = new MessageChannel();
+    const timer = setTimeout(()=>resolve(0), 1500);
+    chan.port1.onmessage = (e)=>{ clearTimeout(timer); resolve((e.data && e.data.count) || 0); };
+    navigator.serviceWorker.controller.postMessage({type:'COUNT_PAPERS'}, [chan.port2]);
+  });
+}
+
+function clearCachedPapers(){
+  return new Promise(resolve=>{
+    if(!('serviceWorker' in navigator) || !navigator.serviceWorker.controller){ resolve(false); return; }
+    const chan = new MessageChannel();
+    const timer = setTimeout(()=>resolve(false), 3000);
+    chan.port1.onmessage = (e)=>{ clearTimeout(timer); resolve(e.data && e.data.type === 'PAPERS_CLEARED'); };
+    navigator.serviceWorker.controller.postMessage({type:'CLEAR_PAPERS'}, [chan.port2]);
+  });
+}
+
+async function prefetchOnePaper(rawZimsecUrl){
+  const proxyUrl = zimsecPdfUrl(rawZimsecUrl);
+  try {
+    const resp = await fetch(proxyUrl, {cache:'no-cache'});
+    if(resp.ok){
+      const cl = parseInt(resp.headers.get('content-length')||'0',10);
+      if(cl) PREFETCH.bytes += cl;
+      /* Drain body so SW finishes caching */
+      await resp.blob();
+      return true;
+    }
+    PREFETCH.errors++;
+    return false;
+  } catch(e){
+    PREFETCH.errors++;
+    return false;
+  }
+}
+
+async function prefetchAllZimsecPapers(){
+  if(PREFETCH.active){ toast('Already downloading'); return; }
+  const totalMB = Math.round(ZIMSEC_PAPERS.length * 1.0); // rough estimate ~1MB avg
+  if(!confirm(
+    '📥 Pre-download '+ZIMSEC_PAPERS.length+' ZIMSEC papers for offline use?\n\n' +
+    'This downloads ~'+totalMB+' MB to this device. After it finishes you can open any paper without internet or mobile data.\n\n' +
+    '⚠️ Only do this on Wi-Fi. Continue?'
+  )) return;
+  PREFETCH.active = true;
+  PREFETCH.done = 0;
+  PREFETCH.errors = 0;
+  PREFETCH.bytes = 0;
+  PREFETCH.cancel = false;
+  PREFETCH.total = ZIMSEC_PAPERS.length;
+  renderPrefetchModal();
+  /* Process in parallel batches */
+  const queue = ZIMSEC_PAPERS.slice();
+  while(queue.length && !PREFETCH.cancel){
+    const batch = queue.splice(0, PREFETCH.batchSize);
+    await Promise.all(batch.map(p => prefetchOnePaper(p.u).then(ok => {
+      PREFETCH.done++;
+      renderPrefetchModal();
+    })));
+  }
+  PREFETCH.active = false;
+  renderPrefetchModal(true);
+}
+function cancelPrefetch(){ PREFETCH.cancel = true; }
+
+function renderPrefetchModal(finished){
+  let modal = document.getElementById('prefetch-modal');
+  const pct = PREFETCH.total ? Math.round(100*PREFETCH.done/PREFETCH.total) : 0;
+  const mb = (PREFETCH.bytes/1048576).toFixed(1);
+  const body = `
+    <h3>${finished?'✓ Finished':'📥 Downloading ZIMSEC papers'}</h3>
+    <p class="modal-sub">${finished
+      ? `Downloaded ${PREFETCH.done - PREFETCH.errors} of ${PREFETCH.total} papers (${mb} MB). They\'re now stored on this device. You can open them anytime without internet.`
+      : `${PREFETCH.done} of ${PREFETCH.total} papers cached (${mb} MB so far). Keep this tab open while downloading.`}</p>
+    <div style="background:var(--card-tint);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0">
+      <div style="height:8px;background:var(--bg-soft);border-radius:4px;overflow:hidden">
+        <div style="height:100%;background:linear-gradient(90deg,var(--accent),var(--primary));width:${pct}%;transition:width .3s"></div>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between">
+        <span>${pct}%</span>
+        ${PREFETCH.errors?`<span style="color:var(--amber)">${PREFETCH.errors} failed</span>`:''}
+      </div>
+    </div>
+    <div class="modal-actions">
+      ${finished
+        ? '<button class="btn btn-primary" onclick="closeModal();renderers.library&&renderers.library();">Done</button>'
+        : '<button class="btn btn-danger" onclick="cancelPrefetch()">Stop</button>'}
+    </div>`;
+  if(!modal){ showModal(body); }
+  else {
+    /* Update existing modal body */
+    const inner = document.querySelector('#modal-bg .modal');
+    if(inner) inner.innerHTML = body;
+  }
+}
+
 // Patch library renderer to auto-seed on first visit
 const _origLibRenderZSeed = renderers.library;
 renderers.library = function(){
@@ -5353,6 +5492,39 @@ window.renderLibrary = function(){
   else if(_libTab === 'questionBank') container.innerHTML = renderQuestionBank(filtered);
 };
 
+async function showPaperCacheStatus(){
+  const cached = await countCachedPapers();
+  const total = ZIMSEC_PAPERS.length;
+  let storageInfo = '';
+  if(navigator.storage && navigator.storage.estimate){
+    try {
+      const est = await navigator.storage.estimate();
+      const usedMB = Math.round((est.usage||0)/1048576);
+      const quotaMB = Math.round((est.quota||0)/1048576);
+      storageInfo = `<div style="font-size:13px;color:var(--muted);margin-top:8px">📦 App is using ${usedMB} MB on this device (quota: ${quotaMB} MB)</div>`;
+    } catch(e){}
+  }
+  showModal(`
+    <h3>📊 Offline papers status</h3>
+    <div style="background:var(--card-tint);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:10px 0">
+      <div style="font-size:28px;font-weight:800;color:var(--primary-darker)">${cached} <span style="font-size:14px;color:var(--muted);font-weight:600">of ${total}</span></div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">ZIMSEC papers saved on this device</div>
+      ${storageInfo}
+    </div>
+    <p class="modal-sub" style="font-size:13.5px">Cached papers open instantly without internet or mobile data. Uncached papers download on first tap (Wi-Fi recommended).</p>
+    <div class="modal-actions">
+      ${cached < total ? `<button class="btn btn-primary" onclick="closeModal();prefetchAllZimsecPapers()">📥 Download missing (${total-cached})</button>` : ''}
+      ${cached ? `<button class="btn btn-danger" onclick="confirmClearPaperCache()">🗑 Clear offline papers</button>` : ''}
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    </div>
+  `);
+}
+async function confirmClearPaperCache(){
+  if(!confirm('Delete all cached papers from this device? They\'ll need to be downloaded again to use offline.')) return;
+  const ok = await clearCachedPapers();
+  closeModal();
+  toast(ok ? 'Cleared offline papers' : 'Could not clear');
+}
 function renderLibToolbar(){
   const tb = document.getElementById('lib-toolbar');
   if(!tb) return;
@@ -5364,10 +5536,9 @@ function renderLibToolbar(){
     tb.innerHTML = `<button class="btn btn-soft btn-sm" onclick="openWorksheetGenerator()">✨ Generate worksheet from topic</button>`;
   } else if(_libTab === 'pastPapers'){
     tb.innerHTML = `
-      <button class="btn btn-soft btn-sm" onclick="reloadZimsecPapers()" title="Re-import official ZIMSEC papers">📥 Reload ZIMSEC pack (${ZIMSEC_PAPERS.length} papers)</button>
-      <a class="btn btn-soft btn-sm" href="https://www5.zimsec.co.zw/download-category/o-level/" target="_blank" rel="noopener">🔗 ZIMSEC O-Level →</a>
-      <a class="btn btn-soft btn-sm" href="https://www5.zimsec.co.zw/download-category/a-level/" target="_blank" rel="noopener">🔗 ZIMSEC A-Level →</a>
-      <a class="btn btn-soft btn-sm" href="https://www5.zimsec.co.zw/download-category/grade-7/" target="_blank" rel="noopener">🔗 ZIMSEC Grade 7 →</a>`;
+      <button class="btn btn-primary btn-sm" onclick="prefetchAllZimsecPapers()" title="Download every ZIMSEC paper to this device — uses ~180MB on Wi-Fi, then zero data forever">📥 Download all ${ZIMSEC_PAPERS.length} papers for offline (Wi-Fi)</button>
+      <button class="btn btn-soft btn-sm" onclick="showPaperCacheStatus()" title="See how many papers are saved offline">📊 Offline status</button>
+      <button class="btn btn-soft btn-sm" onclick="reloadZimsecPapers()" title="Re-import official ZIMSEC papers">↻ Reload pack</button>`;
   } else if(_libTab === 'schemes'){
     tb.innerHTML = `
       <a class="btn btn-soft btn-sm" href="https://www5.zimsec.co.zw/syllabi/" target="_blank" rel="noopener">🔗 Browse official ZIMSEC syllabi →</a>
