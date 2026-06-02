@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ClassMate Zim">
 <title>ClassMate Zim — The Professional Educator Success Planner</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231A2E4F'/%3E%3Cpath d='M14 22h36v4H14zm0 10h36v4H14zm0 10h22v4H14z' fill='%23fff'/%3E%3Ccircle cx='44' cy='44' r='6' fill='%23C9A86A'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23F8F6F1'/%3E%3Ctext x='32' y='24' font-family='Arial,sans-serif' font-size='11' font-weight='900' text-anchor='middle' fill='%23C9A86A'%3ECM%3C/text%3E%3Crect x='14' y='29' width='36' height='2' fill='%23C9A86A'/%3E%3Ctext x='32' y='52' font-family='Arial,sans-serif' font-size='24' font-weight='900' text-anchor='middle' fill='%231A2E4F' letter-spacing='1'%3EZIM%3C/text%3E%3C/svg%3E">
 <link rel="manifest" id="manifest-link">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -465,6 +465,241 @@ img{max-width:100%}
 .footer{padding:30px 38px 50px;text-align:center;color:var(--muted);font-size:12.5px}
 @media(max-width:980px){.footer{padding:20px 16px 40px}}
 
+/* ============================================================
+   MERGED LANDING-PAGE STYLES — shown to first-time visitors
+   ============================================================ */
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+#view-landing a{color:inherit;text-decoration:none}
+#view-landing img{max-width:100%}
+.l-nav{position:sticky;top:0;z-index:50;background:rgba(248,246,241,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.l-nav-in{max-width:1120px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.l-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-.01em}
+.l-logo-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:grid;place-items:center;color:#fff;flex:0 0 auto}
+.l-logo-mark::after{content:'C';font-weight:800;font-size:18px;color:var(--accent)}
+.l-logo-text{color:var(--primary-darker)}
+.l-logo-sub{font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.l-nav-links{display:flex;gap:26px;align-items:center}
+.l-nav-links a{font-size:14px;font-weight:600;color:var(--muted);transition:color .15s}
+.l-nav-links a:hover{color:var(--primary)}
+.l-nav-cta{padding:9px 18px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border-radius:10px;font-weight:700;font-size:14px;box-shadow:0 4px 14px rgba(26,46,79,.25);transition:transform .12s,box-shadow .2s;cursor:pointer;border:none}
+.l-nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(26,46,79,.35)}
+@media(max-width:760px){.l-nav-links{display:none}}
+.l-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:15px;padding:14px 26px;border-radius:12px;transition:transform .12s,box-shadow .2s;text-align:center;white-space:nowrap;cursor:pointer;border:none}
+.l-btn:active{transform:scale(.97)}
+.l-btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;box-shadow:0 8px 22px rgba(26,46,79,.32)}
+.l-btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(26,46,79,.42)}
+.l-btn-gold{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--primary-darker)}
+.l-btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(201,168,106,.35)}
+.l-btn-ghost{background:#fff;color:var(--primary-darker);border:1.5px solid var(--line)}
+.l-btn-ghost:hover{border-color:var(--primary-light);background:var(--bg-soft)}
+.l-btn-lg{padding:16px 32px;font-size:16px;border-radius:14px}
+.l-hero{padding:64px 0 60px;text-align:center}
+.l-hero .pill{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:var(--primary-darker);font-size:12.5px;font-weight:800;padding:6px 14px;border-radius:999px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:22px;box-shadow:0 2px 8px rgba(201,168,106,.3)}
+.l-hero h1{font-size:clamp(34px,6.5vw,58px);font-weight:800;letter-spacing:-.025em;line-height:1.06;color:var(--primary-darker);max-width:880px;margin:0 auto}
+.l-hero h1 .grad{background:linear-gradient(120deg,var(--primary-dark),var(--accent-dark));-webkit-background-clip:text;background-clip:text;color:transparent}
+.l-hero p.sub{font-size:clamp(16px,2.5vw,19px);color:var(--muted);max-width:640px;margin:22px auto 32px;line-height:1.55}
+.l-hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.l-hero-note{font-size:13px;color:var(--muted)}
+.l-hero-note .check{color:var(--green);font-weight:800}
+.l-section{padding:80px 0}
+.l-section-narrow{max-width:780px;margin:0 auto;text-align:center}
+.l-eyebrow{display:inline-block;background:var(--bg-soft);color:var(--primary-dark);font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:6px;margin-bottom:18px}
+h2.l-h{font-size:clamp(28px,4.5vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.15;color:var(--primary-darker);margin-bottom:16px}
+h2.l-h .grad{background:linear-gradient(120deg,var(--primary-dark),var(--accent-dark));-webkit-background-clip:text;background-clip:text;color:transparent}
+.l-lead{font-size:17px;color:var(--muted);max-width:620px;margin:0 auto 36px;line-height:1.6}
+.l-features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:920px){.l-features{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:540px){.l-features{grid-template-columns:1fr}}
+.l-feat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;transition:transform .15s,box-shadow .2s}
+.l-feat:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.l-feat-icon{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--bg-soft),#E5DDC8);display:grid;place-items:center;color:var(--primary-dark);font-size:20px;margin-bottom:14px}
+.l-feat h3{font-size:16px;font-weight:800;color:var(--primary-darker);margin-bottom:6px;letter-spacing:-.01em}
+.l-feat p{font-size:14px;color:var(--muted);line-height:1.55}
+.l-curric{background:linear-gradient(135deg,var(--primary),var(--primary-darker));color:#fff;border-radius:24px;padding:48px 36px;text-align:center;position:relative;overflow:hidden}
+.l-curric h2{font-size:clamp(26px,4vw,36px);font-weight:800;color:#fff;margin-bottom:14px;letter-spacing:-.015em}
+.l-curric p{font-size:16px;opacity:.85;max-width:560px;margin:0 auto 30px}
+.l-curric-badges{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.l-cb{background:rgba(255,255,255,.08);border:1.5px solid var(--accent);color:#fff;padding:13px 24px;border-radius:11px;font-weight:700;font-size:14.5px;display:flex;flex-direction:column;align-items:center;gap:3px;backdrop-filter:blur(10px)}
+.l-cb .nm{font-size:15px}
+.l-cb .sb{font-size:11px;color:var(--accent-light);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.l-pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:stretch}
+@media(max-width:880px){.l-pricing-grid{grid-template-columns:1fr;max-width:440px;margin:0 auto}}
+.l-tier{background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:30px 24px;display:flex;flex-direction:column;text-align:left;transition:transform .15s,box-shadow .2s;position:relative}
+.l-tier:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.l-tier.featured{border-color:var(--accent);box-shadow:0 12px 36px rgba(201,168,106,.25);transform:scale(1.02)}
+.l-tier .ribbon{position:absolute;top:-12px;right:24px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--primary-darker);font-size:11px;font-weight:800;padding:5px 12px;border-radius:7px;letter-spacing:.06em;text-transform:uppercase;box-shadow:0 4px 10px rgba(201,168,106,.4)}
+.l-tier .nm{font-size:13px;font-weight:800;color:var(--accent-dark);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.l-tier .ti{font-size:22px;font-weight:800;color:var(--primary-darker);margin-bottom:6px;letter-spacing:-.01em}
+.l-tier .price{display:flex;align-items:baseline;gap:6px;margin-bottom:6px}
+.l-tier .price .amt{font-size:38px;font-weight:800;color:var(--primary-darker);letter-spacing:-.02em;line-height:1}
+.l-tier .price .per{font-size:14px;color:var(--muted);font-weight:600}
+.l-tier .desc{font-size:13.5px;color:var(--muted);margin-bottom:18px;min-height:38px}
+.l-tier ul{list-style:none;margin-bottom:20px;flex:1}
+.l-tier ul li{padding:6px 0;font-size:14px;display:flex;gap:8px;align-items:flex-start}
+.l-tier ul li::before{content:'✓';color:var(--accent-dark);font-weight:800;flex:0 0 auto;font-size:15px;line-height:1.4}
+.l-final{background:linear-gradient(135deg,var(--primary),var(--primary-darker));color:#fff;border-radius:24px;padding:64px 32px;text-align:center;position:relative;overflow:hidden}
+.l-final h2{font-size:clamp(28px,4.5vw,42px);font-weight:800;color:#fff;margin-bottom:14px;letter-spacing:-.02em}
+.l-final h2 .gold{color:var(--accent)}
+.l-final p{font-size:16px;opacity:.85;margin-bottom:30px;max-width:520px;margin-left:auto;margin-right:auto}
+.l-foot{padding:32px 20px;border-top:1px solid var(--line);text-align:center;font-size:13px;color:var(--muted);margin-top:32px}
+.l-foot a{color:var(--primary-dark);font-weight:600;cursor:pointer}
+.l-foot a:hover{text-decoration:underline}
+
+/* === DAILY ASSESSMENT — teacher reflections === */
+.da-entry{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:12px;position:relative;transition:box-shadow .15s}
+.da-entry:hover{box-shadow:var(--shadow)}
+.da-entry.help-needed{border-left:5px solid var(--amber)}
+.da-entry .da-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.da-entry .da-date{font-weight:800;color:var(--primary-darker);font-size:14px}
+.da-entry .da-class{display:inline-block;background:var(--bg-soft);color:var(--primary-dark);font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:5px;margin-left:6px}
+.da-entry .da-subject{display:inline-block;background:var(--accent);color:var(--primary-darker);font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:5px;margin-left:4px}
+.da-entry .da-actions{display:flex;gap:6px}
+.da-entry .da-row{margin:8px 0;font-size:13.5px;line-height:1.55}
+.da-entry .da-row strong{color:var(--primary-darker);font-weight:700;display:inline-block;min-width:90px}
+.da-entry .da-help-flag{display:inline-block;background:var(--amber-bg);color:var(--amber);font-size:11px;font-weight:800;padding:3px 9px;border-radius:6px;letter-spacing:.04em}
+.da-entry .da-numbers{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;padding-top:8px;border-top:1px dashed var(--line)}
+.da-entry .da-numbers .nm{font-size:12px;color:var(--muted);font-weight:600}
+.da-entry .da-numbers .nm strong{color:var(--primary-darker);font-size:13.5px;margin-left:3px}
+
+/* === HEADMASTER DAILY DIGEST === */
+.digest-stat{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px 14px}
+.digest-stat .di-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:18px;flex:0 0 auto}
+.digest-stat .di-num{font-size:18px;font-weight:800;color:var(--primary-darker);line-height:1}
+.digest-stat .di-lbl{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+
+/* === BROADCAST "How it works" panel === */
+.help-panel{background:linear-gradient(180deg,#fff,var(--card-tint));border:1px solid var(--accent);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.help-panel summary{cursor:pointer;font-weight:800;color:var(--primary-darker);font-size:14.5px;display:flex;align-items:center;gap:8px;list-style:none}
+.help-panel summary::-webkit-details-marker{display:none}
+.help-panel summary::after{content:'+';margin-left:auto;font-size:20px;font-weight:300;color:var(--accent-dark);transition:transform .2s}
+.help-panel[open] summary::after{transform:rotate(45deg)}
+.help-panel .hp-body{margin-top:12px;font-size:13.5px;color:var(--ink);line-height:1.6}
+.help-panel .hp-body h4{font-size:13.5px;color:var(--primary-darker);font-weight:800;margin:12px 0 4px;letter-spacing:.02em}
+.help-panel .hp-body ol{padding-left:22px;margin:6px 0}
+.help-panel .hp-body li{margin-bottom:5px}
+.help-panel .hp-body code{background:var(--bg-soft);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--primary-darker)}
+
+/* === LIBRARY — past papers, schemes, worksheets, question bank === */
+.lib-tabs{display:flex;gap:4px;border-bottom:1.5px solid var(--line);margin-bottom:18px;overflow-x:auto}
+.lib-tab{background:none;border:none;padding:11px 16px;font-weight:600;color:var(--muted);cursor:pointer;font-size:13.5px;border-bottom:3px solid transparent;white-space:nowrap;font-family:inherit;transition:color .15s,border-color .15s}
+.lib-tab.active{color:var(--primary-darker);border-bottom-color:var(--accent);font-weight:800}
+.lib-tab:hover{color:var(--primary-dark)}
+.lib-filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.lib-list{display:flex;flex-direction:column;gap:8px}
+.lib-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;padding:14px;background:var(--card-tint);border:1px solid var(--line-soft);border-radius:11px;transition:all .15s;align-items:center}
+.lib-item:hover{background:#fff;border-color:var(--accent);box-shadow:var(--shadow)}
+.lib-item .lib-icon{font-size:24px;flex:0 0 auto;width:40px;text-align:center}
+.lib-item .lib-body{min-width:0}
+.lib-item .lib-title{font-weight:800;color:var(--primary-darker);font-size:14.5px;letter-spacing:-.01em}
+.lib-item .lib-meta{font-size:12.5px;color:var(--muted);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap}
+.lib-item .lib-meta .badge{background:var(--bg-soft);padding:1px 8px;border-radius:5px;font-weight:700;font-size:11.5px;color:var(--primary-dark)}
+.lib-item .lib-meta .badge.gold{background:var(--accent);color:var(--primary-darker)}
+.lib-item .lib-actions{display:flex;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
+.lib-item .lib-actions .btn{padding:6px 10px;font-size:12px;border-radius:7px}
+.lib-empty{text-align:center;padding:36px 20px;color:var(--muted);background:var(--card-tint);border-radius:12px;border:1px dashed var(--line)}
+.lib-empty .em-icon{font-size:42px;margin-bottom:10px}
+.lib-empty h4{font-size:15px;color:var(--primary-darker);margin-bottom:6px;font-weight:800}
+.lib-empty p{font-size:13.5px;line-height:1.55;max-width:420px;margin:0 auto 12px}
+.lib-empty .em-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+/* Worksheet builder rows */
+.wb-q-row{display:grid;grid-template-columns:auto 1fr 1fr 60px 30px;gap:8px;padding:8px 0;align-items:center;border-bottom:1px solid var(--line-soft)}
+.wb-q-row .num{font-weight:800;color:var(--accent-dark);width:24px;text-align:center}
+.wb-q-row input,.wb-q-row textarea{padding:6px 9px;border:1px solid var(--line);border-radius:7px;font-size:13px;width:100%;font-family:inherit;background:#fff}
+.wb-q-row textarea{resize:vertical;min-height:32px}
+@media(max-width:680px){.wb-q-row{grid-template-columns:auto 1fr 30px}.wb-q-row .col-ans,.wb-q-row .col-diff{grid-column:span 3}}
+
+/* Printable worksheet */
+@media print{
+  body.printing-ws .app,body.printing-ws .footer{display:none!important}
+  body.printing-ws #ws-print{display:block!important}
+  #ws-print{padding:0;font-family:Georgia,serif;color:#000}
+  #ws-print .ws-header{border-bottom:2.5px solid #1A2E4F;padding-bottom:14px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end}
+  #ws-print .ws-school{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:#1A2E4F;font-weight:800}
+  #ws-print .ws-title{font-size:24px;font-weight:800;color:#1A2E4F;margin-top:4px}
+  #ws-print .ws-meta{font-size:12.5px;color:#666;text-align:right;line-height:1.6}
+  #ws-print .ws-instructions{background:#FAF8F2;border-left:4px solid #C9A86A;padding:10px 14px;margin-bottom:18px;font-size:13.5px;font-style:italic}
+  #ws-print .ws-name-row{display:flex;gap:18px;margin-bottom:20px;font-size:13px}
+  #ws-print .ws-name-row .nm{flex:1;border-bottom:1px solid #444;padding-bottom:2px}
+  #ws-print .ws-q{margin-bottom:18px;page-break-inside:avoid}
+  #ws-print .ws-q .qn{font-weight:800;color:#1A2E4F;margin-bottom:6px;font-size:14px}
+  #ws-print .ws-q .ans-space{border-bottom:1px solid #aaa;min-height:60px;margin-top:6px}
+  #ws-print .ws-footer{margin-top:30px;padding-top:10px;border-top:1px solid #C9A86A;font-size:10.5px;color:#888;text-align:center}
+  #ws-print .ms-page{page-break-before:always}
+  #ws-print .ms-page h3{font-size:18px;color:#1A2E4F;margin-bottom:14px;border-bottom:2px solid #C9A86A;padding-bottom:6px}
+  #ws-print .ms-q{margin-bottom:12px;page-break-inside:avoid;display:grid;grid-template-columns:32px 1fr 1fr;gap:10px}
+  #ws-print .ms-q .num{font-weight:800;color:#C9A86A}
+  #ws-print .ms-q .q-text{font-size:12.5px}
+  #ws-print .ms-q .a-text{font-size:12.5px;color:#1A2E4F;font-weight:700}
+}
+#ws-print{display:none}
+
+/* === INSTALL BAR — big sticky banner so phone users can find install easily === */
+#install-bar{position:sticky;top:0;z-index:60;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--primary-darker);
+  padding:11px 14px;display:flex;align-items:center;justify-content:center;gap:12px;font-weight:700;font-size:14px;
+  box-shadow:0 3px 12px rgba(26,46,79,.18);flex-wrap:wrap;text-align:center}
+#install-bar span{flex:1;min-width:200px;line-height:1.35}
+#install-bar button.install-cta{background:var(--primary);color:#fff;padding:8px 18px;border-radius:9px;font-size:13.5px;font-weight:800;cursor:pointer;border:none;flex:0 0 auto;letter-spacing:.02em;box-shadow:0 4px 12px rgba(26,46,79,.25)}
+#install-bar button.install-cta:hover{background:var(--primary-dark);transform:translateY(-1px)}
+#install-bar button.install-cta:active{transform:scale(.96)}
+#install-bar button.dismiss{background:transparent;border:none;color:var(--primary-darker);font-size:24px;line-height:1;cursor:pointer;padding:0 6px;flex:0 0 auto;font-weight:700;opacity:.65}
+#install-bar button.dismiss:hover{opacity:1}
+@media(max-width:520px){#install-bar{padding:10px 12px;font-size:13px}#install-bar span{font-size:13px}#install-bar button.install-cta{padding:8px 14px;font-size:13px}}
+
+/* === iOS INSTALL MODAL — step-by-step instructions === */
+#ios-install-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+#ios-install-modal.show{display:flex}
+#ios-install-modal .iim-content{background:#fff;border-radius:18px;padding:26px 24px;max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.35);animation:iim-pop .25s ease}
+@keyframes iim-pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+#ios-install-modal h3{font-size:20px;font-weight:800;color:var(--primary-darker);margin-bottom:10px;text-align:center;letter-spacing:-.01em}
+#ios-install-modal p{font-size:14.5px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+#ios-install-modal ol{font-size:14.5px;color:var(--ink);line-height:1.85;padding-left:22px;margin-bottom:16px}
+#ios-install-modal ol li{margin-bottom:8px}
+#ios-install-modal ol li strong{color:var(--primary-darker)}
+#ios-install-modal .iim-close{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;padding:12px 24px;border-radius:11px;border:none;font-weight:800;font-size:15px;width:100%;cursor:pointer;letter-spacing:.01em;box-shadow:0 6px 16px rgba(26,46,79,.28)}
+#ios-install-modal .iim-close:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(26,46,79,.36)}
+#ios-install-modal .iim-close:active{transform:scale(.97)}
+
+/* Also add a prominent install CTA in the hero CTA row so it's visible right under the headline */
+.l-hero-install-cta{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--primary-darker);padding:14px 26px;border-radius:12px;font-weight:800;font-size:15px;border:none;cursor:pointer;box-shadow:0 8px 22px rgba(201,168,106,.45);transition:transform .12s,box-shadow .2s}
+.l-hero-install-cta:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(201,168,106,.55)}
+.l-hero-install-cta:active{transform:scale(.97)}
+
+/* === FLOATING THEME PICKER — visible on landing for quick brand preview === */
+#theme-fab{position:fixed;bottom:20px;right:20px;z-index:55;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;
+  border:none;cursor:pointer;padding:14px 18px;border-radius:30px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 10px 24px rgba(26,46,79,.4);transition:transform .2s,box-shadow .2s;line-height:1}
+#theme-fab .fab-icon{font-size:20px}
+#theme-fab .fab-label{font-size:13px;letter-spacing:.02em}
+@media(max-width:520px){#theme-fab .fab-label{display:none}#theme-fab{padding:0;width:54px;height:54px;border-radius:50%}#theme-fab .fab-icon{font-size:24px}}
+#theme-fab:hover{transform:translateY(-3px) scale(1.05);box-shadow:0 14px 30px rgba(26,46,79,.5)}
+#theme-fab:active{transform:scale(.95)}
+@media print{#theme-fab{display:none!important}}
+
+#theme-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+#theme-modal.show{display:flex}
+#theme-modal .tm-content{background:#fff;border-radius:18px;padding:24px;max-width:460px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+#theme-modal h3{font-size:19px;font-weight:800;color:var(--primary-darker);margin-bottom:6px;text-align:center}
+#theme-modal .tm-sub{font-size:13.5px;color:var(--muted);margin-bottom:18px;text-align:center;line-height:1.45}
+.tm-section-title{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.tm-themes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.tm-theme{background:#fff;border:2px solid #e2dccb;border-radius:12px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left;font-family:inherit}
+.tm-theme.on{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,46,79,.1)}
+.tm-theme:hover{border-color:var(--primary-light)}
+.tm-swatch{width:100%;height:36px;border-radius:8px;display:flex;overflow:hidden;border:1px solid rgba(0,0,0,.08)}
+.tm-swatch .a{flex:2}.tm-swatch .b{flex:1}
+.tm-theme .nm{font-weight:700;font-size:13.5px;color:var(--ink)}
+.tm-theme .sub{font-size:11px;color:var(--muted);font-weight:600}
+.tm-custom{background:#FAF8F2;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.tm-custom-row{display:flex;gap:10px;align-items:end;margin-bottom:6px;flex-wrap:wrap}
+.tm-custom-row .f{flex:1;min-width:120px}
+.tm-custom-row label{display:block;font-size:11.5px;font-weight:700;color:var(--primary-darker);margin-bottom:4px;letter-spacing:.02em}
+.tm-custom-row input[type="color"]{width:100%;height:40px;border:1.5px solid var(--line);border-radius:9px;padding:2px;cursor:pointer;background:#fff}
+.tm-actions{display:flex;gap:10px;margin-top:14px}
+.tm-actions button{flex:1;padding:11px;border-radius:10px;font-weight:700;font-size:14px;border:none;cursor:pointer}
+.tm-actions .reset{background:#FAF8F2;color:var(--primary-darker);border:1px solid var(--line)}
+.tm-actions .done{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff}
+
 /* === Theme picker === */
 .theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
 .theme-card{background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;
@@ -535,6 +770,202 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
 </head>
 <body>
 
+<!-- =====================================================
+     INSTALL BAR — sticky top banner, easy to spot on phones.
+     Shows "Install on phone" button that triggers native PWA
+     prompt on Android Chrome OR shows iOS instructions modal.
+     ===================================================== -->
+<div id="install-bar" style="display:none">
+  <span>📱 Install ClassMate on your phone — works offline, opens like an app</span>
+  <button class="install-cta" onclick="triggerInstall()">Install</button>
+  <button class="dismiss" onclick="dismissInstallBar()" aria-label="Dismiss">×</button>
+</div>
+
+<!-- =====================================================
+     FLOATING THEME PICKER — bottom-right button, always visible
+     ===================================================== -->
+<button id="theme-fab" onclick="openThemeModal()" aria-label="Customise colours" title="Customise colours for your school"><span class="fab-icon">🎨</span><span class="fab-label">Customise colours</span></button>
+
+<div id="theme-modal">
+  <div class="tm-content">
+    <h3>🎨 Customise colours</h3>
+    <p class="tm-sub">Pick a theme or set your own brand colours. Applies across the whole planner — landing page and inside the app.</p>
+
+    <div class="tm-section-title">Preset themes</div>
+    <div class="tm-themes" id="tm-themes"></div>
+
+    <div class="tm-section-title">Your own colours</div>
+    <div class="tm-custom">
+      <div class="tm-custom-row">
+        <div class="f"><label>Primary colour</label><input type="color" id="tm-primary" oninput="updateCustomColor('primary', this.value)"></div>
+        <div class="f"><label>Accent colour</label><input type="color" id="tm-accent" oninput="updateCustomColor('accent', this.value)"></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Tip: try your school's brand colours — gold + navy, green + cream, maroon + grey, etc.</div>
+    </div>
+
+    <div class="tm-actions">
+      <button class="reset" onclick="resetTheme()">Reset to default</button>
+      <button class="done" onclick="closeThemeModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================
+     iOS INSTALL INSTRUCTIONS — shown when iPhone user taps Install
+     ===================================================== -->
+<div id="ios-install-modal">
+  <div class="iim-content">
+    <div style="text-align:center;font-size:48px;margin-bottom:10px">📱</div>
+    <h3>Install on your iPhone</h3>
+    <p>Apple makes us use the Share button to install. It's a few taps:</p>
+    <ol>
+      <li>Tap the <strong>Share button</strong> at the bottom of Safari<br><small style="color:#888">(it looks like a square with an ↑ arrow coming out)</small></li>
+      <li>Scroll down in the menu that appears</li>
+      <li>Tap <strong>"Add to Home Screen"</strong></li>
+      <li>Tap <strong>"Add"</strong> in the top right corner</li>
+    </ol>
+    <p style="font-size:13px;color:#888;text-align:center;margin-top:12px"><strong>⚠️ You must be in Safari</strong> — Chrome on iPhone can't install apps.</p>
+    <button class="iim-close" onclick="closeIOSModal()">Got it, I'll try</button>
+  </div>
+</div>
+
+<!-- =====================================================
+     LANDING VIEW — shown by default to first-time visitors.
+     "Open the planner" button hides this and reveals the app.
+     ===================================================== -->
+<div id="view-landing">
+  <header class="l-nav">
+    <div class="l-nav-in">
+      <a class="l-logo" onclick="showAppView()" style="cursor:pointer">
+        <div class="l-logo-mark"></div>
+        <div><div class="l-logo-text">ClassMate <span style="color:var(--accent-dark)">Zim</span></div><div class="l-logo-sub">Educator Planner</div></div>
+      </a>
+      <nav class="l-nav-links">
+        <a href="#l-features">Features</a>
+        <a href="#l-curriculum">Curriculum</a>
+        <a href="#l-pricing">Pricing</a>
+      </nav>
+      <button class="l-nav-cta" onclick="showAppView()">Open the planner →</button>
+    </div>
+  </header>
+
+  <section class="l-hero">
+    <div class="wrap">
+      <div class="pill">🇿🇼 Built for Zimbabwean teachers · Inspection-ready</div>
+      <h1>Run your classroom — and your life — <span class="grad">from one professional planner.</span></h1>
+      <p class="sub">ClassMate Zim is the offline-first teaching system built for Zimbabwean classrooms. Lesson plans, attendance, marks, behaviour, parent broadcasts, ZIMSEC + Cambridge subjects, wellbeing and budget — all in one place, no internet required.</p>
+      <div class="l-hero-cta">
+        <button class="l-btn l-btn-primary l-btn-lg" onclick="showAppView()">📔 Open the planner</button>
+        <button id="install-hero-btn" class="l-hero-install-cta" onclick="triggerInstall()" style="display:none">📲 Install on my phone</button>
+        <a href="#l-pricing" class="l-btn l-btn-ghost l-btn-lg">See pricing</a>
+      </div>
+      <div class="l-hero-note"><span class="check">✓</span> Free to try · <span class="check">✓</span> No accounts · <span class="check">✓</span> Works offline · <span class="check">✓</span> Installs like an app</div>
+    </div>
+  </section>
+
+  <section class="l-section" id="l-features" style="background:linear-gradient(180deg,transparent,#FAF8F2)">
+    <div class="wrap">
+      <div class="l-section-narrow">
+        <div class="l-eyebrow">Everything in one planner</div>
+        <h2 class="l-h">A complete professional teaching system.</h2>
+        <p class="l-lead">Designed around the day-to-day reality of Zimbabwean classrooms — not adapted from a generic American teacher app.</p>
+      </div>
+      <div class="l-features">
+        <div class="l-feat"><div class="l-feat-icon">👥</div><h3>Class list &amp; learner profiles</h3><p>Male / female roster. Tap a learner to see attendance, marks, parent contacts, behaviour log and strengths.</p></div>
+        <div class="l-feat"><div class="l-feat-icon">📚</div><h3>Lesson plans</h3><p>Subject, topic, objectives, teaching aids, activities, homework, reflection — the format inspectors expect.</p></div>
+        <div class="l-feat"><div class="l-feat-icon">📈</div><h3>Scheme of work &amp; coverage</h3><p>Every topic, week, completion date, progress %, challenges and remedial action.</p></div>
+        <div class="l-feat"><div class="l-feat-icon">✅</div><h3>Daily attendance register</h3><p>Tap to mark Present / Absent / Late. Live attendance rate per learner and per class.</p></div>
+        <div class="l-feat"><div class="l-feat-icon">📊</div><h3>Marks book &amp; performance</h3><p>Tests, CALA, assignments, projects, exams. Auto-computed averages and top performers / at-risk lists.</p></div>
+        <div class="l-feat"><div class="l-feat-icon">📣</div><h3>Parent broadcast (WhatsApp)</h3><p>One tap per parent to send a personalised message via WhatsApp. Or copy to your bulk SMS provider.</p></div>
+        <div class="l-feat"><div class="l-feat-icon">🎓</div><h3>Graduation planner</h3><p>Event details, graduates list, programme schedule and budget tracker for end-of-year ceremonies.</p></div>
+        <div class="l-feat"><div class="l-feat-icon">📚</div><h3>Past papers &amp; materials</h3><p>Drop ZIMSEC and Cambridge past papers, marking schemes, notes — organised by subject.</p></div>
+        <div class="l-feat"><div class="l-feat-icon">💛</div><h3>Wellness &amp; budget</h3><p>Monthly mood check-ins, gratitude pages, monthly salary &amp; savings tracker.</p></div>
+        <div class="l-feat" style="border:1.5px solid var(--accent);background:linear-gradient(180deg,#fff,#FAF8F2)"><div class="l-feat-icon" style="background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff">🏫</div><h3>Schools: your own branding</h3><p><strong>Custom colours for your school</strong> — pick navy + gold, green + cream, maroon + grey, whatever matches your uniform. Tap the 🎨 button bottom-right to set it up. Applies everywhere — landing + planner.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="l-section" id="l-curriculum">
+    <div class="wrap">
+      <div class="l-curric">
+        <h2>Whichever syllabus you teach.</h2>
+        <p>The subject library covers ECD through A-Level for both ZIMSEC and Cambridge International. Switch curriculum any time — Subjects, Materials, Schemes and Assessments adapt instantly.</p>
+        <div class="l-curric-badges">
+          <div class="l-cb"><span class="sb">National</span><span class="nm">ZIMSEC</span></div>
+          <div class="l-cb"><span class="sb">International</span><span class="nm">Cambridge</span></div>
+          <div class="l-cb"><span class="sb">Or</span><span class="nm">Both</span></div>
+        </div>
+        <div style="margin-top:24px;font-size:13.5px;opacity:.75">ECD A &amp; B · Grade 1–7 · Form 1–2 · O-Level / IGCSE · A-Level / AS-A</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="l-section" id="l-pricing" style="background:linear-gradient(180deg,#FAF8F2,transparent)">
+    <div class="wrap">
+      <div class="l-section-narrow">
+        <div class="l-eyebrow">Pricing</div>
+        <h2 class="l-h">Fair pricing. <span class="grad">No monthly fees.</span></h2>
+        <p class="l-lead">Pay once for the year. Updates are free. Bulk discounts for schools.</p>
+      </div>
+      <div class="l-pricing-grid">
+        <div class="l-tier">
+          <div class="nm">Free trial</div>
+          <div class="ti">Try it first</div>
+          <div class="price"><span class="amt">$0</span><span class="per">/ 14 days</span></div>
+          <div class="desc">Take the full planner for a test drive. No card, no signup.</div>
+          <ul><li>All planner sections</li><li>ZIMSEC + Cambridge libraries</li><li>Works offline forever</li></ul>
+          <button class="l-btn l-btn-ghost" onclick="showAppView()" style="width:100%">Start free →</button>
+        </div>
+        <div class="l-tier featured">
+          <div class="ribbon">Most popular</div>
+          <div class="nm">Single Teacher</div>
+          <div class="ti">For one teacher</div>
+          <div class="price"><span class="amt">$10</span><span class="per">/ year</span></div>
+          <div class="desc">Everything the planner offers, for one teacher.</div>
+          <ul><li>All 33 sections</li><li>ZIMSEC + Cambridge subjects</li><li>Parent broadcast (WhatsApp + SMS)</li><li>Free updates all year</li></ul>
+          <a href="https://wa.me/263?text=Hi%2C%20I%27d%20like%20to%20order%20ClassMate%20Zim" class="l-btn l-btn-gold" style="width:100%">Order on WhatsApp</a>
+        </div>
+        <div class="l-tier">
+          <div class="nm">School Edition</div>
+          <div class="ti">For schools</div>
+          <div class="price"><span class="amt">$5</span><span class="per">/ teacher / year</span></div>
+          <div class="desc">From 5 teachers. <strong>Pre-loaded with your school's logo &amp; brand colours</strong> across every teacher's planner.</div>
+          <ul>
+            <li>Everything in Single Teacher</li>
+            <li><strong>🎨 Your school's colours &amp; logo</strong> on every cover &amp; screen</li>
+            <li>Headmaster overview dashboard</li>
+            <li>School-wide parent broadcast</li>
+            <li>Staff roster + school directory</li>
+            <li>Bulk discount for 5+ teachers</li>
+          </ul>
+          <a href="https://wa.me/263?text=Hi%2C%20interested%20in%20School%20Edition%20for%20our%20school" class="l-btn l-btn-primary" style="width:100%">Talk to us</a>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:32px;font-size:13.5px;color:var(--muted)">💡 Payment via <strong>EcoCash · Mukuru · InnBucks · USD cash</strong></div>
+    </div>
+  </section>
+
+  <section class="l-section" style="padding-top:0">
+    <div class="wrap">
+      <div class="l-final">
+        <h2>Try the planner. <span class="gold">It's already free.</span></h2>
+        <p>Open ClassMate Zim now — no signup, no card, no anything.</p>
+        <button class="l-btn l-btn-gold l-btn-lg" onclick="showAppView()">📔 Open ClassMate Zim →</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="l-foot">
+    <div>© 2026 ClassMate Zim · Built for Zimbabwean educators</div>
+    <div style="margin-top:6px"><a onclick="showAppView()">Open the planner</a> · <a href="https://wa.me/263">WhatsApp us</a></div>
+  </footer>
+</div>
+
+<!-- =====================================================
+     APP VIEW — the planner, hidden until landing button click
+     ===================================================== -->
+<div id="view-app" style="display:none">
+
 <!-- WELCOME -->
 <section id="welcome" class="welcome hidden">
   <div class="welcome-mark">
@@ -603,7 +1034,8 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       <button class="sb-item" data-page="timetable"><span class="ico">🕘</span>Daily Timetable</button>
       <button class="sb-item" data-page="lessons"><span class="ico">📚</span>Lesson Plan</button>
       <button class="sb-item" data-page="attendance"><span class="ico">✅</span>Attendance</button>
-      <button class="sb-item" data-page="todo"><span class="ico">📝</span>To-Do</button>
+      <button class="sb-item" data-page="dailyAssessment"><span class="ico">📝</span>Daily Assessment</button>
+      <button class="sb-item" data-page="todo"><span class="ico">📌</span>To-Do</button>
       <button class="sb-item" data-page="cleaners"><span class="ico">🧹</span>Cleaners</button>
     </nav>
 
@@ -631,7 +1063,8 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
     <div class="sb-divider"></div>
     <div class="sb-section-title">Resources</div>
     <nav class="sb-nav">
-      <button class="sb-item" data-page="materials"><span class="ico">📚</span>Materials &amp; Past Papers</button>
+      <button class="sb-item" data-page="library"><span class="ico">📚</span>Library</button>
+      <button class="sb-item" data-page="materials"><span class="ico">📁</span>My Materials</button>
       <button class="sb-item" data-page="inventory"><span class="ico">📦</span>Inventory</button>
       <button class="sb-item" data-page="contacts"><span class="ico">☎️</span>Contacts</button>
     </nav>
@@ -880,6 +1313,26 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       </div>
     </section>
 
+    <!-- DAILY ASSESSMENT -->
+    <section class="page" id="page-dailyAssessment" style="display:none">
+      <div class="page-head">
+        <div><span class="tag">Reflective practice</span><h1>📝 Daily Assessment</h1><p>A short reflection at the end of each teaching day — what went well, what was tough, what's next, and where you need help. The headmaster sees a daily summary across the whole school.</p></div>
+        <div class="page-actions">
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ Print</button>
+          <button class="btn btn-primary" onclick="addDailyAssessment()">+ New entry</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field-row" style="margin-bottom:14px">
+          <div class="field"><label class="label">Filter by date</label><input class="input" type="date" id="da-filter-date" onchange="renderers.dailyAssessment()"></div>
+          <div class="field"><label class="label">Filter by class/grade</label><input class="input" id="da-filter-class" placeholder="e.g. Form 4 Maths" oninput="renderers.dailyAssessment()"></div>
+          <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-soft btn-sm" onclick="clearDaFilters()">Clear</button></div>
+        </div>
+        <div id="da-list"></div>
+      </div>
+    </section>
+
     <!-- TODO -->
     <section class="page" id="page-todo" style="display:none">
       <div class="page-head"><div><h1>To-do list</h1><p>Quick notes and tasks.</p></div></div>
@@ -1114,6 +1567,39 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       </div>
     </section>
 
+    <!-- LIBRARY -->
+    <section class="page" id="page-library" style="display:none">
+      <div class="page-head">
+        <div><span class="tag">Resource hub</span><h1>📚 Library</h1><p>Past papers, schemes of work, worksheets and a question bank — organised by subject + level. Import a starter pack, add what you have, share with colleagues.</p></div>
+        <div class="page-actions">
+          <button class="btn btn-soft btn-sm" onclick="document.getElementById('lib-import').click()">📥 Import Pack</button>
+          <input type="file" id="lib-import" accept=".json" style="display:none" onchange="importLibraryPack(this)">
+          <button class="btn btn-ghost btn-sm" onclick="exportLibraryPack()">📤 Export Pack</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="lib-tabs">
+          <button class="lib-tab active" data-tab="pastPapers" onclick="switchLibTab('pastPapers')">📄 Past Papers</button>
+          <button class="lib-tab" data-tab="schemes" onclick="switchLibTab('schemes')">📋 Schemes of Work</button>
+          <button class="lib-tab" data-tab="worksheets" onclick="switchLibTab('worksheets')">📝 Worksheets</button>
+          <button class="lib-tab" data-tab="questionBank" onclick="switchLibTab('questionBank')">❓ Question Bank</button>
+        </div>
+
+        <div class="lib-filters">
+          <select class="select select-sm" id="lib-subj-filter" onchange="renderLibrary()" style="flex:1;min-width:140px"></select>
+          <select class="select select-sm" id="lib-level-filter" onchange="renderLibrary()" style="flex:1;min-width:140px"></select>
+          <select class="select select-sm" id="lib-grade-filter" onchange="renderLibrary()" style="flex:1;min-width:130px"><option value="">All grades</option></select>
+          <input class="input input-sm" id="lib-search" placeholder="🔎 Search title or topic..." oninput="renderLibrary()" style="flex:2;min-width:180px">
+          <button class="btn btn-primary btn-sm" id="lib-add-btn" onclick="addLibraryItem()">+ Add</button>
+        </div>
+
+        <div id="lib-toolbar" style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px 0"></div>
+
+        <div id="lib-content"></div>
+      </div>
+    </section>
+
     <!-- MATERIALS -->
     <section class="page" id="page-materials" style="display:none">
       <div class="page-head">
@@ -1124,6 +1610,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
         <div class="field-row" style="margin-bottom:14px">
           <div class="field"><label class="label">Filter by subject</label><select class="select" id="mat-filter-subj" onchange="renderers.materials()"><option value="">All subjects</option></select></div>
           <div class="field"><label class="label">Filter by type</label><select class="select" id="mat-filter-type" onchange="renderers.materials()"><option value="">All types</option></select></div>
+          <div class="field"><label class="label">Filter by grade</label><select class="select" id="mat-filter-grade" onchange="renderers.materials()"><option value="">All grades</option></select></div>
         </div>
         <div id="mat-list" class="log-table"></div>
       </div>
@@ -1134,6 +1621,40 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       <div class="page-head">
         <div><span class="tag">Communication</span><h1>Parent broadcast</h1><p>Send the same message to many parents at once via WhatsApp, or copy phone numbers to your bulk SMS provider. Numbers are read from your Class List.</p></div>
       </div>
+
+      <details class="help-panel">
+        <summary>ℹ️ How does this work? · First-time guide</summary>
+        <div class="hp-body">
+          <h4>Step 1 — Add parent contact details</h4>
+          <ol>
+            <li>Go to <a href="#" onclick="go('classlist');return false" style="color:var(--primary-dark);font-weight:700;text-decoration:underline">👥 Class List</a></li>
+            <li>Tap <strong>+ Add learner</strong> for each pupil</li>
+            <li>Fill in <strong>Parent / guardian name</strong> and <strong>Parent phone</strong> — these are the contacts used here</li>
+            <li>Phone format: <code>+263 77 123 4567</code> or just <code>077 123 4567</code>. Both work — we normalise automatically.</li>
+          </ol>
+          <h4>Step 2 — Write your message</h4>
+          <p>Use placeholders so each parent gets a personalised message:</p>
+          <ul style="padding-left:22px">
+            <li><code>{parent}</code> → "Mrs Moyo"</li>
+            <li><code>{child}</code> → "Tendai"</li>
+            <li><code>{teacher}</code> → your name</li>
+            <li><code>{school}</code> → your school's name</li>
+            <li><code>{date}</code> → today's date</li>
+          </ul>
+          <p style="background:var(--bg-soft);padding:8px 12px;border-radius:8px;font-style:italic">Example: <em>"Good day {parent}, just a reminder {child} has a Maths test tomorrow. — {teacher}"</em></p>
+          <h4>Step 3 — Pick recipients</h4>
+          <p>By default everyone is selected. Tick / untick individuals to narrow it down. School Edition gives a "Whole school" source pulling from the School Directory instead of just one class.</p>
+          <h4>Step 4 — Send</h4>
+          <ol>
+            <li><strong>📱 WhatsApp links</strong> — your phone's WhatsApp opens with each parent's message ready. Tap send. ~2 seconds per parent.</li>
+            <li><strong>📋 Copy SMS</strong> — copies <code>phone, parent, message</code> for every recipient to your clipboard. Paste into BulkSMS.co.zw, EcoCash bulk, Africa's Talking, or your school's gateway.</li>
+            <li><strong>📋 Copy numbers</strong> — comma-separated phones only, for quick paste.</li>
+            <li><strong>⬇️ Export CSV</strong> — full download for school records.</li>
+          </ol>
+          <h4>Step 5 — Save it as a template</h4>
+          <p>Tap <strong>💾 Save as template</strong> so you can re-use the message next week (parent meeting, fees reminder, sports day, etc.). Templates appear at the bottom of this page.</p>
+        </div>
+      </details>
       <div class="card">
         <div class="card-head"><div class="card-title">✏️ Compose</div></div>
         <div class="field-row">
@@ -1253,9 +1774,9 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
         <div class="theme-grid" id="theme-grid"></div>
       </div>
 
-      <div class="card school-only">
-        <div class="card-head"><div class="card-title">🖌️ Custom school colours</div></div>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:14px">Override the theme with your school's brand colours. Leave a field blank to keep the theme default.</p>
+      <div class="card">
+        <div class="card-head"><div class="card-title">🖌️ Custom colours</div></div>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:14px">Override the theme with your own brand colours — your school, your tutoring business, your church school, whatever you want. Leave a field blank to keep the theme default. Colours apply across landing page + planner.</p>
         <div class="color-row">
           <div class="field"><label class="label">Primary colour</label><input type="color" class="color-pick" data-bind="school.customPrimary"></div>
           <div class="field"><label class="label">Accent colour</label><input type="color" class="color-pick" data-bind="school.customAccent"></div>
@@ -1309,7 +1830,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       <div class="card">
         <div class="card-head"><div class="card-title">ℹ️ About</div></div>
         <p style="color:var(--muted);font-size:14px;margin-bottom:10px">ClassMate Zim · v1.5 — The Professional Educator Success Planner. Offline-first, no accounts, no ads.</p>
-        <p style="font-size:13.5px"><a href="./" style="color:var(--primary-dark);font-weight:600;text-decoration:underline">← Back to homepage</a></p>
+        <p style="font-size:13.5px"><a onclick="showLandingView()" style="color:var(--primary-dark);font-weight:600;text-decoration:underline;cursor:pointer">← Back to homepage</a></p>
       </div>
     </section>
 
@@ -1318,6 +1839,8 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
 
 <!-- Print-only container for the Parent Contact Sheet -->
 <div id="print-sheet" class="print-only"></div>
+<!-- Print-only container for Worksheets -->
+<div id="ws-print"></div>
 
 <div class="footer no-print"><span id="footer-note">Saved on this device · ClassMate Zim</span></div>
 
@@ -1325,11 +1848,141 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
 <div class="modal-bg" id="modal-bg"><div class="modal" id="modal-body"></div></div>
 <div class="toast" id="toast"></div>
 
+</div><!-- /#view-app -->
+
 <script>
 /* ============================================================
    ClassMate Zim — Professional Educator Success Planner
-   v1.1 — single-file PWA
+   v1.8 — single-file merge (landing + planner on one URL)
    ============================================================ */
+
+/* ---- View toggle: landing ↔ app ---- */
+function showAppView(){
+  document.getElementById('view-landing').style.display = 'none';
+  document.getElementById('view-app').style.display = 'block';
+  window.scrollTo(0,0);
+  try {
+    if(state.welcomed) enterApp();
+    else showWelcome();
+  } catch(e){ /* state not ready yet, will be by boot */ }
+}
+function showLandingView(){
+  document.getElementById('view-app').style.display = 'none';
+  document.getElementById('view-landing').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+/* ---- PWA install: easy-to-find button + iOS instructions ---- */
+const _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const _isAndroid = /Android/.test(navigator.userAgent);
+const _isMobile = _isIOS || _isAndroid;
+const _isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+let _deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e){
+  // Android Chrome — capture the event so we can fire it from our own button
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  showInstallButtons();
+});
+
+window.addEventListener('appinstalled', function(){
+  hideInstallButtons();
+});
+
+/* Migration: clear the old persistent "installed" flag — it was hiding the
+   install bar after uninstall, since localStorage survives home-screen removal. */
+try { localStorage.removeItem('classmate-installed'); } catch(e){}
+
+function showInstallButtons(){
+  if(_isStandalone) return; // Already running as installed app — hide
+  const bar = document.getElementById('install-bar');
+  const heroBtn = document.getElementById('install-hero-btn');
+  if(localStorage.getItem('dismissed-install-bar') !== '1' && bar) bar.style.display = 'flex';
+  if(heroBtn) heroBtn.style.display = 'inline-flex';
+}
+
+function hideInstallButtons(){
+  const bar = document.getElementById('install-bar');
+  const heroBtn = document.getElementById('install-hero-btn');
+  if(bar) bar.style.display = 'none';
+  if(heroBtn) heroBtn.style.display = 'none';
+}
+
+function dismissInstallBar(){
+  const bar = document.getElementById('install-bar');
+  if(bar) bar.style.display = 'none';
+  try { localStorage.setItem('dismissed-install-bar','1'); } catch(e){}
+}
+
+function triggerInstall(){
+  if(_deferredInstallPrompt){
+    // Android Chrome native prompt
+    _deferredInstallPrompt.prompt();
+    _deferredInstallPrompt.userChoice.then(function(choice){
+      _deferredInstallPrompt = null;
+      if(choice.outcome === 'accepted') hideInstallButtons();
+    });
+  } else if(_isIOS){
+    // iOS — no programmatic install, show step-by-step instructions
+    document.getElementById('ios-install-modal').classList.add('show');
+  } else {
+    // Desktop or other browser without beforeinstallprompt — guide via menu
+    alert('To install: tap your browser menu (⋮ or ⋯) → "Install app" or "Add to Home screen".');
+  }
+}
+function closeIOSModal(){
+  document.getElementById('ios-install-modal').classList.remove('show');
+}
+
+/* ---- Floating Theme Picker (accessible from landing) ---- */
+function openThemeModal(){
+  // Render preset themes grid
+  const themes = (typeof THEMES !== 'undefined') ? THEMES : [
+    {k:'navy', n:'Navy & Gold', p:'#1A2E4F', a:'#C9A86A', sub:'Default executive'},
+    {k:'emerald', n:'Emerald & Cream', p:'#1F5F4A', a:'#C9A86A', sub:'Botanical warm'},
+    {k:'burgundy', n:'Burgundy & Silver', p:'#6B1F2E', a:'#A8A8B0', sub:'Corporate formal'},
+    {k:'lavender', n:'Lavender & Sky', p:'#6FA8DC', a:'#E5A8BD', sub:'Soft primary'}
+  ];
+  const grid = document.getElementById('tm-themes');
+  grid.innerHTML = themes.map(t => `
+    <button class="tm-theme ${state.theme===t.k?'on':''}" onclick="pickTheme('${t.k}')">
+      <div class="tm-swatch"><div class="a" style="background:${t.p}"></div><div class="b" style="background:${t.a}"></div></div>
+      <div><div class="nm">${t.n}</div><div class="sub">${t.sub||''}</div></div>
+    </button>
+  `).join('');
+  // Sync custom-colour pickers with current state
+  document.getElementById('tm-primary').value = (state.school && state.school.customPrimary) || getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#1A2E4F';
+  document.getElementById('tm-accent').value = (state.school && state.school.customAccent) || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#C9A86A';
+  document.getElementById('theme-modal').classList.add('show');
+}
+function closeThemeModal(){ document.getElementById('theme-modal').classList.remove('show'); }
+function pickTheme(k){
+  state.theme = k;
+  // Clear any custom colour override so the chosen theme is visible
+  if(state.school){ state.school.customPrimary=''; state.school.customAccent=''; }
+  save(); applyTheme();
+  openThemeModal(); // refresh modal to show new selection
+}
+function updateCustomColor(which, value){
+  state.school = state.school || {};
+  state.school['custom' + (which.charAt(0).toUpperCase()+which.slice(1))] = value;
+  save(); applyTheme();
+}
+function resetTheme(){
+  state.theme = 'navy';
+  if(state.school){ state.school.customPrimary=''; state.school.customAccent=''; }
+  save(); applyTheme(); openThemeModal();
+}
+
+/* On iOS Safari there is no beforeinstallprompt — show the install button anyway */
+/* Show install buttons by default for everyone (not just detected mobile).
+   This is much more reliable than user-agent sniffing — the button shows,
+   and triggerInstall() figures out what to do per device. */
+window.addEventListener('load', function(){
+  if(!_isStandalone) setTimeout(showInstallButtons, 500);
+});
+
 
 const LS_KEY = 'classmate-zim-v1';
 const SCHEMA = 2;
@@ -1446,6 +2099,8 @@ function defaultState(){
     broadcasts: [],
     schoolParents: [],
     graduation: {title:'',date:'',time:'',venue:'',theme:'',dressCode:'',status:'planning',notes:'',graduates:[],programme:[],budget:[]},
+    library: {pastPapers:[], schemes:[], worksheets:[], questionBank:[]},
+    dailyAssessments: [],
     lastBackup: null,
     welcomed: false
   };
@@ -2244,15 +2899,13 @@ renderers.headmaster = function(){
 /* ---- Theme + Edition + Logo ---- */
 function applyTheme(){
   document.documentElement.dataset.theme = state.theme || 'navy';
-  // School edition: optional custom colour overrides
+  // Custom colour overrides — available to everyone (not just school edition)
   const root = document.documentElement;
-  if(state.edition === 'school' && state.school){
+  if(state.school){
     if(state.school.customPrimary){ root.style.setProperty('--primary', state.school.customPrimary); root.style.setProperty('--primary-dark', shade(state.school.customPrimary,-18)); root.style.setProperty('--primary-darker', shade(state.school.customPrimary,-32)); root.style.setProperty('--primary-light', shade(state.school.customPrimary,28)); }
     else { root.style.removeProperty('--primary'); root.style.removeProperty('--primary-dark'); root.style.removeProperty('--primary-darker'); root.style.removeProperty('--primary-light'); }
     if(state.school.customAccent){ root.style.setProperty('--accent', state.school.customAccent); root.style.setProperty('--accent-dark', shade(state.school.customAccent,-18)); root.style.setProperty('--accent-light', shade(state.school.customAccent,18)); }
     else { root.style.removeProperty('--accent'); root.style.removeProperty('--accent-dark'); root.style.removeProperty('--accent-light'); }
-  } else {
-    ['--primary','--primary-dark','--primary-darker','--primary-light','--accent','--accent-dark','--accent-light'].forEach(p=>root.style.removeProperty(p));
   }
   document.body.classList.toggle('edition-school', state.edition === 'school');
   document.body.classList.toggle('has-logo', !!(state.school && state.school.logo));
@@ -2829,6 +3482,62 @@ function saveBroadcastTemplate(){
   state.broadcasts.unshift({id:'bc_'+Date.now(), title, body});
   save(); renderers.broadcast(); toast('Template saved');
 }
+
+/* ---- Pre-loaded broadcast templates (Zim) ---- */
+const DEFAULT_BROADCAST_TEMPLATES = [
+  {title:'📅 Parent–teacher meeting reminder',
+   body:'Dear {parent}, this is a friendly reminder that we have a parent–teacher meeting on Friday at 14:00 at {school} to discuss {child}\'s progress this term. We look forward to seeing you.\n\n— {teacher}'},
+  {title:'📝 Test / exam tomorrow',
+   body:'Good day {parent}, please be reminded that {child} has a class test tomorrow. Kindly ensure they revise this evening and come to school well prepared.\n\nThank you,\n{teacher}'},
+  {title:'💵 Fees reminder',
+   body:'Dear {parent}, this is a friendly reminder that this term\'s school fees for {child} are now due. Kindly settle by Friday this week to avoid inconvenience.\n\nThank you for your support,\n{school}'},
+  {title:'🏃 Sports day announcement',
+   body:'Dear {parent}, our annual sports day takes place this Saturday from 08:00 at {school}. Parents are warmly welcome to come and cheer for {child}. Refreshments will be on sale.\n\nSee you there!\n— {school}'},
+  {title:'🚌 Field-trip permission slip',
+   body:'Dear {parent}, {child}\'s class has a planned educational trip on [date]. Cost: $[amount]. Please sign and return the permission slip by [date] so we can confirm arrangements.\n\nThank you,\n{teacher}'},
+  {title:'❓ Absence enquiry',
+   body:'Good day {parent}, we noticed {child} was absent from school today. We hope all is well at home. Kindly send a note or reply to this message confirming the reason for the absence.\n\n— {teacher}'},
+  {title:'⚠️ Behaviour — quick chat needed',
+   body:'Dear {parent}, I would appreciate a brief chat with you regarding {child}. Please let me know a time today or tomorrow that suits you — you can call or WhatsApp me on this number.\n\nKind regards,\n{teacher}'},
+  {title:'🌟 Achievement / well done',
+   body:'Dear {parent}, congratulations! {child} has shown excellent work this week and we are very proud of them. Please keep encouraging them at home — they are doing great.\n\n— {teacher}, {school}'},
+  {title:'🏫 Term ends — holiday notice',
+   body:'Dear {parent}, today is the last day of term. School reopens on [date]. We wish your family a restful and safe holiday. Reports will be available for collection from [date].\n\n— {school}'},
+  {title:'🔔 Term reopens — reminder',
+   body:'Dear {parent}, a reminder that {school} reopens on [date]. Please make sure {child} has all books, stationery and the correct uniform. We look forward to a great new term.\n\n— {school}'},
+  {title:'✏️ Stationery / book list',
+   body:'Dear {parent}, please find below the stationery {child} needs for the new term. Kindly purchase before [date]:\n\n• [items]\n\nThank you,\n{teacher}'},
+  {title:'📚 Homework not submitted',
+   body:'Dear {parent}, {child} did not submit their homework today. Please assist them in completing it this evening so it can be handed in tomorrow.\n\nThank you,\n{teacher}'},
+  {title:'🤒 Please collect — child unwell',
+   body:'Dear {parent}, {child} is not feeling well at school. Please kindly come and collect them from the school office as soon as possible.\n\nThank you,\n{school}'},
+  {title:'📄 End-of-term report ready',
+   body:'Dear {parent}, {child}\'s end-of-term report is now available for collection at the {school} office. Please come during school hours: Monday–Friday, 08:00 – 15:30.\n\n— {school}'},
+  {title:'💬 Class WhatsApp group invite',
+   body:'Dear {parent}, you are warmly invited to join our class WhatsApp group where we share daily reminders, photos and updates about {child}\'s class.\n\nJoin here: [paste invite link]\n\n— {teacher}'},
+  {title:'⏰ Late pickup — please collect',
+   body:'Dear {parent}, school ended 30 minutes ago and {child} is still waiting to be collected. Please make arrangements to pick them up as soon as possible.\n\nThank you,\n{school}'},
+  {title:'🎉 Open day invitation',
+   body:'Dear {parent}, you are warmly invited to {school}\'s Open Day on [date] from [time]. Come and see what your child is learning, meet the teachers and enjoy the day with us.\n\n— {school}'},
+  {title:'🚨 Early closure notice',
+   body:'Dear {parent}, due to [reason] school will close early today at [time]. Please make arrangements to collect {child} on time.\n\nThank you for understanding,\n{school}'}
+];
+function seedBroadcastTemplatesIfNeeded(){
+  if(state.broadcastsSeeded) return;
+  state.broadcasts = state.broadcasts || [];
+  DEFAULT_BROADCAST_TEMPLATES.forEach((t,i)=>{
+    if(!state.broadcasts.some(b=>b.title === t.title)){
+      state.broadcasts.push({id:'bcseed_'+Date.now()+'_'+i, title:t.title, body:t.body, seeded:true});
+    }
+  });
+  state.broadcastsSeeded = true;
+  save();
+}
+const _origBroadcastRenderSeed = renderers.broadcast;
+renderers.broadcast = function(){
+  seedBroadcastTemplatesIfNeeded();
+  _origBroadcastRenderSeed();
+};
 function loadBroadcastTemplate(){
   const id = document.getElementById('bc-template').value; if(!id) return;
   const b = (state.broadcasts||[]).find(x=>x.id===id); if(!b) return;
@@ -3274,6 +3983,1199 @@ function delBudgetItem(id){
   save(); closeModal(); renderers.graduation();
 }
 
+/* ============================================================
+   LIBRARY — Past Papers · Schemes · Worksheets · Question Bank
+   ============================================================ */
+let _libTab = 'pastPapers';
+const _libTabMeta = {
+  pastPapers: {icon:'📄', singular:'Past Paper', help:'ZIMSEC, Cambridge or school past papers — by year and subject.', fields:['title','subject','year','level','paperNumber','examBoard','url','file','notes']},
+  schemes:    {icon:'📋', singular:'Scheme of Work', help:'Term plans, syllabus coverage documents.', fields:['title','subject','level','term','year','url','file','notes']},
+  worksheets: {icon:'📝', singular:'Worksheet', help:'Build printable A4 worksheets with your school header.', fields:['title','subject','topic','level','instructions','questions']},
+  questionBank:{icon:'❓', singular:'Question', help:'Bank of practice questions by subject + topic. Use them to build worksheets.', fields:['subject','topic','level','question','answer','difficulty']}
+};
+
+renderers.library = function(){
+  // Ensure structure exists
+  state.library = state.library || {pastPapers:[], schemes:[], worksheets:[], questionBank:[]};
+  // Populate filters
+  const subjs = subjectNames();
+  const sf = document.getElementById('lib-subj-filter');
+  const lf = document.getElementById('lib-level-filter');
+  const cs = sf.value, cl = lf.value;
+  sf.innerHTML = '<option value="">All subjects</option>' + subjs.map(n=>`<option ${n===cs?'selected':''}>${esc(n)}</option>`).join('');
+  lf.innerHTML = '<option value="">All levels</option>' + LEVELS.map(l=>`<option value="${l.k}" ${l.k===cl?'selected':''}>${esc(l.n)}</option>`).join('');
+  renderLibrary();
+};
+
+function switchLibTab(tab){
+  _libTab = tab;
+  document.querySelectorAll('.lib-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  document.getElementById('lib-add-btn').textContent = '+ Add ' + _libTabMeta[tab].singular;
+  renderLibrary();
+}
+
+function renderLibrary(){
+  const list = (state.library||{})[_libTab] || [];
+  const subjF = document.getElementById('lib-subj-filter').value;
+  const levelF = document.getElementById('lib-level-filter').value;
+  const q = (document.getElementById('lib-search').value||'').trim().toLowerCase();
+  let filtered = list.filter(it =>
+    (!subjF || it.subject === subjF) &&
+    (!levelF || it.level === levelF) &&
+    (!q || JSON.stringify(it).toLowerCase().includes(q))
+  );
+  const meta = _libTabMeta[_libTab];
+  const container = document.getElementById('lib-content');
+  if(!filtered.length){
+    container.innerHTML = `<div class="lib-empty">
+      <div class="em-icon">${meta.icon}</div>
+      <h4>No ${_libTab === 'questionBank' ? 'questions' : meta.singular.toLowerCase() + 's'} yet</h4>
+      <p>${esc(meta.help)} Tap <strong>+ Add</strong>, or <strong>📥 Import Pack</strong> to load a starter library.</p>
+      <div class="em-actions">
+        <button class="btn btn-primary btn-sm" onclick="addLibraryItem()">+ Add ${esc(meta.singular)}</button>
+        <button class="btn btn-soft btn-sm" onclick="document.getElementById('lib-import').click()">📥 Import Pack</button>
+      </div>
+    </div>`;
+    return;
+  }
+  if(_libTab === 'pastPapers') container.innerHTML = '<div class="lib-list">' + filtered.slice().sort((a,b)=>(b.year||'').localeCompare(a.year||'')).map(renderPastPaperRow).join('') + '</div>';
+  else if(_libTab === 'schemes') container.innerHTML = '<div class="lib-list">' + filtered.slice().sort((a,b)=>(a.term||'').localeCompare(b.term||'')).map(renderSchemeRow).join('') + '</div>';
+  else if(_libTab === 'worksheets') container.innerHTML = '<div class="lib-list">' + filtered.slice().map(renderWorksheetRow).join('') + '</div>';
+  else if(_libTab === 'questionBank') container.innerHTML = renderQuestionBank(filtered);
+}
+
+function renderPastPaperRow(p){
+  const attach = p.file ? `<a class="btn btn-soft btn-sm" download="${esc(p.fileName||p.title)}" href="${p.file}">⬇️</a>` : (p.url ? `<a class="btn btn-soft btn-sm" href="${esc(p.url)}" target="_blank" rel="noopener">🔗</a>` : '');
+  return `<div class="lib-item">
+    <div class="lib-icon">📄</div>
+    <div class="lib-body">
+      <div class="lib-title">${esc(p.title)}</div>
+      <div class="lib-meta">${p.examBoard?`<span class="badge gold">${esc(p.examBoard)}</span>`:''}${p.subject?`<span>${esc(p.subject)}</span>`:''}${p.year?`<span>📅 ${esc(p.year)}</span>`:''}${p.paperNumber?`<span>${esc(p.paperNumber)}</span>`:''}${p.level?`<span class="badge">${esc((LEVELS.find(l=>l.k===p.level)||{}).n||p.level)}</span>`:''}</div>
+      ${p.notes?`<div style="font-size:12.5px;margin-top:5px;color:var(--muted)">${esc(p.notes)}</div>`:''}
+    </div>
+    <div class="lib-actions">${attach}<button class="btn btn-ghost btn-sm" onclick="editLibraryItem('${p.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteLibraryItem('${p.id}')">×</button></div>
+  </div>`;
+}
+function renderSchemeRow(s){
+  const attach = s.file ? `<a class="btn btn-soft btn-sm" download="${esc(s.fileName||s.title)}" href="${s.file}">⬇️</a>` : (s.url ? `<a class="btn btn-soft btn-sm" href="${esc(s.url)}" target="_blank" rel="noopener">🔗</a>` : '');
+  return `<div class="lib-item">
+    <div class="lib-icon">📋</div>
+    <div class="lib-body">
+      <div class="lib-title">${esc(s.title)}</div>
+      <div class="lib-meta">${s.subject?`<span>${esc(s.subject)}</span>`:''}${s.term?`<span class="badge gold">${esc(s.term)}</span>`:''}${s.year?`<span>${esc(s.year)}</span>`:''}${s.level?`<span class="badge">${esc((LEVELS.find(l=>l.k===s.level)||{}).n||s.level)}</span>`:''}</div>
+      ${s.notes?`<div style="font-size:12.5px;margin-top:5px;color:var(--muted)">${esc(s.notes)}</div>`:''}
+    </div>
+    <div class="lib-actions">${attach}<button class="btn btn-ghost btn-sm" onclick="editLibraryItem('${s.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteLibraryItem('${s.id}')">×</button></div>
+  </div>`;
+}
+function renderWorksheetRow(w){
+  const qCount = (w.questions||[]).length;
+  return `<div class="lib-item">
+    <div class="lib-icon">📝</div>
+    <div class="lib-body">
+      <div class="lib-title">${esc(w.title||'(untitled worksheet)')}</div>
+      <div class="lib-meta">${w.subject?`<span>${esc(w.subject)}</span>`:''}${w.topic?`<span>📍 ${esc(w.topic)}</span>`:''}${w.level?`<span class="badge">${esc((LEVELS.find(l=>l.k===w.level)||{}).n||w.level)}</span>`:''}<span class="badge gold">${qCount} question${qCount===1?'':'s'}</span></div>
+      ${w.instructions?`<div style="font-size:12.5px;margin-top:5px;color:var(--muted);font-style:italic">${esc(w.instructions)}</div>`:''}
+    </div>
+    <div class="lib-actions"><button class="btn btn-gold btn-sm" onclick="printWorksheet('${w.id}',false)">🖨️ Print</button><button class="btn btn-soft btn-sm" onclick="printWorksheet('${w.id}',true)">+Marking</button><button class="btn btn-ghost btn-sm" onclick="editLibraryItem('${w.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteLibraryItem('${w.id}')">×</button></div>
+  </div>`;
+}
+function renderQuestionBank(questions){
+  // Group by subject + topic
+  const groups = {};
+  questions.forEach(q=>{
+    const key = (q.subject||'(no subject)') + '|||' + (q.topic||'(no topic)');
+    (groups[key] = groups[key] || []).push(q);
+  });
+  let html = '';
+  Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([key, qs])=>{
+    const [subj, topic] = key.split('|||');
+    html += `<div style="margin-bottom:18px">
+      <div style="font-weight:800;color:var(--primary-darker);font-size:14px;padding:6px 0;border-bottom:1.5px solid var(--accent);margin-bottom:8px">
+        <span class="badge gold" style="padding:2px 8px;border-radius:5px;font-size:11.5px;background:var(--accent);color:var(--primary-darker);font-weight:700">${esc(subj)}</span>
+        <span style="margin-left:8px;color:var(--muted);font-weight:600;font-size:13px">📍 ${esc(topic)}</span>
+        <span style="float:right;font-size:12px;color:var(--muted);font-weight:600">${qs.length} question${qs.length===1?'':'s'}</span>
+      </div>
+      <div class="lib-list">${qs.map(q=>`
+        <div class="lib-item" style="grid-template-columns:auto 1fr auto;align-items:flex-start;padding:11px 14px">
+          <div class="lib-icon" style="font-size:18px;width:30px">❓</div>
+          <div class="lib-body">
+            <div style="font-size:14px;color:var(--ink);line-height:1.5">${esc(q.question)}</div>
+            ${q.answer?`<div style="font-size:13px;color:var(--green);margin-top:5px;line-height:1.5"><strong>✓ Answer:</strong> ${esc(q.answer)}</div>`:''}
+            <div class="lib-meta">${q.difficulty?`<span class="badge">Difficulty ${esc(q.difficulty)}/5</span>`:''}${q.level?`<span>${esc((LEVELS.find(l=>l.k===q.level)||{}).n||q.level)}</span>`:''}</div>
+          </div>
+          <div class="lib-actions"><button class="btn btn-ghost btn-sm" onclick="editLibraryItem('${q.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteLibraryItem('${q.id}')">×</button></div>
+        </div>`).join('')}</div>
+    </div>`;
+  });
+  return html;
+}
+
+/* ---- Library CRUD ---- */
+function addLibraryItem(){ editLibraryItem(null); }
+
+function editLibraryItem(id){
+  const tab = _libTab;
+  const list = state.library[tab];
+  const item = id ? list.find(x=>x.id===id) : null;
+  const isEdit = !!item;
+  const data = item || {id: 'lib_'+Date.now()};
+  const subjOpts = subjectNames().map(n=>`<option ${data.subject===n?'selected':''}>${esc(n)}</option>`).join('');
+  const levelOpts = LEVELS.map(l=>`<option value="${l.k}" ${data.level===l.k?'selected':''}>${esc(l.n)}</option>`).join('');
+
+  let formHtml = '';
+  if(tab === 'pastPapers'){
+    formHtml = `
+      <div class="field"><label class="label">Title</label><input class="input" id="lib-title" value="${esc(data.title||'')}" placeholder="e.g. ZIMSEC O-Level Maths 2024 Paper 1"></div>
+      <div class="field-row">
+        <div class="field"><label class="label">Subject</label><select class="select" id="lib-subject"><option value="">— pick —</option>${subjOpts}</select></div>
+        <div class="field"><label class="label">Year</label><input class="input" id="lib-year" value="${esc(data.year||'')}" placeholder="e.g. 2024"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="label">Level</label><select class="select" id="lib-level">${levelOpts}</select></div>
+        <div class="field"><label class="label">Paper number</label><input class="input" id="lib-paperNumber" value="${esc(data.paperNumber||'')}" placeholder="e.g. Paper 1"></div>
+      </div>
+      <div class="field"><label class="label">Exam board</label><select class="select" id="lib-examBoard"><option value="">— pick —</option>${['ZIMSEC','Cambridge IGCSE','Cambridge A-Level','CAPS','IEB','School-set'].map(b=>`<option ${data.examBoard===b?'selected':''}>${b}</option>`).join('')}</select></div>
+      <div class="field"><label class="label">Link (Google Drive / Dropbox URL)</label><input class="input" id="lib-url" value="${esc(data.url||'')}" placeholder="https://..."></div>
+      <div class="field"><label class="label">Or upload PDF/file (≤600 KB)</label><input type="file" id="lib-file" accept=".pdf,.doc,.docx,.png,.jpg" class="input"></div>
+      <div class="field"><label class="label">Notes</label><textarea class="textarea" id="lib-notes">${esc(data.notes||'')}</textarea></div>`;
+  } else if(tab === 'schemes'){
+    formHtml = `
+      <div class="field"><label class="label">Title</label><input class="input" id="lib-title" value="${esc(data.title||'')}" placeholder="e.g. Form 4 Maths Term 1 Scheme"></div>
+      <div class="field-row">
+        <div class="field"><label class="label">Subject</label><select class="select" id="lib-subject"><option value="">— pick —</option>${subjOpts}</select></div>
+        <div class="field"><label class="label">Level</label><select class="select" id="lib-level">${levelOpts}</select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="label">Term</label><select class="select" id="lib-term"><option value="">— pick —</option>${['Term 1','Term 2','Term 3','Term 4','Whole year'].map(t=>`<option ${data.term===t?'selected':''}>${t}</option>`).join('')}</select></div>
+        <div class="field"><label class="label">Year</label><input class="input" id="lib-year" value="${esc(data.year||'')}"></div>
+      </div>
+      <div class="field"><label class="label">Link (URL)</label><input class="input" id="lib-url" value="${esc(data.url||'')}"></div>
+      <div class="field"><label class="label">Or upload file (≤600 KB)</label><input type="file" id="lib-file" accept=".pdf,.doc,.docx" class="input"></div>
+      <div class="field"><label class="label">Notes</label><textarea class="textarea" id="lib-notes">${esc(data.notes||'')}</textarea></div>`;
+  } else if(tab === 'worksheets'){
+    const qs = data.questions || [];
+    formHtml = `
+      <div class="field"><label class="label">Worksheet title</label><input class="input" id="lib-title" value="${esc(data.title||'')}" placeholder="e.g. Fractions Practice Worksheet"></div>
+      <div class="field-row">
+        <div class="field"><label class="label">Subject</label><select class="select" id="lib-subject"><option value="">— pick —</option>${subjOpts}</select></div>
+        <div class="field"><label class="label">Level</label><select class="select" id="lib-level">${levelOpts}</select></div>
+      </div>
+      <div class="field"><label class="label">Topic</label><input class="input" id="lib-topic" value="${esc(data.topic||'')}" placeholder="e.g. Fractions"></div>
+      <div class="field"><label class="label">Instructions to learners</label><textarea class="textarea" id="lib-instructions">${esc(data.instructions||'')}</textarea></div>
+      <div class="field">
+        <label class="label">Questions <button class="btn btn-soft btn-sm" type="button" onclick="addWsQuestion()" style="margin-left:6px;font-size:11.5px;padding:4px 9px">+ Add row</button> <button class="btn btn-soft btn-sm" type="button" onclick="pullFromQuestionBank()" style="margin-left:4px;font-size:11.5px;padding:4px 9px">⬇ Pull from Bank</button></label>
+        <div id="wb-questions">${qs.map((q,i)=>renderWsQuestionRow(q, i)).join('')}</div>
+      </div>`;
+  } else if(tab === 'questionBank'){
+    formHtml = `
+      <div class="field-row">
+        <div class="field"><label class="label">Subject</label><select class="select" id="lib-subject"><option value="">— pick —</option>${subjOpts}</select></div>
+        <div class="field"><label class="label">Level</label><select class="select" id="lib-level">${levelOpts}</select></div>
+      </div>
+      <div class="field"><label class="label">Topic</label><input class="input" id="lib-topic" value="${esc(data.topic||'')}" placeholder="e.g. Algebra, Photosynthesis, Comprehension"></div>
+      <div class="field"><label class="label">Question</label><textarea class="textarea" id="lib-question" style="min-height:80px" placeholder="e.g. Solve for x: 2x + 5 = 13">${esc(data.question||'')}</textarea></div>
+      <div class="field"><label class="label">Answer</label><textarea class="textarea" id="lib-answer">${esc(data.answer||'')}</textarea></div>
+      <div class="field"><label class="label">Difficulty (1 = easiest, 5 = hardest)</label><select class="select" id="lib-difficulty">${[1,2,3,4,5].map(n=>`<option value="${n}" ${data.difficulty==n?'selected':''}>${n}${n===1?' — easy':n===5?' — hard':''}</option>`).join('')}</select></div>`;
+  }
+  showModal(`
+    <h3>${isEdit?'Edit':'Add'} ${esc(_libTabMeta[tab].singular)}</h3>
+    ${formHtml}
+    <div class="modal-actions">
+      ${isEdit ? `<button class="btn btn-danger" onclick="deleteLibraryItem('${data.id}')">Delete</button>` : ''}
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLibraryItem('${data.id}', ${isEdit})">Save</button>
+    </div>
+  `);
+}
+
+function renderWsQuestionRow(q, i){
+  return `<div class="wb-q-row" data-idx="${i}">
+    <span class="num">${i+1}</span>
+    <textarea placeholder="Question..." class="col-q">${esc(q.q||'')}</textarea>
+    <textarea placeholder="Answer (hidden until marking guide)" class="col-ans">${esc(q.a||'')}</textarea>
+    <input type="number" min="1" max="5" placeholder="1-5" value="${esc(q.d||'')}" class="col-diff">
+    <button type="button" onclick="removeWsQuestion(${i})" style="color:var(--red);background:none;border:none;font-size:16px;cursor:pointer">×</button>
+  </div>`;
+}
+function addWsQuestion(){
+  const cont = document.getElementById('wb-questions');
+  const rows = cont.querySelectorAll('.wb-q-row');
+  cont.insertAdjacentHTML('beforeend', renderWsQuestionRow({}, rows.length));
+}
+function removeWsQuestion(idx){
+  const cont = document.getElementById('wb-questions');
+  cont.querySelectorAll('.wb-q-row')[idx]?.remove();
+  // Renumber
+  cont.querySelectorAll('.wb-q-row').forEach((row,i)=>{ row.dataset.idx = i; row.querySelector('.num').textContent = i+1; });
+}
+function pullFromQuestionBank(){
+  const subj = document.getElementById('lib-subject').value;
+  const level = document.getElementById('lib-level').value;
+  const topic = (document.getElementById('lib-topic').value||'').trim().toLowerCase();
+  let matching = (state.library.questionBank||[]).filter(q =>
+    (!subj || q.subject === subj) &&
+    (!level || q.level === level) &&
+    (!topic || (q.topic||'').toLowerCase().includes(topic))
+  );
+  if(!matching.length){ toast('No matching questions in the bank. Add some in the Question Bank tab first.'); return; }
+  // Shuffle + take up to 10
+  matching = matching.sort(()=>Math.random()-0.5).slice(0,10);
+  const cont = document.getElementById('wb-questions');
+  matching.forEach((q,i)=>{
+    const idx = cont.querySelectorAll('.wb-q-row').length;
+    cont.insertAdjacentHTML('beforeend', renderWsQuestionRow({q:q.question,a:q.answer,d:q.difficulty}, idx));
+  });
+  toast('Pulled ' + matching.length + ' question' + (matching.length===1?'':'s'));
+}
+
+function saveLibraryItem(id, isEdit){
+  const tab = _libTab;
+  const data = {id};
+  const fields = _libTabMeta[tab].fields;
+  fields.forEach(f=>{
+    if(f === 'questions') return; // handled below
+    if(f === 'file') return; // handled below
+    const el = document.getElementById('lib-' + f);
+    if(el) data[f] = el.value;
+  });
+  if(tab === 'worksheets'){
+    const rows = document.querySelectorAll('#wb-questions .wb-q-row');
+    data.questions = Array.from(rows).map(r=>({
+      q: r.querySelector('.col-q').value.trim(),
+      a: r.querySelector('.col-ans').value.trim(),
+      d: r.querySelector('.col-diff').value
+    })).filter(q=>q.q);
+    data.dateCreated = (isEdit && state.library.worksheets.find(x=>x.id===id)?.dateCreated) || localDateStr(new Date());
+  }
+  if(tab === 'pastPapers' || tab === 'schemes'){
+    data.dateAdded = (isEdit && state.library[tab].find(x=>x.id===id)?.dateAdded) || localDateStr(new Date());
+    const fileInput = document.getElementById('lib-file');
+    const file = fileInput && fileInput.files[0];
+    const finish = () => {
+      if(isEdit){
+        const existing = state.library[tab].find(x=>x.id===id);
+        // Preserve existing file if no new one
+        if(!file && existing.file){ data.file = existing.file; data.fileName = existing.fileName; }
+        Object.assign(existing, data);
+      } else {
+        state.library[tab].push(data);
+      }
+      save(); closeModal(); renderers.library(); toast(isEdit?'Updated':'Added');
+    };
+    if(file){
+      if(file.size > 600*1024){ toast('File too large — use a link instead.'); return; }
+      const r = new FileReader();
+      r.onload = ()=>{ data.file = r.result; data.fileName = file.name; finish(); };
+      r.readAsDataURL(file);
+      return;
+    }
+    finish();
+    return;
+  }
+  if(isEdit){
+    const existing = state.library[tab].find(x=>x.id===id);
+    Object.assign(existing, data);
+  } else {
+    state.library[tab].push(data);
+  }
+  save(); closeModal(); renderers.library(); toast(isEdit?'Updated':'Added');
+}
+
+function deleteLibraryItem(id){
+  if(!confirm('Delete this item?')) return;
+  state.library[_libTab] = state.library[_libTab].filter(x=>x.id!==id);
+  save(); closeModal(); renderers.library();
+}
+
+/* ---- Worksheet print ---- */
+function printWorksheet(id, includeMarking){
+  const w = state.library.worksheets.find(x=>x.id===id);
+  if(!w){ toast('Worksheet not found'); return; }
+  const qs = w.questions || [];
+  if(!qs.length){ toast('Add questions to this worksheet first'); return; }
+  const date = new Date().toLocaleDateString(undefined, {day:'numeric', month:'long', year:'numeric'});
+  const school = state.school || {};
+  const schoolName = school.name || 'School';
+  const logo = school.logo ? `<img src="${school.logo}" style="max-height:60px;max-width:80px;object-fit:contain" alt="">` : '';
+  const teacher = state.teacher.name || '';
+  const levelName = (LEVELS.find(l=>l.k===w.level)||{}).n || '';
+  let html = `
+    <div class="ws-header">
+      <div>${logo}<div class="ws-school">${esc(schoolName)}</div><div class="ws-title">${esc(w.title||'Worksheet')}</div></div>
+      <div class="ws-meta">
+        ${w.subject?'<div><strong>Subject:</strong> '+esc(w.subject)+'</div>':''}
+        ${levelName?'<div><strong>Level:</strong> '+esc(levelName)+'</div>':''}
+        ${w.topic?'<div><strong>Topic:</strong> '+esc(w.topic)+'</div>':''}
+        <div><strong>Date:</strong> ${esc(date)}</div>
+      </div>
+    </div>
+    <div class="ws-name-row">
+      <div><strong>Name:</strong> <span class="nm">&nbsp;</span></div>
+      <div><strong>Class:</strong> <span class="nm">&nbsp;</span></div>
+      <div><strong>Date:</strong> <span class="nm">&nbsp;</span></div>
+    </div>
+    ${w.instructions?`<div class="ws-instructions">📋 ${esc(w.instructions)}</div>`:''}
+  `;
+  qs.forEach((q,i)=>{
+    html += `<div class="ws-q"><div class="qn">${i+1}. ${esc(q.q)}</div><div class="ans-space"></div><div class="ans-space"></div></div>`;
+  });
+  html += `<div class="ws-footer">${esc(schoolName)} · ${esc(teacher)} · ${esc(date)} · ClassMate Zim</div>`;
+  if(includeMarking){
+    html += `<div class="ms-page"><h3>Marking Guide — ${esc(w.title||'Worksheet')}</h3>`;
+    qs.forEach((q,i)=>{
+      html += `<div class="ms-q"><div class="num">${i+1}</div><div class="q-text">${esc(q.q)}</div><div class="a-text">${esc(q.a||'(no answer provided)')}</div></div>`;
+    });
+    html += `<div class="ws-footer" style="margin-top:24px">Marking guide · ${esc(schoolName)} · ${esc(teacher)} · ${esc(date)}</div></div>`;
+  }
+  document.getElementById('ws-print').innerHTML = html;
+  document.body.classList.add('printing-ws');
+  setTimeout(()=>{ window.print(); setTimeout(()=>document.body.classList.remove('printing-ws'), 800); }, 80);
+}
+
+/* ---- Import / Export Library packs ---- */
+function importLibraryPack(input){
+  const file = input.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try {
+      const pack = JSON.parse(r.result);
+      if(!pack || typeof pack !== 'object'){ toast('Invalid pack file'); return; }
+      const counts = {pastPapers:0, schemes:0, worksheets:0, questionBank:0};
+      ['pastPapers','schemes','worksheets','questionBank'].forEach(k=>{
+        if(Array.isArray(pack[k])){
+          state.library[k] = state.library[k] || [];
+          pack[k].forEach(item=>{
+            if(!item.id) item.id = 'lib_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+            state.library[k].push(item);
+            counts[k]++;
+          });
+        }
+      });
+      save(); renderers.library();
+      const total = counts.pastPapers + counts.schemes + counts.worksheets + counts.questionBank;
+      toast(`Imported ${total} items (${counts.pastPapers} papers, ${counts.schemes} schemes, ${counts.worksheets} worksheets, ${counts.questionBank} questions)`);
+    } catch(e){ toast('Could not read pack — must be a .json file'); }
+  };
+  r.readAsText(file);
+  input.value = '';
+}
+
+function exportLibraryPack(){
+  const pack = {
+    classmate_library_pack: true,
+    exported: localDateStr(new Date()),
+    pastPapers: state.library.pastPapers || [],
+    schemes: state.library.schemes || [],
+    worksheets: state.library.worksheets || [],
+    questionBank: state.library.questionBank || []
+  };
+  const blob = new Blob([JSON.stringify(pack, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `classmate-library-pack-${localDateStr(new Date())}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Pack downloaded');
+}
+
+/* ============================================================
+   DAILY ASSESSMENT — teachers reflect at end of day
+   ============================================================ */
+renderers.dailyAssessment = function(){
+  state.dailyAssessments = state.dailyAssessments || [];
+  const dateF = document.getElementById('da-filter-date').value;
+  const classF = (document.getElementById('da-filter-class').value||'').trim().toLowerCase();
+  let entries = state.dailyAssessments.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(dateF) entries = entries.filter(e=>e.date === dateF);
+  if(classF) entries = entries.filter(e=> ((e.className||'')+' '+(e.subject||'')+' '+(e.grade||'')).toLowerCase().includes(classF));
+  const list = document.getElementById('da-list');
+  if(!entries.length){
+    list.innerHTML = '<div class="empty-list">No entries yet for this filter. Tap <strong>+ New entry</strong> to log today\'s reflection. A 2-minute habit at the end of each teaching day = a full reflective journal at year-end.</div>';
+    return;
+  }
+  list.innerHTML = entries.map(e=>{
+    const helpFlag = (e.helpNeeded||'').trim();
+    const cls = helpFlag ? 'da-entry help-needed' : 'da-entry';
+    const dateStr = e.date ? fmtDateLong(e.date) : '(no date)';
+    return `<div class="${cls}">
+      <div class="da-head">
+        <div>
+          <span class="da-date">${esc(dateStr)}</span>
+          ${e.className?`<span class="da-class">${esc(e.className)}</span>`:''}
+          ${e.subject?`<span class="da-subject">${esc(e.subject)}</span>`:''}
+          ${e.grade?`<span class="da-class">${esc(e.grade)}</span>`:''}
+        </div>
+        <div class="da-actions">
+          ${helpFlag?'<span class="da-help-flag">⚠️ Help needed</span>':''}
+          <button class="btn btn-ghost btn-sm" onclick="editDailyAssessment('${e.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDailyAssessment('${e.id}')">×</button>
+        </div>
+      </div>
+      ${e.summary?`<div class="da-row"><strong>What happened:</strong> ${esc(e.summary)}</div>`:''}
+      ${e.challenges?`<div class="da-row"><strong>Challenges:</strong> ${esc(e.challenges)}</div>`:''}
+      ${e.planForward?`<div class="da-row"><strong>Plan forward:</strong> ${esc(e.planForward)}</div>`:''}
+      ${helpFlag?`<div class="da-row"><strong>Help needed:</strong> <span style="color:var(--amber);font-weight:700">${esc(helpFlag)}</span></div>`:''}
+      ${(e.marksSummary||e.presentCount||e.absentCount||e.lateCount) ? `
+        <div class="da-numbers">
+          ${e.marksSummary?`<div class="nm">📊 Marks: <strong>${esc(e.marksSummary)}</strong></div>`:''}
+          ${e.presentCount?`<div class="nm">✅ Present: <strong>${esc(e.presentCount)}</strong></div>`:''}
+          ${e.absentCount?`<div class="nm">❌ Absent: <strong>${esc(e.absentCount)}</strong></div>`:''}
+          ${e.lateCount?`<div class="nm">⏰ Late: <strong>${esc(e.lateCount)}</strong></div>`:''}
+        </div>` : ''}
+    </div>`;
+  }).join('');
+};
+function clearDaFilters(){ document.getElementById('da-filter-date').value=''; document.getElementById('da-filter-class').value=''; renderers.dailyAssessment(); }
+function addDailyAssessment(){ editDailyAssessment(null); }
+function editDailyAssessment(id){
+  state.dailyAssessments = state.dailyAssessments || [];
+  const e = id ? state.dailyAssessments.find(x=>x.id===id) : {id:'da_'+Date.now(), date:localDateStr(new Date()), className:state.school.formGrade||'', subject:'', grade:state.school.formGrade||'', summary:'', challenges:'', planForward:'', helpNeeded:'', marksSummary:'', presentCount:'', absentCount:'', lateCount:''};
+  if(!e) return;
+  const isEdit = !!id;
+  const subjOpts = subjectNames().map(n=>`<option ${e.subject===n?'selected':''}>${esc(n)}</option>`).join('');
+  showModal(`
+    <h3>${isEdit?'Edit':'Add'} daily assessment</h3>
+    <p class="modal-sub">A few sentences is enough — quick reflection, not an essay. Headmaster sees today's entries across the school.</p>
+    <div class="field-row">
+      <div class="field"><label class="label">Date</label><input class="input" type="date" id="da-date" value="${esc(e.date)}"></div>
+      <div class="field"><label class="label">Subject</label><select class="select" id="da-subject"><option value="">— pick —</option>${subjOpts}</select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="label">Class / Form</label><input class="input" id="da-className" value="${esc(e.className||'')}" placeholder="e.g. Form 3A"></div>
+      <div class="field"><label class="label">Grade level</label><input class="input" id="da-grade" value="${esc(e.grade||'')}" placeholder="e.g. Grade 4, Form 3"></div>
+    </div>
+    <div class="field"><label class="label">✍️ What happened today?</label><textarea class="textarea" id="da-summary" placeholder="How did the lesson go? Anything memorable? Topics covered, methods that worked..." style="min-height:80px">${esc(e.summary||'')}</textarea></div>
+    <div class="field"><label class="label">🚧 Challenges</label><textarea class="textarea" id="da-challenges" placeholder="What didn't go well? Tough concepts, behaviour issues, missing resources...">${esc(e.challenges||'')}</textarea></div>
+    <div class="field"><label class="label">➡️ Plan forward</label><textarea class="textarea" id="da-planForward" placeholder="Next lesson plan, remedial work, who to re-teach, what to revisit...">${esc(e.planForward||'')}</textarea></div>
+    <div class="field"><label class="label">⚠️ Help needed (flagged to Headmaster)</label><textarea class="textarea" id="da-helpNeeded" placeholder="Resource? Counselling for a learner? Cover for parent meeting? Leave blank if nothing.">${esc(e.helpNeeded||'')}</textarea></div>
+    <div class="field-row-3">
+      <div class="field"><label class="label">📊 Marks summary</label><input class="input" id="da-marksSummary" value="${esc(e.marksSummary||'')}" placeholder="e.g. 65-90% on Quiz 3"></div>
+      <div class="field"><label class="label">✅ Present</label><input class="input" type="number" id="da-presentCount" value="${esc(e.presentCount||'')}"></div>
+      <div class="field"><label class="label">❌ Absent</label><input class="input" type="number" id="da-absentCount" value="${esc(e.absentCount||'')}"></div>
+    </div>
+    <div class="field"><label class="label">⏰ Late count (optional)</label><input class="input" type="number" id="da-lateCount" value="${esc(e.lateCount||'')}"></div>
+    <div class="modal-actions">
+      ${isEdit?`<button class="btn btn-danger" onclick="deleteDailyAssessment('${id}')">Delete</button>`:''}
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDailyAssessment('${e.id}',${isEdit})">Save</button>
+    </div>
+  `);
+  setTimeout(()=>document.getElementById('da-summary').focus(),50);
+}
+function saveDailyAssessment(id, isEdit){
+  const data = {
+    id,
+    date: document.getElementById('da-date').value,
+    subject: document.getElementById('da-subject').value,
+    className: document.getElementById('da-className').value.trim(),
+    grade: document.getElementById('da-grade').value.trim(),
+    summary: document.getElementById('da-summary').value.trim(),
+    challenges: document.getElementById('da-challenges').value.trim(),
+    planForward: document.getElementById('da-planForward').value.trim(),
+    helpNeeded: document.getElementById('da-helpNeeded').value.trim(),
+    marksSummary: document.getElementById('da-marksSummary').value.trim(),
+    presentCount: document.getElementById('da-presentCount').value,
+    absentCount: document.getElementById('da-absentCount').value,
+    lateCount: document.getElementById('da-lateCount').value,
+    teacher: state.teacher.name || ''
+  };
+  if(!data.date){ toast('Date is required'); return; }
+  state.dailyAssessments = state.dailyAssessments || [];
+  if(isEdit){ const ex=state.dailyAssessments.find(x=>x.id===id); Object.assign(ex,data); }
+  else state.dailyAssessments.push(data);
+  save(); closeModal(); renderers.dailyAssessment(); toast(isEdit?'Updated':'Saved');
+}
+function deleteDailyAssessment(id){
+  if(!confirm('Delete this entry?')) return;
+  state.dailyAssessments = (state.dailyAssessments||[]).filter(e=>e.id!==id);
+  save(); closeModal(); renderers.dailyAssessment();
+}
+
+/* Extend Headmaster page with a Daily Digest card — patches the existing renderer */
+const _origHeadmasterRender = renderers.headmaster;
+renderers.headmaster = function(){
+  if(_origHeadmasterRender) _origHeadmasterRender();
+  // Inject Daily Digest card if not yet present
+  let digestCard = document.getElementById('hm-digest-card');
+  const hmPage = document.getElementById('page-headmaster');
+  if(!digestCard && hmPage){
+    digestCard = document.createElement('div');
+    digestCard.className = 'card';
+    digestCard.id = 'hm-digest-card';
+    digestCard.innerHTML = `<div class="card-head"><div class="card-title">📝 Daily Assessment Digest</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input class="input input-sm" type="date" id="hm-digest-date" style="min-width:150px" onchange="renderHmDigest()">
+        <input class="input input-sm" id="hm-digest-grade" placeholder="Filter grade..." style="min-width:140px" oninput="renderHmDigest()">
+        <button class="btn btn-soft btn-sm" onclick="renderHmDigest()">↻</button>
+      </div>
+    </div>
+    <div id="hm-digest-stats" class="dash-grid" style="margin-bottom:12px"></div>
+    <div id="hm-digest-content"></div>`;
+    // Insert before existing department coverage card
+    const firstCard = hmPage.querySelector('.card');
+    if(firstCard) firstCard.parentNode.insertBefore(digestCard, firstCard);
+    else hmPage.appendChild(digestCard);
+    // Default date = today
+    document.getElementById('hm-digest-date').value = localDateStr(new Date());
+  }
+  renderHmDigest();
+};
+
+function renderHmDigest(){
+  const all = state.dailyAssessments || [];
+  const dateF = (document.getElementById('hm-digest-date')||{}).value || localDateStr(new Date());
+  const gradeF = ((document.getElementById('hm-digest-grade')||{}).value || '').trim().toLowerCase();
+  let entries = all.filter(e=>e.date === dateF);
+  if(gradeF) entries = entries.filter(e=> (e.grade||'').toLowerCase().includes(gradeF) || (e.className||'').toLowerCase().includes(gradeF));
+  const teachers = new Set(entries.map(e=>e.teacher).filter(Boolean));
+  const helpNeeded = entries.filter(e=>(e.helpNeeded||'').trim()).length;
+  const totalPresent = entries.reduce((s,e)=>s+(Number(e.presentCount)||0),0);
+  const totalAbsent = entries.reduce((s,e)=>s+(Number(e.absentCount)||0),0);
+  const stats = [
+    {icon:'📝', col:'blue', n:entries.length, l:'Reports today'},
+    {icon:'👨‍🏫', col:'green', n:teachers.size, l:'Teachers reporting'},
+    {icon:'⚠️', col:'yellow', n:helpNeeded, l:'Help requested'},
+    {icon:'👥', col:'lav', n:totalPresent + totalAbsent, l:'Learners covered'}
+  ];
+  const statsEl = document.getElementById('hm-digest-stats');
+  if(statsEl) statsEl.innerHTML = stats.map(s=>`<div class="stat"><div class="stat-icon ${s.col}">${s.icon}</div><div><div class="stat-num">${s.n}</div><div class="stat-label">${s.l}</div></div></div>`).join('');
+  const contentEl = document.getElementById('hm-digest-content');
+  if(!contentEl) return;
+  if(!entries.length){
+    contentEl.innerHTML = `<div class="empty-list">No daily assessments for ${esc(fmtDateLong(dateF))}${gradeF?' filtered to "'+esc(gradeF)+'"':''}. Encourage staff to log their day before they leave.</div>`;
+    return;
+  }
+  contentEl.innerHTML = entries.sort((a,b)=>(b.helpNeeded?1:0)-(a.helpNeeded?1:0)).map(e=>{
+    const helpFlag = (e.helpNeeded||'').trim();
+    const cls = helpFlag ? 'da-entry help-needed' : 'da-entry';
+    return `<div class="${cls}">
+      <div class="da-head">
+        <div>
+          <span class="da-date">${esc(e.teacher||'(unknown teacher)')}</span>
+          ${e.className?`<span class="da-class">${esc(e.className)}</span>`:''}
+          ${e.subject?`<span class="da-subject">${esc(e.subject)}</span>`:''}
+          ${e.grade?`<span class="da-class">${esc(e.grade)}</span>`:''}
+        </div>
+        ${helpFlag?'<span class="da-help-flag">⚠️ Help needed</span>':''}
+      </div>
+      ${e.summary?`<div class="da-row"><strong>What happened:</strong> ${esc(e.summary)}</div>`:''}
+      ${e.challenges?`<div class="da-row"><strong>Challenges:</strong> ${esc(e.challenges)}</div>`:''}
+      ${helpFlag?`<div class="da-row"><strong style="color:var(--amber)">Help requested:</strong> <span style="color:var(--amber);font-weight:700">${esc(helpFlag)}</span></div>`:''}
+      ${(e.marksSummary||e.presentCount||e.absentCount) ? `
+        <div class="da-numbers">
+          ${e.marksSummary?`<div class="nm">📊 <strong>${esc(e.marksSummary)}</strong></div>`:''}
+          ${e.presentCount?`<div class="nm">✅ <strong>${esc(e.presentCount)}</strong></div>`:''}
+          ${e.absentCount?`<div class="nm">❌ <strong>${esc(e.absentCount)}</strong></div>`:''}
+        </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   PHASE B — ZIMSEC Syllabus presets, Generate worksheet,
+   Grade filter, Reports by Grade
+   ============================================================ */
+
+const GRADES = [
+  {k:'ecdA', n:'ECD A', level:'ecd'},
+  {k:'ecdB', n:'ECD B', level:'ecd'},
+  {k:'grade1', n:'Grade 1', level:'primary'},
+  {k:'grade2', n:'Grade 2', level:'primary'},
+  {k:'grade3', n:'Grade 3', level:'primary'},
+  {k:'grade4', n:'Grade 4', level:'primary'},
+  {k:'grade5', n:'Grade 5', level:'primary'},
+  {k:'grade6', n:'Grade 6', level:'primary'},
+  {k:'grade7', n:'Grade 7', level:'primary'},
+  {k:'form1', n:'Form 1', level:'form12'},
+  {k:'form2', n:'Form 2', level:'form12'},
+  {k:'form3', n:'Form 3', level:'olevel'},
+  {k:'form4', n:'Form 4', level:'olevel'},
+  {k:'form5', n:'Form 5 (Lower 6)', level:'alevel'},
+  {k:'form6', n:'Form 6 (Upper 6)', level:'alevel'}
+];
+
+const SYLLABUS_PRESETS = {
+  zimsec: {
+    primary: {
+      'English': ['Listening & Speaking','Reading Comprehension','Vocabulary','Grammar (Nouns/Pronouns/Verbs)','Tenses (Past/Present/Future)','Punctuation','Direct & Indirect Speech','Active & Passive Voice','Composition Writing','Letter Writing','Summary Writing','Poetry & Storytelling'],
+      'Mathematics': ['Whole Numbers','Fractions','Decimals','Percentages','Ratio & Proportion','Measures (Length/Mass/Capacity)','Money','Time','Geometry & Shapes','Symmetry & Patterns','Algebra Basics','Statistics & Graphs','Word Problems'],
+      'Shona': ['Tsika neMagariro','Ngano','Detembo','Tsumo neMadimikira','Mhando dzeMashoko','Sarudzo yeMashoko','Tsanangudzo yeMazwi','Nyaya Pfupi','Tsamba','Kunzwisisa'],
+      'Ndebele': ['Ukukhuluma lokulalela','Inganekwane','Izaga lezisho','Izakhi zolimi','Imibhalo ngezindaba','Incwadi','Inhlanganiso yamabala','Izenzo zesikhathi','Ukuqedisisa'],
+      'Science & Technology': ['Plants & Animals','Human Body','Health & Hygiene','Matter (Solids/Liquids/Gases)','Forces & Motion','Energy & Light','Sound','Magnets & Electricity Basics','Weather & Seasons','Soil & Water','Technology in Daily Life','Environment & Conservation'],
+      'Heritage / Social Studies': ['Zimbabwean History','Great Zimbabwe','National Symbols','Provinces & Districts','Map Reading Basics','Independence & Heroes','Culture & Tradition','Governance & Citizenship','Family & Community'],
+      'Agriculture': ['Soil & Soil Preparation','Crops & Crop Care','Livestock','Tools & Equipment','Pests & Diseases','Vegetable Gardening','Poultry Keeping','Conservation Farming'],
+      'ICT': ['Parts of a Computer','Input & Output Devices','Keyboard & Mouse Skills','File Management','Word Processing Basics','Internet Safety','Email Basics','Spreadsheet Basics','Presentations Basics'],
+      'Religious & Moral Education': ['God & Creation','Old Testament Stories','New Testament Stories','Christian Values','Other Religions in Zimbabwe','Ubuntu / Hunhu','Right & Wrong','Forgiveness & Reconciliation'],
+      'Visual & Performing Arts': ['Drawing & Painting','Sculpture & Modelling','Crafts','Music Basics','Singing & Choral Work','Dance & Movement','Drama & Role-Play','Traditional Zimbabwean Art'],
+      'Physical Education': ['Athletics','Ball Games (Football/Netball)','Gymnastics','Traditional Games','Personal Fitness','Sportsmanship & Fair Play','Safety in PE','Healthy Lifestyle']
+    },
+    olevel: {
+      'Mathematics': ['Number (Real Numbers, Surds)','Algebra & Equations','Indices & Logarithms','Functions & Graphs','Sequences & Series','Variation','Mensuration','Geometry & Loci','Trigonometry','Vectors','Matrices','Transformations','Statistics','Probability','Calculus Introduction'],
+      'English Language': ['Comprehension','Summary Writing','Composition (Narrative/Descriptive)','Argumentative & Discursive Writing','Report Writing','Letter Writing (Formal/Informal)','Speech & Article Writing','Grammar & Usage','Vocabulary','Register & Audience','Punctuation','Direct/Indirect Speech','Active/Passive Voice'],
+      'English Literature': ['Prose — Set Novel','Poetry Appreciation','Drama — Set Play','Character Analysis','Themes & Motifs','Literary Devices','Context & Setting','Comparative Essays'],
+      'Combined Science': ['Living Organisms','Cells & Cell Processes','Nutrition & Digestion','Respiration & Gas Exchange','Transport in Plants & Animals','Reproduction','Health & Disease','Ecology','Matter & States','Atoms, Elements, Compounds','Acids, Bases & Salts','Chemical Reactions','Energy','Forces & Motion','Electricity & Magnetism','Light & Sound','Earth & Beyond'],
+      'Physics': ['Measurement','Kinematics','Dynamics (Newton\'s Laws)','Work, Energy & Power','Pressure','Heat & Thermal Properties','Waves & Sound','Light & Optics','Electricity','Magnetism & Electromagnetism','Atomic & Nuclear Physics'],
+      'Chemistry': ['Particulate Nature of Matter','Atomic Structure','Periodic Table','Bonding & Structure','Stoichiometry','Acids, Bases & Salts','Redox Reactions','Energy Changes','Rates of Reaction','Electrolysis','Metals & Reactivity','Organic Chemistry','Carbon Compounds','Industrial Processes','Environmental Chemistry'],
+      'Biology': ['Cell Biology','Movement in & out of Cells','Biological Molecules','Enzymes','Plant Nutrition','Human Nutrition','Transport in Plants','Transport in Animals','Respiration','Excretion','Coordination & Response','Hormones','Homeostasis','Reproduction in Plants','Reproduction in Humans','Inheritance & Variation','Selection & Evolution','Ecology & Ecosystems','Human Influence on Ecosystems','Biotechnology'],
+      'History': ['Pre-Colonial Zimbabwe','European Scramble for Africa','Colonization of Zimbabwe','First Chimurenga','African Nationalism','Second Chimurenga / Liberation War','Independence & New Zimbabwe','Land Reform','Pan-Africanism','World Wars I & II','Cold War & Africa','Apartheid in South Africa'],
+      'Geography': ['Map Reading & Map Work','Weather & Climate','Vegetation & Soils','Hydrological Cycle','Rivers & Drainage','Population','Settlements','Agriculture in Zimbabwe','Mining & Industry','Tourism','Transport & Communication','Trade & Aid','Environmental Problems','Climate Change','Sustainable Development'],
+      'Religious Studies': ['Pentateuch (Genesis–Deuteronomy)','Historical Books','Major Prophets','Minor Prophets','Gospels','Acts of the Apostles','Pauline Letters','Christian Ethics','African Traditional Religion','Islam','World Religions Today'],
+      'Commerce': ['Production','Specialisation & Exchange','Markets & Pricing','Wholesale & Retail Trade','Channels of Distribution','Documentation in Trade','Banking & Finance','Insurance','Transport & Communication','Advertising & Sales Promotion','Government & Business','International Trade'],
+      'Principles of Accounts': ['Books of Original Entry','Ledgers','Trial Balance','Cash Book & Bank Reconciliation','Petty Cash','Trading Account','Profit & Loss Account','Balance Sheet','Adjustments','Depreciation','Bad Debts & Provisions','Manufacturing Accounts','Partnerships','Limited Companies','Non-Profit Organisations'],
+      'Economics': ['Basic Economic Problem','Demand & Supply','Price Mechanism','Production & Factors of Production','Money & Banking','Inflation & Unemployment','Public Finance','National Income','International Trade','Economic Development','Economic Systems'],
+      'Agriculture': ['Crop Production','Soil Science','Animal Husbandry','Farm Machinery','Farm Records & Economics','Pasture & Range Management','Pests & Diseases','Irrigation & Drainage','Conservation Agriculture','Agribusiness'],
+      'ICT': ['Computer Hardware','Software','Operating Systems','Word Processing','Spreadsheets','Databases','Presentations','Internet & Email','Computer Networks','Computer Security','Digital Citizenship','Multimedia'],
+      'Computer Science': ['Data Representation','Logic Gates & Boolean','Computer Architecture','Algorithms','Pseudocode & Flowcharts','Programming (Python/Pascal)','Data Structures','Databases & SQL','Networks','Internet Technologies','Cyber Security','Ethics in Computing'],
+      'Heritage Studies': ['National Identity & Symbols','Indigenous Knowledge Systems','Cultural Heritage','Pan-Africanism','Decolonisation','Gender & Society','Human Rights','Citizenship & Patriotism','Conflict & Peace Building','Sustainable Development']
+    },
+    alevel: {
+      'Pure Mathematics': ['Functions & Graphs','Quadratics & Polynomials','Indices & Surds','Logarithms & Exponentials','Sequences & Series','Binomial Theorem','Trigonometry','Coordinate Geometry','Vectors','Differentiation','Integration','Differential Equations','Numerical Methods','Complex Numbers'],
+      'Statistics': ['Data Representation','Measures of Location & Spread','Probability','Discrete Random Variables','Binomial & Poisson','Normal Distribution','Sampling & Estimation','Hypothesis Testing','Correlation & Regression'],
+      'Mechanics': ['Kinematics in 1D & 2D','Forces & Newton\'s Laws','Friction','Work, Energy & Power','Momentum & Impulse','Projectile Motion','Circular Motion','Equilibrium of Rigid Bodies','SHM'],
+      'Physics': ['Physical Quantities & Units','Kinematics & Dynamics','Forces, Density & Pressure','Work, Energy, Power','Deformation of Solids','Waves & Superposition','Electric Fields & Currents','D.C. Circuits','Magnetic Fields','Electromagnetic Induction','Alternating Currents','Quantum Physics','Nuclear Physics','Astronomy & Cosmology'],
+      'Chemistry': ['Atomic Structure','Chemical Bonding','Stoichiometry','States of Matter','Energetics & Thermochemistry','Chemical Equilibrium','Reaction Kinetics','Acid-Base Equilibria','Redox & Electrochemistry','s-Block Chemistry','p-Block Chemistry','d-Block / Transition Metals','Organic Chemistry (Alkanes/Alkenes/Alcohols)','Carbonyl Compounds','Carboxylic Acids & Derivatives','Aromatic Compounds','Polymers','Spectroscopy & Analysis'],
+      'Biology': ['Cell Structure','Biological Molecules','Enzymes','Cell Membranes & Transport','Mitosis & Meiosis','Genetic Control','Transport in Plants','Transport in Mammals','Gas Exchange','Infectious Disease & Immunity','Energy & Respiration','Photosynthesis','Homeostasis','Coordination','Inheritance','Selection & Evolution','Biodiversity & Conservation','Genetic Engineering'],
+      'Geography': ['Hydrological Cycle & Rivers','Atmosphere & Climate','Plate Tectonics','Coastal Environments','Tropical Environments','Population','Settlement & Urban Geography','Economic Activity','Tourism & Leisure','Environmental Management','Hazards & Disasters','Globalisation','Development & Inequality'],
+      'History': ['Africa from 1855 – 1939','Africa 1939 – Present','Zimbabwe 1890 – Independence','Zimbabwe Post-Independence','Europe 1789 – 1914','Europe 1914 – 1945','Cold War 1945 – 1991','Decolonisation in Africa','World History Themes'],
+      'Sociology': ['Sociological Theory','Family & Marriage','Education','Religion','Work & Economy','Social Stratification','Gender','Crime & Deviance','Research Methods','Globalisation','Power & Politics'],
+      'Divinity': ['Pentateuch Studies','Prophets','Gospels & Synoptic Problem','Pauline Theology','Apocalyptic Literature','Old Testament History','New Testament History','Christian Ethics','African Christianity'],
+      'Literature in English': ['Shakespearean Drama','Modern Drama','Poetry — English Tradition','African Poetry','Prose — Set Novel','Short Stories','Literary Theory','Practical Criticism','Comparative Analysis'],
+      'Communication Skills': ['Reading Comprehension','Summary Writing','Essay Writing','Argumentative Writing','Report Writing','Business Correspondence','Presentation Skills','Language Use & Style','Research Skills','Critical Thinking'],
+      'Accounting': ['Conceptual Framework','Books of Original Entry & Ledger','Final Accounts (Sole Trader)','Adjustments & Accruals','Depreciation Methods','Bad Debts & Provisions','Bank Reconciliation','Control Accounts','Partnership Accounts','Limited Company Accounts','Cash Flow Statements','Manufacturing Accounts','Incomplete Records','Ratio Analysis','Budgeting','Cost Accounting','Marginal & Absorption Costing','Standard Costing'],
+      'Business Studies': ['Nature of Business Activity','Forms of Business Organisation','Marketing','Operations Management','Human Resource Management','Finance & Accounting','Strategy & Planning','External Influences','International Business','Business Ethics','Entrepreneurship'],
+      'Economics': ['Microeconomics — Demand & Supply','Elasticity','Market Structures','Market Failure & Externalities','Labour Markets','Macroeconomics — AD & AS','National Income & Multiplier','Inflation, Unemployment & Growth','Money & Monetary Policy','Fiscal Policy','International Trade & Exchange Rates','Balance of Payments','Development Economics'],
+      'Computer Science': ['Data Representation & Logic','Computer Architecture','Hardware & Software','Operating Systems','Networks & Internet','Databases & SQL','Algorithms & Big-O','Programming Paradigms','Object-Oriented Programming','Data Structures','Software Development Life Cycle','Security & Ethics'],
+      'Sport Science': ['Anatomy & Physiology','Movement Analysis','Skill Acquisition','Sports Psychology','Training & Conditioning','Nutrition for Sport','Sports Injury & Rehabilitation','Sport & Society','Sport History','Coaching & Officiating']
+    }
+  },
+  cambridge: {
+    primary: {
+      'English': ['Phonics & Spelling','Reading Comprehension','Writing — Narrative','Writing — Non-fiction','Speaking & Listening','Grammar & Punctuation'],
+      'Mathematics': ['Number & Place Value','Calculation','Fractions & Decimals','Measurement','Geometry','Statistics & Probability','Algebraic Thinking'],
+      'Science': ['Biology — Living Things','Chemistry — Materials','Physics — Forces & Energy','Earth & Space','Scientific Enquiry'],
+      'Global Perspectives': ['Research Skills','Analysis','Evaluation','Reflection','Collaboration','Communication']
+    },
+    olevel: {
+      'Mathematics': ['Number','Algebra','Coordinate Geometry','Geometry & Trigonometry','Mensuration','Statistics','Probability','Vectors','Transformations','Sets & Functions'],
+      'English First Language': ['Reading — Directed Writing','Reading — Composition','Writing — Descriptive','Writing — Narrative','Writing — Argumentative','Summary Skills'],
+      'Physics': ['General Physics','Thermal Physics','Waves','Electricity & Magnetism','Atomic Physics','Space Physics'],
+      'Chemistry': ['States of Matter','Atoms & Bonding','Stoichiometry','Electricity & Chemistry','Energetics','Acids & Bases','Metals','Organic Chemistry'],
+      'Biology': ['Cells','Biological Molecules','Enzymes','Plant Nutrition','Human Nutrition','Transport','Respiration','Coordination','Reproduction','Inheritance','Ecology'],
+      'Business Studies': ['Business Activity','People in Business','Marketing','Operations Management','Financial Information','External Influences'],
+      'Economics': ['Basic Economic Problem','Allocation of Resources','Microeconomic Decision Makers','Government & the Macroeconomy','Economic Development','International Trade & Globalisation'],
+      'Computer Science': ['Data Representation','Communication & Internet','Hardware & Software','Security','Ethics','Algorithms','Programming','Databases']
+    },
+    alevel: {
+      'Mathematics': ['Pure Mathematics 1','Pure Mathematics 2 & 3','Mechanics','Probability & Statistics 1','Probability & Statistics 2'],
+      'Physics': ['Mechanics','Materials','Waves & Optics','Electricity','Modern Physics','Thermodynamics','Nuclear Physics'],
+      'Chemistry': ['Atomic Structure','Bonding','Energetics','Kinetics','Equilibria','Organic Chemistry','Inorganic Chemistry','Analysis'],
+      'Biology': ['Cell Biology','Biochemistry','Enzymes','Cell Membranes','Photosynthesis & Respiration','Genetics','Evolution','Ecosystems'],
+      'Economics': ['Microeconomics','Macroeconomics','International Economics','Development Economics']
+    }
+  }
+};
+
+const BLOOM_TEMPLATES = {
+  'Remember (recall)': {d:1, items:[
+    'Define the term "{topic}".',
+    'List three key facts about {topic}.',
+    'State the main features of {topic}.',
+    'Name the components or types involved in {topic}.'
+  ]},
+  'Understand (explain)': {d:2, items:[
+    'In your own words, explain what is meant by {topic}.',
+    'Describe how {topic} works.',
+    'Give an example that shows you understand {topic}.',
+    'Summarise the main idea of {topic} in 4–5 sentences.'
+  ]},
+  'Apply (use)': {d:3, items:[
+    'Use what you have learned about {topic} to solve a problem given by your teacher.',
+    'Show how {topic} applies to a real situation in your community.',
+    'Demonstrate the use of {topic} with a worked example.',
+    'Apply {topic} to a typical exam-style scenario and explain each step.'
+  ]},
+  'Analyse (break down)': {d:4, items:[
+    'Compare two aspects of {topic} and explain how they differ.',
+    'Identify the cause-and-effect relationships within {topic}.',
+    'Break {topic} down into its main parts and explain how they connect.',
+    'Examine the strengths and weaknesses of {topic}.'
+  ]},
+  'Evaluate (judge)': {d:4, items:[
+    'Do you agree that {topic} is important today? Justify your answer.',
+    'Assess the impact of {topic} on Zimbabwean society.',
+    'Argue for or against the view that {topic} is well understood.',
+    'Defend or criticise a position on {topic} using evidence.'
+  ]},
+  'Create (produce)': {d:5, items:[
+    'Design a project or experiment that demonstrates {topic}.',
+    'Write a one-page essay applying {topic} to a real situation.',
+    'Propose a new way to teach {topic} to a younger learner.',
+    'Plan a poster, video or presentation explaining {topic}.'
+  ]}
+};
+
+/* ---------- Helpers ---------- */
+function gradesForLevel(levelKey){
+  if(!levelKey) return GRADES;
+  return GRADES.filter(g=>g.level === levelKey);
+}
+function populateGradeFilter(selectEl, currentLevel){
+  if(!selectEl) return;
+  const current = selectEl.value;
+  selectEl.innerHTML = '<option value="">All grades</option>' +
+    gradesForLevel(currentLevel).map(g=>`<option value="${g.k}" ${current===g.k?'selected':''}>${esc(g.n)}</option>`).join('');
+}
+
+/* ---------- LIBRARY: patch renderer for grade filter + toolbar ---------- */
+const _origRenderLibraryB = renderLibrary;
+window.renderLibrary = function(){
+  const lf = document.getElementById('lib-level-filter');
+  populateGradeFilter(document.getElementById('lib-grade-filter'), lf && lf.value);
+  renderLibToolbar();
+  _origRenderLibraryB();
+  const gradeF = (document.getElementById('lib-grade-filter')||{}).value;
+  if(!gradeF) return;
+  const list = (state.library||{})[_libTab] || [];
+  const subjF = document.getElementById('lib-subj-filter').value;
+  const levelF = document.getElementById('lib-level-filter').value;
+  const q = (document.getElementById('lib-search').value||'').trim().toLowerCase();
+  let filtered = list.filter(it =>
+    (!subjF || it.subject === subjF) &&
+    (!levelF || it.level === levelF) &&
+    (!q || JSON.stringify(it).toLowerCase().includes(q)) &&
+    it.grade === gradeF
+  );
+  const meta = _libTabMeta[_libTab];
+  const container = document.getElementById('lib-content');
+  if(!filtered.length){
+    container.innerHTML = `<div class="lib-empty"><div class="em-icon">${meta.icon}</div><h4>No ${_libTab === 'questionBank' ? 'questions' : meta.singular.toLowerCase() + 's'} for that grade</h4><p>Clear the grade filter, or add items tagged for ${esc((GRADES.find(g=>g.k===gradeF)||{}).n||gradeF)}.</p></div>`;
+    return;
+  }
+  if(_libTab === 'pastPapers') container.innerHTML = '<div class="lib-list">' + filtered.slice().sort((a,b)=>(b.year||'').localeCompare(a.year||'')).map(renderPastPaperRow).join('') + '</div>';
+  else if(_libTab === 'schemes') container.innerHTML = '<div class="lib-list">' + filtered.slice().sort((a,b)=>(a.term||'').localeCompare(b.term||'')).map(renderSchemeRow).join('') + '</div>';
+  else if(_libTab === 'worksheets') container.innerHTML = '<div class="lib-list">' + filtered.slice().map(renderWorksheetRow).join('') + '</div>';
+  else if(_libTab === 'questionBank') container.innerHTML = renderQuestionBank(filtered);
+};
+
+function renderLibToolbar(){
+  const tb = document.getElementById('lib-toolbar');
+  if(!tb) return;
+  if(_libTab === 'questionBank'){
+    tb.innerHTML = `
+      <button class="btn btn-soft btn-sm" onclick="openSyllabusLoader()">📚 Load syllabus topics</button>
+      <button class="btn btn-soft btn-sm" onclick="openWorksheetGenerator()">✨ Generate worksheet from topic</button>`;
+  } else if(_libTab === 'worksheets'){
+    tb.innerHTML = `<button class="btn btn-soft btn-sm" onclick="openWorksheetGenerator()">✨ Generate worksheet from topic</button>`;
+  } else { tb.innerHTML = ''; }
+}
+
+/* ---------- SYLLABUS LOADER ---------- */
+function openSyllabusLoader(){
+  const currentCurriculum = (state.school && state.school.curriculum) || 'zimsec';
+  const curriculums = Object.keys(SYLLABUS_PRESETS);
+  showModal(`
+    <h3>📚 Load syllabus topics</h3>
+    <p class="modal-sub">Bulk-seed your Question Bank with topic placeholders from the curriculum. Each topic becomes a row you can later fill with real questions. Tick the Bloom box to auto-generate 6 starter questions per topic.</p>
+    <div class="field-row">
+      <div class="field"><label class="label">Curriculum</label>
+        <select class="select" id="syl-curr" onchange="syllabusLevelChange()">
+          ${curriculums.map(c=>`<option value="${c}" ${c===currentCurriculum?'selected':''}>${c.toUpperCase()}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label class="label">Level</label>
+        <select class="select" id="syl-level" onchange="syllabusLevelChange()"></select>
+      </div>
+    </div>
+    <div class="field"><label class="label">Subject</label>
+      <select class="select" id="syl-subj" onchange="refreshSyllabusPreview()">
+        <option value="__all__">— All subjects at this level —</option>
+      </select>
+    </div>
+    <div class="field"><label class="label">Grade (optional — tags entries for the Grade filter)</label>
+      <select class="select" id="syl-grade"><option value="">— No specific grade —</option></select>
+    </div>
+    <div class="field">
+      <label class="checkbox" style="cursor:pointer;display:flex;gap:8px;align-items:center;font-size:14px">
+        <input type="checkbox" id="syl-bloom" checked> Auto-generate 6 Bloom-taxonomy starter questions per topic (Remember → Create)
+      </label>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:5px">Useful when there are no specimens — gives a starter set of questions across cognitive levels.</div>
+    </div>
+    <div id="syl-preview" style="background:var(--card-tint);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px;font-size:13px;color:var(--ink);max-height:180px;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmLoadSyllabus()">Load topics</button>
+    </div>
+  `);
+  syllabusLevelChange();
+}
+function syllabusLevelChange(){
+  const curr = document.getElementById('syl-curr').value;
+  const presets = SYLLABUS_PRESETS[curr] || {};
+  const levelSel = document.getElementById('syl-level');
+  const currentLevel = levelSel.value;
+  const levels = Object.keys(presets);
+  levelSel.innerHTML = levels.map(lk=>{
+    const lname = (LEVELS.find(l=>l.k===lk)||{}).n || lk;
+    return `<option value="${lk}" ${lk===currentLevel?'selected':''}>${esc(lname)}</option>`;
+  }).join('');
+  const selectedLevel = levelSel.value || levels[0];
+  const subjMap = presets[selectedLevel] || {};
+  const subjSel = document.getElementById('syl-subj');
+  subjSel.innerHTML = '<option value="__all__">— All subjects at this level —</option>' +
+    Object.keys(subjMap).sort().map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  const gradeSel = document.getElementById('syl-grade');
+  gradeSel.innerHTML = '<option value="">— No specific grade —</option>' +
+    gradesForLevel(selectedLevel).map(g=>`<option value="${g.k}">${esc(g.n)}</option>`).join('');
+  refreshSyllabusPreview();
+}
+function refreshSyllabusPreview(){
+  const curr = document.getElementById('syl-curr').value;
+  const lvl = document.getElementById('syl-level').value;
+  const subj = document.getElementById('syl-subj').value;
+  const map = (SYLLABUS_PRESETS[curr]||{})[lvl] || {};
+  const preview = document.getElementById('syl-preview');
+  if(subj === '__all__'){
+    const counts = Object.entries(map).sort();
+    const totalTopics = counts.reduce((s,[,arr])=>s+arr.length,0);
+    preview.innerHTML = `<strong>${counts.length}</strong> subjects · <strong>${totalTopics}</strong> topics will be loaded.<br><span style="color:var(--muted);font-size:12px">${counts.map(([s,arr])=>esc(s)+' ('+arr.length+')').join(' · ')}</span>`;
+  } else {
+    const arr = map[subj] || [];
+    preview.innerHTML = `<strong>${esc(subj)}</strong> — ${arr.length} topics:<br><span style="color:var(--muted);font-size:12.5px">${arr.map(esc).join(' · ')}</span>`;
+  }
+}
+function confirmLoadSyllabus(){
+  const curr = document.getElementById('syl-curr').value;
+  const lvl = document.getElementById('syl-level').value;
+  const subj = document.getElementById('syl-subj').value;
+  const grade = document.getElementById('syl-grade').value;
+  const withBloom = document.getElementById('syl-bloom').checked;
+  const map = (SYLLABUS_PRESETS[curr]||{})[lvl] || {};
+  state.library = state.library || {pastPapers:[], schemes:[], worksheets:[], questionBank:[]};
+  state.library.questionBank = state.library.questionBank || [];
+  const existing = state.library.questionBank;
+  let added = 0, skipped = 0;
+  const targets = subj === '__all__' ? Object.entries(map) : [[subj, map[subj]||[]]];
+  let salt = 0;
+  targets.forEach(([subjectName, topics])=>{
+    topics.forEach(topic=>{
+      if(withBloom){
+        Object.entries(BLOOM_TEMPLATES).forEach(([bloomName, bloomDef])=>{
+          const tmpl = bloomDef.items[0];
+          const q = tmpl.replace(/\{topic\}/g, topic);
+          if(existing.some(x=>x.subject===subjectName && x.topic===topic && x.question===q)){ skipped++; return; }
+          existing.push({
+            id:'lib_'+Date.now()+'_'+(salt++),
+            subject:subjectName, topic, level:lvl, grade:grade||'',
+            question:q, answer:'', difficulty:bloomDef.d, bloom:bloomName,
+            source:'syllabus-auto'
+          });
+          added++;
+        });
+      } else {
+        if(existing.some(x=>x.subject===subjectName && x.topic===topic && !x.question)){ skipped++; return; }
+        existing.push({
+          id:'lib_'+Date.now()+'_'+(salt++),
+          subject:subjectName, topic, level:lvl, grade:grade||'',
+          question:'', answer:'', difficulty:'', source:'syllabus-placeholder'
+        });
+        added++;
+      }
+    });
+  });
+  save(); closeModal();
+  toast('Loaded ' + added + ' question' + (added===1?'':'s') + (skipped?' ('+skipped+' duplicates skipped)':''));
+  if(typeof renderers.library === 'function') renderers.library();
+}
+
+/* ---------- WORKSHEET GENERATOR ---------- */
+function openWorksheetGenerator(){
+  const subjs = subjectNames();
+  showModal(`
+    <h3>✨ Generate worksheet from topic</h3>
+    <p class="modal-sub">Pick a topic — we pull matching questions from your Question Bank. If none exist, we auto-generate Bloom-taxonomy starter questions you can edit.</p>
+    <div class="field-row">
+      <div class="field"><label class="label">Subject</label>
+        <select class="select" id="wg-subj" onchange="wgTopicSuggest()"><option value="">— pick —</option>${subjs.map(n=>`<option>${esc(n)}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label class="label">Level</label>
+        <select class="select" id="wg-level" onchange="wgTopicSuggest()"><option value="">— any —</option>${LEVELS.map(l=>`<option value="${l.k}">${esc(l.n)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="field"><label class="label">Topic</label>
+      <input class="input" id="wg-topic" list="wg-topic-list" placeholder="e.g. Photosynthesis" oninput="wgUpdatePreview()">
+      <datalist id="wg-topic-list"></datalist>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="label">Number of questions</label>
+        <input class="input" type="number" id="wg-count" value="10" min="1" max="40">
+      </div>
+      <div class="field"><label class="label">Grade (optional)</label>
+        <select class="select" id="wg-grade"><option value="">— any —</option>${GRADES.map(g=>`<option value="${g.k}">${esc(g.n)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="field"><label class="label">Worksheet title (optional)</label>
+      <input class="input" id="wg-title" placeholder="Auto-generated if blank">
+    </div>
+    <div class="field">
+      <label class="checkbox" style="cursor:pointer;display:flex;gap:8px;align-items:center;font-size:14px">
+        <input type="checkbox" id="wg-bloom-fill" checked> Top-up with Bloom prompts if Question Bank runs short
+      </label>
+    </div>
+    <div id="wg-preview" style="background:var(--card-tint);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px;font-size:13px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmGenerateWorksheet()">Generate worksheet</button>
+    </div>
+  `);
+  wgTopicSuggest();
+}
+function wgTopicSuggest(){
+  const subj = document.getElementById('wg-subj').value;
+  const lvl = document.getElementById('wg-level').value;
+  const currentCurriculum = (state.school && state.school.curriculum) || 'zimsec';
+  const dl = document.getElementById('wg-topic-list');
+  const topics = new Set();
+  if(subj && lvl){
+    const map = (SYLLABUS_PRESETS[currentCurriculum]||{})[lvl] || {};
+    (map[subj]||[]).forEach(t=>topics.add(t));
+  } else if(subj){
+    Object.values(SYLLABUS_PRESETS[currentCurriculum]||{}).forEach(lvlMap=>{
+      (lvlMap[subj]||[]).forEach(t=>topics.add(t));
+    });
+  }
+  ((state.library||{}).questionBank||[]).forEach(q=>{
+    if((!subj||q.subject===subj) && (!lvl||q.level===lvl) && q.topic) topics.add(q.topic);
+  });
+  dl.innerHTML = Array.from(topics).sort().map(t=>`<option value="${esc(t)}">`).join('');
+  wgUpdatePreview();
+}
+function wgUpdatePreview(){
+  const subj = document.getElementById('wg-subj').value;
+  const lvl = document.getElementById('wg-level').value;
+  const topic = (document.getElementById('wg-topic').value||'').trim();
+  const preview = document.getElementById('wg-preview');
+  if(!topic){ preview.innerHTML = '<span style="color:var(--muted)">Type or pick a topic to see how many bank questions match.</span>'; return; }
+  const matches = ((state.library||{}).questionBank||[]).filter(q =>
+    (!subj || q.subject === subj) &&
+    (!lvl || q.level === lvl) &&
+    (q.topic||'').toLowerCase() === topic.toLowerCase() &&
+    q.question
+  );
+  if(matches.length){
+    preview.innerHTML = `<strong>${matches.length}</strong> question${matches.length===1?'':'s'} found in your Question Bank for "<strong>${esc(topic)}</strong>". Top-up with Bloom prompts if needed.`;
+  } else {
+    preview.innerHTML = `<span style="color:var(--amber)">No bank questions for "<strong>${esc(topic)}</strong>" yet — we'll auto-generate 6 Bloom-taxonomy starter prompts you can edit.</span>`;
+  }
+}
+function confirmGenerateWorksheet(){
+  const subj = document.getElementById('wg-subj').value;
+  const lvl = document.getElementById('wg-level').value;
+  const topic = (document.getElementById('wg-topic').value||'').trim();
+  const grade = document.getElementById('wg-grade').value;
+  const count = Math.max(1, Math.min(40, parseInt(document.getElementById('wg-count').value)||10));
+  const title = (document.getElementById('wg-title').value||'').trim() || ((topic||'Worksheet') + ' — Practice');
+  const topupBloom = document.getElementById('wg-bloom-fill').checked;
+  if(!topic){ toast('Pick a topic first'); return; }
+  let bank = ((state.library||{}).questionBank||[]).filter(q =>
+    (!subj || q.subject === subj) &&
+    (!lvl || q.level === lvl) &&
+    (q.topic||'').toLowerCase() === topic.toLowerCase() &&
+    q.question
+  );
+  bank = bank.sort(()=>Math.random()-0.5).slice(0, count);
+  let questions = bank.map(q => ({q:q.question, a:q.answer||'', d:q.difficulty||'', source:'bank'}));
+  if(questions.length < count && topupBloom){
+    const bloomList = generateBloomQuestions(topic);
+    const need = count - questions.length;
+    bloomList.slice(0, need).forEach(b=>questions.push(b));
+  }
+  state.library = state.library || {pastPapers:[], schemes:[], worksheets:[], questionBank:[]};
+  const ws = {
+    id:'lib_'+Date.now(),
+    title, subject:subj, topic, level:lvl, grade:grade||'',
+    instructions: 'Answer all questions in the space provided. Show all working where necessary.',
+    questions, dateCreated: localDateStr(new Date()),
+    source: 'generator'
+  };
+  state.library.worksheets.push(ws);
+  save();
+  closeModal();
+  toast('Worksheet generated with ' + questions.length + ' question' + (questions.length===1?'':'s'));
+  switchLibTab('worksheets');
+  if(typeof renderers.library === 'function') renderers.library();
+}
+function generateBloomQuestions(topic){
+  const out = [];
+  Object.entries(BLOOM_TEMPLATES).forEach(([bloomName, bloomDef])=>{
+    const tmpl = bloomDef.items[0];
+    out.push({
+      q: tmpl.replace(/\{topic\}/g, topic),
+      a: '', d: bloomDef.d,
+      source: 'bloom', bloom: bloomName
+    });
+  });
+  return out;
+}
+
+/* ---------- MATERIALS: patch render + add modal for grade ---------- */
+const _origRenderMaterialsB = renderers.materials;
+renderers.materials = function(){
+  populateGradeFilter(document.getElementById('mat-filter-grade'), null);
+  _origRenderMaterialsB();
+  const gradeF = (document.getElementById('mat-filter-grade')||{}).value;
+  if(!gradeF) return;
+  const fsVal = document.getElementById('mat-filter-subj').value;
+  const ftVal = document.getElementById('mat-filter-type').value;
+  let list = (state.resources||[]).filter(r=>r.grade === gradeF);
+  if(fsVal) list = list.filter(r=>r.subject === fsVal);
+  if(ftVal) list = list.filter(r=>r.type === ftVal);
+  list = list.slice().sort((a,b)=>(b.dateAdded||'').localeCompare(a.dateAdded||''));
+  const el = document.getElementById('mat-list');
+  if(!el) return;
+  if(!list.length){ el.innerHTML = `<div class="empty-list">No materials for ${esc((GRADES.find(g=>g.k===gradeF)||{}).n||gradeF)} yet.</div>`; return; }
+  el.innerHTML = list.map(r=>{
+    const isFile = r.file && r.file.startsWith('data:');
+    const action = isFile
+      ? `<a class="btn btn-soft btn-sm" download="${esc(r.fileName||r.name)}" href="${r.file}">⬇️ Download</a>`
+      : (r.url ? `<a class="btn btn-soft btn-sm" href="${esc(r.url)}" target="_blank" rel="noopener">🔗 Open link</a>` : '');
+    return `<div class="log-row" style="grid-template-columns:1fr auto 40px;align-items:center">
+      <div>
+        <strong class="row-key">${esc(r.name)}</strong>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:3px">
+          ${esc(r.type||'')}${r.subject?' · '+esc(r.subject):''}${r.grade?' · '+esc((GRADES.find(g=>g.k===r.grade)||{}).n||r.grade):''}${r.dateAdded?' · added '+fmtDate(r.dateAdded):''}
+        </div>
+        ${r.notes?`<div style="font-size:12.5px;margin-top:4px">${esc(r.notes)}</div>`:''}
+      </div>
+      <div>${action}</div>
+      <button class="del" onclick="delMaterial('${r.id}')">×</button>
+    </div>`;
+  }).join('');
+};
+const _origAddMaterialB = addMaterial;
+window.addMaterial = function(){
+  _origAddMaterialB();
+  setTimeout(()=>{
+    const levelSel = document.getElementById('mat-level');
+    if(!levelSel) return;
+    if(document.getElementById('mat-grade')) return;
+    const wrapper = levelSel.closest('.field');
+    const gradeHtml = `<div class="field"><label class="label">Grade (optional)</label><select class="select" id="mat-grade"><option value="">— Any —</option>${GRADES.map(g=>`<option value="${g.k}">${esc(g.n)}</option>`).join('')}</select></div>`;
+    wrapper.insertAdjacentHTML('afterend', gradeHtml);
+  }, 60);
+};
+window.saveMaterial = function(){
+  const name = document.getElementById('mat-name').value.trim();
+  if(!name){ toast('Title is required'); return; }
+  const gradeEl = document.getElementById('mat-grade');
+  const data = {
+    id: 'res_'+Date.now(),
+    name,
+    subject: document.getElementById('mat-subj').value,
+    type: document.getElementById('mat-type').value,
+    level: document.getElementById('mat-level').value,
+    grade: gradeEl ? gradeEl.value : '',
+    year: document.getElementById('mat-year').value,
+    url: document.getElementById('mat-url').value.trim(),
+    notes: document.getElementById('mat-notes').value.trim(),
+    dateAdded: localDateStr(new Date())
+  };
+  const fileInput = document.getElementById('mat-file');
+  const file = fileInput.files[0];
+  const finish = () => { state.resources.push(data); save(); closeModal(); renderers.materials(); toast('Material added'); };
+  if(file){
+    if(file.size > 600*1024){ toast('File is too large — use a link instead, or upload to Drive and paste the URL.'); return; }
+    const r = new FileReader();
+    r.onload = ()=>{ data.file = r.result; data.fileName = file.name; finish(); };
+    r.readAsDataURL(file);
+  } else finish();
+};
+
+/* ---------- HEADMASTER: add Reports by Grade card ---------- */
+const _hmWithDigest = renderers.headmaster;
+renderers.headmaster = function(){
+  if(_hmWithDigest) _hmWithDigest();
+  let card = document.getElementById('hm-grade-card');
+  const hmPage = document.getElementById('page-headmaster');
+  if(!card && hmPage){
+    card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'hm-grade-card';
+    card.innerHTML = `<div class="card-head"><div class="card-title">🎯 Reports by Grade</div>
+      <select class="select select-sm" id="hm-grade-pick" onchange="renderGradeReport()" style="min-width:170px">
+        <option value="">— Pick a grade —</option>
+        ${GRADES.map(g=>`<option value="${g.k}">${esc(g.n)}</option>`).join('')}
+      </select></div>
+      <div id="hm-grade-report"></div>`;
+    const digest = document.getElementById('hm-digest-card');
+    if(digest && digest.parentNode) digest.parentNode.insertBefore(card, digest.nextSibling);
+    else hmPage.appendChild(card);
+  }
+  renderGradeReport();
+};
+function renderGradeReport(){
+  const grade = (document.getElementById('hm-grade-pick')||{}).value;
+  const el = document.getElementById('hm-grade-report');
+  if(!el) return;
+  if(!grade){
+    el.innerHTML = '<div style="color:var(--muted);font-size:14px;text-align:center;padding:14px 0">Pick a grade above to see all classes\' daily assessments, marks summaries, attendance trends and help-needed alerts.</div>';
+    return;
+  }
+  const gradeName = (GRADES.find(g=>g.k===grade)||{}).n || grade;
+  const gradeWords = gradeName.toLowerCase().replace(/[()]/g,'').split(/\s+/).filter(Boolean);
+  const all = state.dailyAssessments || [];
+  const entries = all.filter(e=>{
+    const text = ((e.grade||'')+' '+(e.className||'')).toLowerCase();
+    return gradeWords.every(w=>text.includes(w));
+  });
+  const teachers = new Set(entries.map(e=>e.teacher).filter(Boolean));
+  const classes = new Set(entries.map(e=>e.className).filter(Boolean));
+  const helpNeeded = entries.filter(e=>(e.helpNeeded||'').trim());
+  const totalPresent = entries.reduce((s,e)=>s+(Number(e.presentCount)||0),0);
+  const totalAbsent = entries.reduce((s,e)=>s+(Number(e.absentCount)||0),0);
+  const attendPct = (totalPresent+totalAbsent) ? Math.round(100*totalPresent/(totalPresent+totalAbsent)) : 0;
+  const recent = entries.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0, 30);
+  const marksLines = entries.filter(e=>(e.marksSummary||'').trim()).slice(0,15);
+  const stats = [
+    {icon:'📝', col:'blue', n:entries.length, l:'Entries'},
+    {icon:'🏫', col:'green', n:classes.size, l:'Classes'},
+    {icon:'👨‍🏫', col:'lav', n:teachers.size, l:'Teachers'},
+    {icon:'⚠️', col:'yellow', n:helpNeeded.length, l:'Help flags'},
+    {icon:'📊', col:'pink', n:attendPct+'%', l:'Attendance'}
+  ];
+  let html = `<div class="dash-grid" style="margin-bottom:14px">` + stats.map(s=>`<div class="stat"><div class="stat-icon ${s.col}">${s.icon}</div><div><div class="stat-num">${s.n}</div><div class="stat-label">${s.l}</div></div></div>`).join('') + `</div>`;
+  if(helpNeeded.length){
+    html += `<div style="background:#FFF5DC;border:1px solid #E8C97A;border-radius:10px;padding:12px 16px;margin-bottom:14px">
+      <div style="font-weight:800;color:#9c7e1a;margin-bottom:8px">⚠️ Help-needed alerts (${helpNeeded.length})</div>
+      ${helpNeeded.slice(0,8).map(e=>`<div style="font-size:13px;margin-bottom:5px">
+        <strong>${esc(e.teacher||'(unknown)')}</strong> · ${esc(e.className||'')} · ${esc(fmtDate(e.date))} — <span style="color:#9c7e1a">${esc(e.helpNeeded)}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+  if(marksLines.length){
+    html += `<div class="card-head" style="margin:6px 0 8px"><div class="card-title" style="font-size:14.5px">📊 Recent marks summaries</div></div>`;
+    html += marksLines.map(e=>`<div style="font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)">
+      <strong>${esc(e.subject||'(no subject)')}</strong> · ${esc(e.className||'')} · ${esc(fmtDate(e.date))} — ${esc(e.marksSummary)}
+    </div>`).join('');
+  }
+  if(recent.length){
+    html += `<div class="card-head" style="margin:18px 0 8px"><div class="card-title" style="font-size:14.5px">🗓 Recent daily entries</div></div>`;
+    html += recent.slice(0,12).map(e=>`<div style="font-size:13px;padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:3px">
+        <strong>${esc(e.teacher||'')}</strong>
+        <span style="color:var(--muted)">${esc(e.className||'')}${e.subject?' · '+esc(e.subject):''}</span>
+        <span style="color:var(--muted);margin-left:auto">${esc(fmtDate(e.date))}</span>
+      </div>
+      ${e.summary?`<div style="color:var(--ink)">${esc(e.summary)}</div>`:''}
+      ${e.helpNeeded?`<div style="color:var(--amber);font-weight:600;margin-top:3px">⚠️ ${esc(e.helpNeeded)}</div>`:''}
+    </div>`).join('');
+  }
+  if(!entries.length){
+    html += `<div class="empty-list">No daily assessments tagged for ${esc(gradeName)} yet. When teachers tag their daily reflection with this grade, it shows up here.</div>`;
+  }
+  el.innerHTML = html;
+}
+
 /* ---- Boot ---- */
 refreshSubjectsDatalist();
 applyTheme();
@@ -3283,22 +5185,59 @@ document.getElementById('scrim').addEventListener('click', ()=>{ document.getEle
 document.getElementById('welcome-start').addEventListener('click', enterApp);
 document.getElementById('welcome-tour').addEventListener('click', ()=>{ document.querySelector('.welcome-features').scrollIntoView({behavior:'smooth'}); });
 
-if(state.welcomed) enterApp(); else showWelcome();
+/* Don't auto-enter the app — let the user click "Open the planner" from the landing first.
+   Exception: PWA-installed users (start_url is './#planner') jump straight to the app. */
+if(location.hash === '#planner' || location.search.includes('app=1')){
+  showAppView();
+}
+/* Else: landing stays visible (CSS default), app stays hidden. */
 
-/* PWA manifest */
+/* PWA manifest — uses Canvas-generated PNG icons so Android treats this as a
+   proper WebAPK install (rather than a dark "shortcut" with a Chrome overlay).
+   SVG-icon manifests sometimes fail Android's WebAPK validation, resulting in
+   dark adaptive-icon containers. PNG always works. */
+function generateClassMateIcon(size, region){
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  const ctx = c.getContext('2d');
+  // Cream background fills entire safe area
+  ctx.fillStyle = '#F8F6F1';
+  ctx.fillRect(0, 0, size, size);
+  // CM at top in gold
+  ctx.fillStyle = '#C9A86A';
+  ctx.font = '900 ' + Math.round(size * 30 / 192) + 'px Arial, Helvetica, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('CM', size / 2, size * 72 / 192);
+  // Gold accent line
+  ctx.fillRect(size * 50 / 192, size * 84 / 192, size * 92 / 192, Math.max(2, size * 4 / 192));
+  // Region big at bottom in navy — bigger font for 2-char codes
+  ctx.fillStyle = '#1A2E4F';
+  const fs = region.length <= 2 ? Math.round(size * 88 / 192) : Math.round(size * 72 / 192);
+  ctx.font = '900 ' + fs + 'px Arial Black, Arial, Helvetica, sans-serif';
+  const y = region.length <= 2 ? size * 166 / 192 : size * 158 / 192;
+  ctx.fillText(region, size / 2, y);
+  return c.toDataURL('image/png');
+}
+const _icon192 = generateClassMateIcon(192, 'ZIM');
+const _icon512 = generateClassMateIcon(512, 'ZIM');
+try { const f = document.querySelector('link[rel="icon"]'); if(f) f.href = generateClassMateIcon(64, 'ZIM'); } catch(e){}
+
 const manifest = {
   name: 'ClassMate Zim — Educator Planner',
-  short_name: 'ClassMate',
+  short_name: 'ClassMate Zim',
   description: 'The Professional Educator Success Planner for Zimbabwean teachers.',
-  start_url: './app.html',
+  start_url: './#planner',
   scope: './',
   display: 'standalone',
   background_color: '#F8F6F1',
   theme_color: '#1A2E4F',
   orientation: 'portrait',
   icons: [
-    {src: "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='%231A2E4F'/><path d='M40 64h112v12H40zm0 30h112v12H40zm0 30h70v12H40z' fill='%23fff'/><circle cx='130' cy='130' r='20' fill='%23C9A86A'/></svg>"), sizes:'192x192', type:'image/svg+xml', purpose:'any maskable'},
-    {src: "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%231A2E4F'/><path d='M110 170h292v32H110zm0 80h292v32H110zm0 80h180v32H110z' fill='%23fff'/><circle cx='340' cy='350' r='52' fill='%23C9A86A'/></svg>"), sizes:'512x512', type:'image/svg+xml', purpose:'any maskable'}
+    {src: _icon192, sizes:'192x192', type:'image/png', purpose:'any'},
+    {src: _icon192, sizes:'192x192', type:'image/png', purpose:'maskable'},
+    {src: _icon512, sizes:'512x512', type:'image/png', purpose:'any'},
+    {src: _icon512, sizes:'512x512', type:'image/png', purpose:'maskable'}
   ]
 };
 document.getElementById('manifest-link').href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'}));
