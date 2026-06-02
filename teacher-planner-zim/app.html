@@ -3829,7 +3829,8 @@ function deleteOrgNode(id){
    Adds Infant + Junior + Ordinary + Advanced subjects to match
    the official ZIMSEC subject list the user provided.
    ============================================================ */
-(function expandZimSyllabus(){
+setTimeout(function expandZimSyllabus(){
+  if(typeof SYLLABUS_PRESETS === 'undefined') return;
   const z = SYLLABUS_PRESETS.zimsec;
   // ---------- ECD (Infant Level: ECD A & B) ----------
   z.ecd = Object.assign(z.ecd || {}, {
@@ -3894,7 +3895,7 @@ function deleteOrgNode(id){
     'Design & Technology': ['Advanced Design Process','Materials Science','CAD & CAM','Production Systems','Sustainability','Industrial Design','Engineering Drawing','Major Project']
   };
   z.alevel = Object.assign(z.alevel || {}, alevelExtras);
-})();
+}, 0);
 
 /* ---- Boot: render organogram on demand ---- */
 function loadBroadcastTemplate(){
