@@ -3602,6 +3602,241 @@ renderers.broadcast = function(){
 };
 
 /* ============================================================
+   ZIMSEC PAST PAPERS — official specimen / past paper index
+   Auto-seeded into Library → Past Papers on first visit.
+   Each entry deeplinks to the official ZIMSEC download page.
+   Source: www5.zimsec.co.zw/download-category/{grade-7,o-level,a-level}
+   ============================================================ */
+const ZIMSEC_PAPERS = [
+  // ===== Grade 7 (primary level) =====
+  {t:'Mathematics Paper 1',                 s:'Mathematics',                 l:'primary', u:'https://www5.zimsec.co.zw/download/mathematics-paper-1/'},
+  {t:'Mathematics Paper 2',                 s:'Mathematics',                 l:'primary', u:'https://www5.zimsec.co.zw/download/mathematics-paper-2/'},
+  {t:'English Paper 1',                     s:'English',                     l:'primary', u:'https://www5.zimsec.co.zw/download/english-paper-1/'},
+  {t:'English Paper 2',                     s:'English',                     l:'primary', u:'https://www5.zimsec.co.zw/download/english-paper-2/'},
+  {t:'Chishona Paper 1',                    s:'Shona',                       l:'primary', u:'https://www5.zimsec.co.zw/download/chishona-paper-1/'},
+  {t:'Chishona Paper 2',                    s:'Shona',                       l:'primary', u:'https://www5.zimsec.co.zw/download/chishona-paper-2/'},
+  {t:'Ndebele Paper 1',                     s:'Ndebele',                     l:'primary', u:'https://www5.zimsec.co.zw/download/ndebele-paper-1/'},
+  {t:'Ndebele Paper 2',                     s:'Ndebele',                     l:'primary', u:'https://www5.zimsec.co.zw/download/ndebele-paper-2/'},
+  {t:'Science and Technology Paper 1',      s:'Science and Technology',      l:'primary', u:'https://www5.zimsec.co.zw/download/science-and-technology-paper-1/'},
+  {t:'Science and Technology Paper 2',      s:'Science and Technology',      l:'primary', u:'https://www5.zimsec.co.zw/download/science-and-technology-paper-2/'},
+  {t:'Social Science Paper 1',              s:'Social Science',              l:'primary', u:'https://www5.zimsec.co.zw/download/social-science-paper-1/'},
+  {t:'Social Science Paper 2',              s:'Social Science',              l:'primary', u:'https://www5.zimsec.co.zw/download/social-science-paper-2/'},
+  {t:'Physical Education and Arts Paper 1', s:'Physical Education and Arts', l:'primary', u:'https://www5.zimsec.co.zw/download/physical-education-and-arts-paper-1/'},
+  {t:'Physical Education and Arts Paper 2', s:'Physical Education and Arts', l:'primary', u:'https://www5.zimsec.co.zw/download/physical-education-and-arts-paper-2/'},
+  {t:'Tonga Paper 1',                       s:'Tonga',                       l:'primary', u:'https://www5.zimsec.co.zw/download/tonga-paper-1/'},
+  {t:'Tonga Paper 2',                       s:'Tonga',                       l:'primary', u:'https://www5.zimsec.co.zw/download/tonga-paper-2/'},
+  {t:'Nambya Paper 1',                      s:'Nambya',                      l:'primary', u:'https://www5.zimsec.co.zw/download/nambya-paper-1/'},
+  {t:'Nambya Paper 2',                      s:'Nambya',                      l:'primary', u:'https://www5.zimsec.co.zw/download/nambya-paper-2/'},
+  {t:'Tshivenda Paper 1',                   s:'Tshivenda',                   l:'primary', u:'https://www5.zimsec.co.zw/download/tshivenda-paper-1/'},
+  {t:'Tshivenda Paper 2',                   s:'Tshivenda',                   l:'primary', u:'https://www5.zimsec.co.zw/download/tshivenda-paper-2/'},
+  {t:'Xichangana Paper 1',                  s:'Xichangana',                  l:'primary', u:'https://www5.zimsec.co.zw/download/xichangana-paper-1/'},
+  {t:'Xichangana Paper 2',                  s:'Xichangana',                  l:'primary', u:'https://www5.zimsec.co.zw/download/xichangana-paper-2/'},
+  {t:'Kalanga Paper 1',                     s:'Kalanga',                     l:'primary', u:'https://www5.zimsec.co.zw/download/kalanga/'},
+  {t:'Kalanga Paper 2',                     s:'Kalanga',                     l:'primary', u:'https://www5.zimsec.co.zw/download/kalanga-paper-2/'},
+  {t:'Sesotho Paper 1',                     s:'Sesotho',                     l:'primary', u:'https://www5.zimsec.co.zw/download/sesotho-paper-1/'},
+  {t:'Sesotho Paper 2',                     s:'Sesotho',                     l:'primary', u:'https://www5.zimsec.co.zw/download/sesotho-paper-2/'},
+  {t:'Xhosa Paper 1',                       s:'Xhosa',                       l:'primary', u:'https://www5.zimsec.co.zw/download/xhosa-paper-1/'},
+  {t:'Xhosa Paper 2',                       s:'Xhosa',                       l:'primary', u:'https://www5.zimsec.co.zw/download/xhosa-paper-2/'},
+
+  // ===== O-Level (olevel) =====
+  {t:'Agriculture 4001/01',                                  s:'Agriculture',                       l:'olevel', u:'https://www5.zimsec.co.zw/download/agriculture-paper-1/'},
+  {t:'Agriculture 4001/02',                                  s:'Agriculture',                       l:'olevel', u:'https://www5.zimsec.co.zw/download/agriculture-4001-02/'},
+  {t:'Agriculture 4001/03',                                  s:'Agriculture',                       l:'olevel', u:'https://www5.zimsec.co.zw/download/agriculture-4001-03-2/'},
+  {t:'Agriculture 4001/03 — Advanced Instructions',          s:'Agriculture',                       l:'olevel', u:'https://www5.zimsec.co.zw/download/advanced-instructions-agriculture-4001-03/'},
+  {t:'Agriculture 4001/03 — Instructions',                   s:'Agriculture',                       l:'olevel', u:'https://www5.zimsec.co.zw/download/agriculture-instructions-4001-03/'},
+  {t:'PE, Sports and Mass Displays 4002/01',                 s:'Physical Education',                l:'olevel', u:'https://www5.zimsec.co.zw/download/pe-sports-and-mass-displays-4002-01/'},
+  {t:'PE, Sports and Mass Displays 4002/02 — Advance',       s:'Physical Education',                l:'olevel', u:'https://www5.zimsec.co.zw/download/pe-sports-and-mass-displays-advance-instructions-4002-02/'},
+  {t:'PE, Sports and Mass Displays 4002/02 — Candidates',    s:'Physical Education',                l:'olevel', u:'https://www5.zimsec.co.zw/download/pe-sports-and-mass-displays-instruction-to-candidates-4002-02/'},
+  {t:'Combined Science 4003/01',                             s:'Combined Science',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/combined-science-4003-01/'},
+  {t:'Combined Science 4003/02',                             s:'Combined Science',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/combined-science-4003-02/'},
+  {t:'Combined Science 4003/03',                             s:'Combined Science',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/combined-science-4003-03/'},
+  {t:'Combined Science 4003/03 — Advanced',                  s:'Combined Science',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/combined-science-advanced-instructions-4003-03/'},
+  {t:'Mathematics 4004/01',                                  s:'Mathematics',                       l:'olevel', u:'https://www5.zimsec.co.zw/download/mathematics-4004-01/'},
+  {t:'Mathematics 4004/02',                                  s:'Mathematics',                       l:'olevel', u:'https://www5.zimsec.co.zw/download/mathematics-4004-02/'},
+  {t:'English Language 4005/01',                             s:'English Language',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/english-language-4005-01/'},
+  {t:'English Language 4005/02',                             s:'English Language',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/english-language-4005-02/'},
+  {t:'Shona 4007/01',                                        s:'Shona',                             l:'olevel', u:'https://www5.zimsec.co.zw/download/shona-4007-01/'},
+  {t:'Shona 4007/02',                                        s:'Shona',                             l:'olevel', u:'https://www5.zimsec.co.zw/download/shona-4007-02/'},
+  {t:'Tonga 4009/01',                                        s:'Tonga',                             l:'olevel', u:'https://www5.zimsec.co.zw/download/tonga-4009-01/'},
+  {t:'Tonga 4009/02',                                        s:'Tonga',                             l:'olevel', u:'https://www5.zimsec.co.zw/download/tonga-4009-02/'},
+  {t:'Nambya 4010/01',                                       s:'Nambya',                            l:'olevel', u:'https://www5.zimsec.co.zw/download/nambya-4010-01/'},
+  {t:'Nambya 4010/02',                                       s:'Nambya',                            l:'olevel', u:'https://www5.zimsec.co.zw/download/nambya-4010-02/'},
+  {t:'Tshivenda 4011/01',                                    s:'Tshivenda',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/tshivenda-4011-01/'},
+  {t:'Tshivenda 4011/02',                                    s:'Tshivenda',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/tshivenda-4011-02/'},
+  {t:'Xichangana 4012/01',                                   s:'Xichangana',                        l:'olevel', u:'https://www5.zimsec.co.zw/download/xichangana-4012-01/'},
+  {t:'Xichangana 4012/02',                                   s:'Xichangana',                        l:'olevel', u:'https://www5.zimsec.co.zw/download/xichangana-4012-02/'},
+  {t:'Kalanga 4013/01',                                      s:'Kalanga',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/kalanga-4013-01/'},
+  {t:'Kalanga 4013/02',                                      s:'Kalanga',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/kalanga-4013-02/'},
+  {t:'Sesotho 4014/01',                                      s:'Sesotho',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/sesotho-4014-01/'},
+  {t:'Sesotho 4014/02',                                      s:'Sesotho',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/sesotho-4014-02/'},
+  {t:'Computer Science 4021/01',                             s:'Computer Science',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/computer-science-4021-01/'},
+  {t:'Computer Science 4021/02',                             s:'Computer Science',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/computer-science-4021-02/'},
+  {t:'Computer Science 4021/03',                             s:'Computer Science',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/computer-science-4021-03/'},
+  {t:'Geography 4022/01',                                    s:'Geography',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/geography-4022-01/'},
+  {t:'Geography 4022/01 — Map',                              s:'Geography',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/geography-map-4022-01/'},
+  {t:'Geography 4022/02',                                    s:'Geography',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/geography-4022-02/'},
+  {t:'Physics 4023/01',                                      s:'Physics',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/physics-4023-01/'},
+  {t:'Physics 4023/02',                                      s:'Physics',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/physics-4023-02/'},
+  {t:'Physics 4023/03 — Candidates',                         s:'Physics',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/physics-instructions-to-candidates-4023-03/'},
+  {t:'Physics 4023/03 — Supervisors',                        s:'Physics',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/physics-instructions-to-supervisors-4023-03/'},
+  {t:'Chemistry 4024/01',                                    s:'Chemistry',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/chemistry-4024-01/'},
+  {t:'Chemistry 4024/02',                                    s:'Chemistry',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/chemistry-4024-02/'},
+  {t:'Chemistry 4024/03 — Advanced',                         s:'Chemistry',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/chemistry-4024-03-advanced-instructions/'},
+  {t:'Chemistry 4024/03 — Candidates',                       s:'Chemistry',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/chemistry-4024-03-instructions-to-candidates/'},
+  {t:'Chemistry 4024/03 — Supervisors 24hr',                 s:'Chemistry',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/chemistry-4024-03-24hr-instruction-to-supervisors/'},
+  {t:'Biology 4025/01',                                      s:'Biology',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/biology-4025-01/'},
+  {t:'Biology 4025/02',                                      s:'Biology',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/biology-4025-02/'},
+  {t:'Biology 4025/03 — Advanced',                           s:'Biology',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/biology-4025-03-advance-information/'},
+  {t:'Biology 4025/03 — Candidates',                         s:'Biology',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/biology-4025-03-instructions-to-candidates/'},
+  {t:'Biology 4025/03 — Supervisors',                        s:'Biology',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/biology-4025-03-instructions-to-supervisors/'},
+  {t:'Pure Mathematics 4027/01',                             s:'Pure Mathematics',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/pure-mathematics-4027-01/'},
+  {t:'Pure Mathematics 4027/02',                             s:'Pure Mathematics',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/pure-mathematics-4027-02/'},
+  {t:'Literature in English 4029/01',                        s:'Literature in English',             l:'olevel', u:'https://www5.zimsec.co.zw/download/literature-in-english-4029-01/'},
+  {t:'Literature in English 4029/02',                        s:'Literature in English',             l:'olevel', u:'https://www5.zimsec.co.zw/download/literature-in-english-4029-02/'},
+  {t:'History 4044/01',                                      s:'History',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/history-4044-01/'},
+  {t:'History 4044/02',                                      s:'History',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/history-4044-02/'},
+  {t:'Sociology 4045/01',                                    s:'Sociology',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/sociology-4045-01/'},
+  {t:'Sociology 4045/02',                                    s:'Sociology',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/sociology-4045-02/'},
+  {t:'Economic History 4046/01',                             s:'Economic History',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/economic-history-4046-01/'},
+  {t:'Economic History 4046/02',                             s:'Economic History',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/economic-history-4046-02/'},
+  {t:'Family and Religious Studies 4047/01',                 s:'Family and Religious Studies',      l:'olevel', u:'https://www5.zimsec.co.zw/download/family-and-religious-studies-4047-01/'},
+  {t:'Family and Religious Studies 4047/02',                 s:'Family and Religious Studies',      l:'olevel', u:'https://www5.zimsec.co.zw/download/family-and-religious-studies-4047-02/'},
+  {t:'Business and Enterprise Skills 4048/01',               s:'Business Enterprise & Skills',      l:'olevel', u:'https://www5.zimsec.co.zw/download/business-and-enterprise-skills-4048-01/'},
+  {t:'Business and Enterprise Skills 4048/02',               s:'Business Enterprise & Skills',      l:'olevel', u:'https://www5.zimsec.co.zw/download/business-and-enterprise-skills-4048-02/'},
+  {t:'Commerce 4049/01',                                     s:'Commerce',                          l:'olevel', u:'https://www5.zimsec.co.zw/download/commerce-4049-01/'},
+  {t:'Commerce 4049/02',                                     s:'Commerce',                          l:'olevel', u:'https://www5.zimsec.co.zw/download/commerce-4049-02/'},
+  {t:'Economics 4050/01',                                    s:'Economics',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/economics-4050-01/'},
+  {t:'Economics 4050/02',                                    s:'Economics',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/economics-4050-02/'},
+  {t:'Economics 4050/03 — Candidates',                       s:'Economics',                         l:'olevel', u:'https://www5.zimsec.co.zw/download/economics-4050-03-instructions-to-candidates/'},
+  {t:'Principles of Accounting 4051/01',                     s:'Principles of Accounts',            l:'olevel', u:'https://www5.zimsec.co.zw/download/principles-of-accounting-4051-01/'},
+  {t:'Principles of Accounting 4051/02',                     s:'Principles of Accounts',            l:'olevel', u:'https://www5.zimsec.co.zw/download/principles-of-accounting-4051-02/'},
+  {t:'Building Technology and Design 4052/01',               s:'Building Technology',               l:'olevel', u:'https://www5.zimsec.co.zw/download/building-technology-and-design-4052-01/'},
+  {t:'Building Technology and Design 4052/02',               s:'Building Technology',               l:'olevel', u:'https://www5.zimsec.co.zw/download/building-technology-and-design-4052-02/'},
+  {t:'Building Technology and Design 4052/02 — Advance',     s:'Building Technology',               l:'olevel', u:'https://www5.zimsec.co.zw/download/building-technology-and-design-4052-02-advance-information/'},
+  {t:'Design and Technology 4053/01',                        s:'Design & Technology',               l:'olevel', u:'https://www5.zimsec.co.zw/download/design-and-technology-4053-01/'},
+  {t:'Design and Technology 4053/02',                        s:'Design & Technology',               l:'olevel', u:'https://www5.zimsec.co.zw/download/design-and-technology-4053-02/'},
+  {t:'Food Technology and Design 4054/01',                   s:'Food Technology & Design',          l:'olevel', u:'https://www5.zimsec.co.zw/download/food-technology-and-design-4054-01/'},
+  {t:'Food Technology and Design 4054/02',                   s:'Food Technology & Design',          l:'olevel', u:'https://www5.zimsec.co.zw/download/food-technology-and-design-4054-02/'},
+  {t:'Metal Technology and Design 4055/01',                  s:'Metal Technology',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/metal-technology-and-design-4055-01/'},
+  {t:'Metal Technology and Design 4055/02',                  s:'Metal Technology',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/metal-technology-and-design-4055-02/'},
+  {t:'Metal Technology and Design 4055/02 — Advance',        s:'Metal Technology',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/metal-technology-and-design-4055-02-advance-information/'},
+  {t:'Metal Technology and Design 4055 — Insert',            s:'Metal Technology',                  l:'olevel', u:'https://www5.zimsec.co.zw/download/metal-technology-and-design-4055-insert/'},
+  {t:'Textile Technology and Design 4058/01',                s:'Textile Technology',                l:'olevel', u:'https://www5.zimsec.co.zw/download/textile-technology-and-design-4058-01/'},
+  {t:'Textile Technology and Design 4058/02',                s:'Textile Technology',                l:'olevel', u:'https://www5.zimsec.co.zw/download/textile-technology-and-design-4058-02/'},
+  {t:'Textile Technology and Design 4058/02 — Insert',       s:'Textile Technology',                l:'olevel', u:'https://www5.zimsec.co.zw/download/textile-technology-and-design-4058-02-insert/'},
+  {t:'Textile Technology and Design 4058/02 — Pattern',      s:'Textile Technology',                l:'olevel', u:'https://www5.zimsec.co.zw/download/textile-technology-and-design-4058-02-pattern-maker/'},
+  {t:'Wood Technology and Design 4059/01',                   s:'Wood Technology',                   l:'olevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-4059-01/'},
+  {t:'Wood Technology and Design 4059/02',                   s:'Wood Technology',                   l:'olevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-4059-02/'},
+  {t:'Wood Technology and Design 4059/02 — Insert',          s:'Wood Technology',                   l:'olevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-4059-02-inserts/'},
+  {t:'Wood Technology and Design 4059/02 — Instructions',    s:'Wood Technology',                   l:'olevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-4059-02-instructions/'},
+  {t:'Wood Technology and Design 4059/02 — Supervisors',     s:'Wood Technology',                   l:'olevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-4059-02-instructions-to-supervisors/'},
+  {t:'Art 4060/01',                                          s:'Art',                               l:'olevel', u:'https://www5.zimsec.co.zw/download/art-4060-01/'},
+  {t:'Art 4060/02',                                          s:'Art',                               l:'olevel', u:'https://www5.zimsec.co.zw/download/art-4060-02/'},
+  {t:'Art 4060/02 + 03 — Advanced',                          s:'Art',                               l:'olevel', u:'https://www5.zimsec.co.zw/download/art-4060-02-03-advanced-information/'},
+  {t:'Art 4060/03',                                          s:'Art',                               l:'olevel', u:'https://www5.zimsec.co.zw/download/art-4060-03/'},
+  {t:'Musical Arts 4062/01',                                 s:'Musical Arts',                      l:'olevel', u:'https://www5.zimsec.co.zw/download/musical-arts-4062-01/'},
+  {t:'Musical Arts 4062/02',                                 s:'Musical Arts',                      l:'olevel', u:'https://www5.zimsec.co.zw/download/musical-arts-4062-02/'},
+  {t:'Musical Arts 4062/03',                                 s:'Musical Arts',                      l:'olevel', u:'https://www5.zimsec.co.zw/download/musical-arts-4062-03/'},
+  {t:'Musical Arts 4062/03 — Sight Reading',                 s:'Musical Arts',                      l:'olevel', u:'https://www5.zimsec.co.zw/download/musical-arts-4062-03-sight-reading/'},
+  {t:'Theatre Arts 4063/01',                                 s:'Theatre Arts',                      l:'olevel', u:'https://www5.zimsec.co.zw/download/theatre-arts-4063-01/'},
+  {t:'Theatre Arts 4063/02',                                 s:'Theatre Arts',                      l:'olevel', u:'https://www5.zimsec.co.zw/download/theatre-arts-4063-02/'},
+  {t:'Theatre Arts 4063/03',                                 s:'Theatre Arts',                      l:'olevel', u:'https://www5.zimsec.co.zw/download/theatre-arts-4063-03/'},
+  {t:'French 4064/01',                                       s:'French',                            l:'olevel', u:'https://www5.zimsec.co.zw/download/french-4064-01/'},
+  {t:'French 4064/02',                                       s:'French',                            l:'olevel', u:'https://www5.zimsec.co.zw/download/french-4064-02/'},
+  {t:'French 4064/02 — Supervisors',                         s:'French',                            l:'olevel', u:'https://www5.zimsec.co.zw/download/french-4064-02-supervisors-copy/'},
+  {t:'French 4064/03',                                       s:'French',                            l:'olevel', u:'https://www5.zimsec.co.zw/download/french-4064-03/'},
+  {t:'Commercial Studies 4065/01',                           s:'Commercial Studies',                l:'olevel', u:'https://www5.zimsec.co.zw/download/commercial-studies-4065-01/'},
+  {t:'Commercial Studies 4065/02',                           s:'Commercial Studies',                l:'olevel', u:'https://www5.zimsec.co.zw/download/commercial-studies-4065-02/'},
+  {t:'Ndebele 4068/01',                                      s:'Ndebele',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/ndebele-4068-01/'},
+  {t:'Ndebele 4068/02',                                      s:'Ndebele',                           l:'olevel', u:'https://www5.zimsec.co.zw/download/ndebele-4068-02/'},
+  {t:'Statistics 4073/01',                                   s:'Statistics',                        l:'olevel', u:'https://www5.zimsec.co.zw/download/statistics-4073-01/'},
+  {t:'Statistics 4073/02',                                   s:'Statistics',                        l:'olevel', u:'https://www5.zimsec.co.zw/download/statistics-4073-02/'},
+  {t:'English for Communication 4074/01',                    s:'English for Communication',         l:'olevel', u:'https://www5.zimsec.co.zw/download/english-for-communication-4074-01/'},
+  {t:'English for Communication 4074/02',                    s:'English for Communication',         l:'olevel', u:'https://www5.zimsec.co.zw/download/english-for-communication-4074-02/'},
+  {t:'Mathematics Syllabus A 4075/01',                       s:'Mathematics',                       l:'olevel', u:'https://www5.zimsec.co.zw/download/mathematics-syllabus-a-4075-01/'},
+  {t:'Mathematics Syllabus A 4075/02',                       s:'Mathematics',                       l:'olevel', u:'https://www5.zimsec.co.zw/download/mathematics-syllabus-a-4075-02/'},
+  {t:'Hospitality Management and Design 4076/01',            s:'Hospitality Management',            l:'olevel', u:'https://www5.zimsec.co.zw/download/hospitality-management-and-design-4076-01/'},
+  {t:'Hospitality Management and Design 4076/02',            s:'Hospitality Management',            l:'olevel', u:'https://www5.zimsec.co.zw/download/hospitality-management-and-design-4076-02/'},
+  {t:'Guidance and Counselling 4077/01',                     s:'Guidance & Counselling',            l:'olevel', u:'https://www5.zimsec.co.zw/download/guidance-and-counselling-4077-01/'},
+  {t:'Guidance and Counselling 4077/02',                     s:'Guidance & Counselling',            l:'olevel', u:'https://www5.zimsec.co.zw/download/guidance-and-counselling-4077-02/'},
+
+  // ===== A-Level (alevel) =====
+  {t:'Communication Skills 5033/01',                         s:'Communication Skills',              l:'alevel', u:'https://www5.zimsec.co.zw/download/communication-skills-5033-01/'},
+  {t:'Communication Skills 5033/02',                         s:'Communication Skills',              l:'alevel', u:'https://www5.zimsec.co.zw/download/communication-skills-5033-01-2/'},
+  {t:'Accounting 6001/01',                                   s:'Accounting',                        l:'alevel', u:'https://www5.zimsec.co.zw/download/accounting-6001-01/'},
+  {t:'Accounting 6001/02',                                   s:'Accounting',                        l:'alevel', u:'https://www5.zimsec.co.zw/download/accounting-6001-02/'},
+  {t:'Accounting 6001/03',                                   s:'Accounting',                        l:'alevel', u:'https://www5.zimsec.co.zw/download/accounting-6001-03/'},
+  {t:'Building Technology and Design 6003/01',               s:'Building Technology',               l:'alevel', u:'https://www5.zimsec.co.zw/download/building-technology-and-design-6003-01/'},
+  {t:'Building Technology and Design 6003/02',               s:'Building Technology',               l:'alevel', u:'https://www5.zimsec.co.zw/download/building-technology-and-design-6003-02/'},
+  {t:'Building Technology and Design 6003/03',               s:'Building Technology',               l:'alevel', u:'https://www5.zimsec.co.zw/download/building-technology-and-design-6003-03/'},
+  {t:'Building Technology and Design 6003/03 — Booking',     s:'Building Technology',               l:'alevel', u:'https://www5.zimsec.co.zw/download/building-technology-and-design-6003-03-booking-form/'},
+  {t:'Building Technology and Design 6003/03 — Dimension',   s:'Building Technology',               l:'alevel', u:'https://www5.zimsec.co.zw/download/building-technology-and-design-6003-03-dimension-form/'},
+  {t:'Business Enterprise 6004/01',                          s:'Business Enterprise',               l:'alevel', u:'https://www5.zimsec.co.zw/download/business-enterprise-6004-01/'},
+  {t:'Business Enterprise 6004/02',                          s:'Business Enterprise',               l:'alevel', u:'https://www5.zimsec.co.zw/download/business-enterprise-6004-02/'},
+  {t:'History 6006/01',                                      s:'History',                           l:'alevel', u:'https://www5.zimsec.co.zw/download/history-6006-01/'},
+  {t:'History 6006/02',                                      s:'History',                           l:'alevel', u:'https://www5.zimsec.co.zw/download/history-6006-02/'},
+  {t:'Sports Management 6022/01',                            s:'Sport Management',                  l:'alevel', u:'https://www5.zimsec.co.zw/download/sports-management-6022-01/'},
+  {t:'Sports Management 6022/02',                            s:'Sport Management',                  l:'alevel', u:'https://www5.zimsec.co.zw/download/sports-management-6022-02/'},
+  {t:'Computer Science 6023/01',                             s:'Computer Science',                  l:'alevel', u:'https://www5.zimsec.co.zw/download/computer-science-6023-01/'},
+  {t:'Computer Science 6023/02',                             s:'Computer Science',                  l:'alevel', u:'https://www5.zimsec.co.zw/download/computer-science-6023-02/'},
+  {t:'Horticulture 6024/01',                                 s:'Horticulture',                      l:'alevel', u:'https://www5.zimsec.co.zw/download/horticulture-6024-01/'},
+  {t:'Horticulture 6024/02',                                 s:'Horticulture',                      l:'alevel', u:'https://www5.zimsec.co.zw/download/horticulture-6024-02/'},
+  {t:'Horticulture 6024/03',                                 s:'Horticulture',                      l:'alevel', u:'https://www5.zimsec.co.zw/download/horticulture-6024-03/'},
+  {t:'Horticulture 6024/03 — Advance 24hr',                  s:'Horticulture',                      l:'alevel', u:'https://www5.zimsec.co.zw/download/horticulture-6024-03-24hr-advance-information/'},
+  {t:'Horticulture 6024/03 — Advance',                       s:'Horticulture',                      l:'alevel', u:'https://www5.zimsec.co.zw/download/horticulture-6024-03-advance-information/'},
+  {t:'Business Studies 6025/02',                             s:'Business Studies',                  l:'alevel', u:'https://www5.zimsec.co.zw/download/business-studies-6025-02/'},
+  {t:'Theatre Arts and Film Studies 6026/01',                s:'Theatre Arts',                      l:'alevel', u:'https://www5.zimsec.co.zw/download/theatre-arts-and-film-studies-6026-01/'},
+  {t:'Theatre Arts and Film Studies 6026/02',                s:'Theatre Arts',                      l:'alevel', u:'https://www5.zimsec.co.zw/download/theatre-arts-and-film-studies-6026-02/'},
+  {t:'Theatre Arts and Film Studies 6026/03',                s:'Theatre Arts',                      l:'alevel', u:'https://www5.zimsec.co.zw/download/theatre-arts-and-film-studies-6026-03/'},
+  {t:'Wood Technology and Design 6027/01',                   s:'Wood Technology',                   l:'alevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-6027-01/'},
+  {t:'Wood Technology and Design 6027/02',                   s:'Wood Technology',                   l:'alevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-6027-02/'},
+  {t:'Wood Technology and Design 6027/02 — Advance',         s:'Wood Technology',                   l:'alevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-6027-02-advanced-information/'},
+  {t:'Wood Technology and Design 6027/02 — Insert',          s:'Wood Technology',                   l:'alevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-6027-02-insert/'},
+  {t:'Wood Technology and Design 6027/03',                   s:'Wood Technology',                   l:'alevel', u:'https://www5.zimsec.co.zw/download/wood-technology-and-design-6027-03/'},
+  {t:'Animal Science 6028/01',                               s:'Animal Science',                    l:'alevel', u:'https://www5.zimsec.co.zw/download/animal-science-6028-01/'}
+];
+function seedZimsecPapersIfNeeded(){
+  if(state.zimsecPapersSeeded) return;
+  state.library = state.library || {pastPapers:[], schemes:[], worksheets:[], questionBank:[]};
+  state.library.pastPapers = state.library.pastPapers || [];
+  const existing = state.library.pastPapers;
+  const today = localDateStr(new Date());
+  let added = 0;
+  ZIMSEC_PAPERS.forEach((p,i)=>{
+    if(existing.some(x=>x.url === p.u)) return;
+    existing.push({
+      id: 'pp_zim_'+i+'_'+Date.now(),
+      title: p.t,
+      subject: p.s,
+      level: p.l,
+      examBoard: 'ZIMSEC',
+      paperNumber: (p.t.match(/\d{4}\/\d{2}/)||p.t.match(/Paper \d/)||[''])[0],
+      url: p.u,
+      notes: 'Official ZIMSEC specimen. Tap 🔗 to open on the ZIMSEC website.',
+      dateAdded: today,
+      source: 'zimsec-seed'
+    });
+    added++;
+  });
+  state.zimsecPapersSeeded = true;
+  save();
+  if(added) console.log('[ClassMate] Seeded ' + added + ' ZIMSEC papers into Library');
+}
+function reloadZimsecPapers(){
+  if(!confirm('Reload the official ZIMSEC pack ('+ZIMSEC_PAPERS.length+' papers)? Existing entries with the same URL are skipped.')) return;
+  delete state.zimsecPapersSeeded;
+  seedZimsecPapersIfNeeded();
+  if(typeof renderers.library === 'function') renderers.library();
+  toast('ZIMSEC papers refreshed');
+}
+// Patch library renderer to auto-seed on first visit
+const _origLibRenderZSeed = renderers.library;
+renderers.library = function(){
+  seedZimsecPapersIfNeeded();
+  _origLibRenderZSeed();
+};
+
+/* ============================================================
    ORGANOGRAM — editable hierarchical org chart
    ============================================================ */
 const ORG_TEMPLATES = {
@@ -5127,6 +5362,16 @@ function renderLibToolbar(){
       <button class="btn btn-soft btn-sm" onclick="openWorksheetGenerator()">✨ Generate worksheet from topic</button>`;
   } else if(_libTab === 'worksheets'){
     tb.innerHTML = `<button class="btn btn-soft btn-sm" onclick="openWorksheetGenerator()">✨ Generate worksheet from topic</button>`;
+  } else if(_libTab === 'pastPapers'){
+    tb.innerHTML = `
+      <button class="btn btn-soft btn-sm" onclick="reloadZimsecPapers()" title="Re-import official ZIMSEC papers">📥 Reload ZIMSEC pack (${ZIMSEC_PAPERS.length} papers)</button>
+      <a class="btn btn-soft btn-sm" href="https://www5.zimsec.co.zw/download-category/o-level/" target="_blank" rel="noopener">🔗 ZIMSEC O-Level →</a>
+      <a class="btn btn-soft btn-sm" href="https://www5.zimsec.co.zw/download-category/a-level/" target="_blank" rel="noopener">🔗 ZIMSEC A-Level →</a>
+      <a class="btn btn-soft btn-sm" href="https://www5.zimsec.co.zw/download-category/grade-7/" target="_blank" rel="noopener">🔗 ZIMSEC Grade 7 →</a>`;
+  } else if(_libTab === 'schemes'){
+    tb.innerHTML = `
+      <a class="btn btn-soft btn-sm" href="https://www5.zimsec.co.zw/syllabi/" target="_blank" rel="noopener">🔗 Browse official ZIMSEC syllabi →</a>
+      <span style="font-size:12px;color:var(--muted);align-self:center">Opens the ZIMSEC syllabi index in a new tab — every subject's official PDF.</span>`;
   } else { tb.innerHTML = ''; }
 }
 
