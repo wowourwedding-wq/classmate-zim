@@ -2,7 +2,7 @@
    Caches the app on first visit so future visits open instantly with no internet.
    Important for the Zim audience: schools with patchy connectivity, expensive data. */
 
-const CACHE = 'classmate-zim-v24';
+const CACHE = 'classmate-zim-v25';
 const SHELL = ['./', './index.html'];
 
 self.addEventListener('install', function(e){
