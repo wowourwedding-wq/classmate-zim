@@ -1,12 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "classmate-zw",
+  "main": "worker.js",
   "compatibility_date": "2026-05-31",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "teacher-planner-zim"
+    "directory": "teacher-planner-zim",
+    "binding": "ASSETS"
   },
   "compatibility_flags": [
     "nodejs_compat"
