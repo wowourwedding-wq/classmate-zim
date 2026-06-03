@@ -6095,7 +6095,11 @@ async function finishFirstTimeSetup(){
   state.teacher.role = role;
   save();
   closeAuthOverlay();
-  if(typeof _origShowAppView === 'function') _origShowAppView();
+  /* Skip the welcome screen — go straight to dashboard. enterApp sets
+     state.welcomed=true, hides welcome, shows app, calls go('dashboard'). */
+  document.getElementById('view-landing').style.display = 'none';
+  document.getElementById('view-app').style.display = 'block';
+  if(typeof enterApp === 'function') enterApp();
   setTimeout(()=>toast('🎉 Welcome, ' + name + '. You are signed in as Super Admin.'), 200);
 }
 
@@ -6137,7 +6141,10 @@ async function attemptLogin(){
   user.lastLogin = Date.now();
   save();
   closeAuthOverlay();
-  if(typeof _origShowAppView === 'function') _origShowAppView();
+  /* Go straight into the planner, bypassing the welcome screen */
+  document.getElementById('view-landing').style.display = 'none';
+  document.getElementById('view-app').style.display = 'block';
+  if(typeof enterApp === 'function') enterApp();
   setTimeout(()=>toast('Welcome back, ' + user.name), 200);
 }
 
@@ -6333,6 +6340,135 @@ renderers.settings = function(){
   if(_origSettingsRenderAuth) _origSettingsRenderAuth();
   renderUsersCard();
 };
+
+/* ============================================================
+   ROUND 2 — Click subject → see all resources for that subject
+   ============================================================ */
+
+/* Patch subjects renderer to make subject cards clickable */
+const _origSubjectsRender = renderers.subjects;
+renderers.subjects = function(){
+  _origSubjectsRender();
+  /* Make subject rows clickable — opens the all-resources view */
+  const list = document.getElementById('subj-list');
+  if(!list) return;
+  const subjects = state.subjects || [];
+  list.querySelectorAll('.log-row').forEach((row, i)=>{
+    const subj = subjects[i]; if(!subj) return;
+    row.style.cursor = 'pointer';
+    row.title = 'Tap to see all resources for ' + subj.name;
+    /* Add a small "view" indicator */
+    const key = row.querySelector('.row-key');
+    if(key && !key.dataset.boundDetail){
+      key.dataset.boundDetail = '1';
+      const original = key.innerHTML;
+      key.innerHTML = `<span style="color:var(--primary-dark);text-decoration:underline">${original}</span> <span style="font-size:11px;color:var(--muted);font-weight:500;margin-left:6px">View all resources →</span>`;
+    }
+    row.addEventListener('click', (e)=>{
+      if(e.target.closest('.del')) return;  // don't trigger on delete
+      showSubjectDetail(subj);
+    });
+  });
+};
+
+/* Helper invoked from inline onclick — opens Q-Bank filtered by subject */
+function openQuestionBankForSubject(subjectName){
+  go('library');
+  setTimeout(()=>{
+    if(typeof switchLibTab === 'function') switchLibTab('questionBank');
+    const f = document.getElementById('lib-subj-filter');
+    if(f){ f.value = subjectName; if(typeof renderLibrary === 'function') renderLibrary(); }
+  }, 150);
+}
+
+function showSubjectDetail(subj){
+  const name = subj.name;
+  state.library = state.library || {pastPapers:[], schemes:[], worksheets:[], questionBank:[]};
+  state.resources = state.resources || [];
+
+  const matches = (item) => (item.subject||'').toLowerCase().trim() === name.toLowerCase().trim();
+  const papers = (state.library.pastPapers || []).filter(matches);
+  const schemes = (state.library.schemes || []).filter(matches);
+  const worksheets = (state.library.worksheets || []).filter(matches);
+  const questions = (state.library.questionBank || []).filter(matches);
+  const materials = (state.resources || []).filter(matches);
+  const totalCount = papers.length + schemes.length + worksheets.length + questions.length + materials.length;
+
+  const stats = [
+    {n: papers.length,     l:'Past papers',  icon:'📄'},
+    {n: schemes.length,    l:'Schemes',      icon:'📋'},
+    {n: worksheets.length, l:'Worksheets',   icon:'📝'},
+    {n: questions.length,  l:'Q-bank',       icon:'❓'},
+    {n: materials.length,  l:'Materials',    icon:'📁'}
+  ];
+
+  const itemRow = (icon, title, sub, openHandler) => `
+    <div class="log-row" style="grid-template-columns:auto 1fr auto;align-items:center;cursor:pointer" onclick="${openHandler}">
+      <div style="font-size:18px;width:28px;text-align:center">${icon}</div>
+      <div><strong style="font-size:14px">${esc(title)}</strong>${sub ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(sub)}</div>` : ''}</div>
+      <button class="btn btn-soft btn-sm" type="button">Open →</button>
+    </div>`;
+
+  let body = `
+    <h3>📚 ${esc(name)}</h3>
+    <p class="modal-sub">All resources tagged with this subject across the app.${subj.level?` <span style="color:var(--muted)">${esc((LEVELS.find(l=>l.k===subj.level)||{}).n || subj.level)}</span>`:''}</p>
+
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0 14px">
+      ${stats.map(s=>`<div style="background:var(--card-tint);padding:10px 6px;border-radius:8px;text-align:center;border:1px solid var(--line)">
+        <div style="font-size:18px;font-weight:800;color:var(--primary-darker)">${s.n}</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${s.icon} ${s.l}</div>
+      </div>`).join('')}
+    </div>
+  `;
+
+  if(totalCount === 0){
+    body += `<div class="empty-list">No resources for <strong>${esc(name)}</strong> yet. Add a paper, scheme, or material and tag it with this subject — it will appear here.</div>`;
+  } else {
+    if(papers.length){
+      body += `<div style="margin-top:14px"><div style="font-weight:800;color:var(--primary-darker);font-size:13.5px;border-bottom:1.5px solid var(--accent);padding-bottom:4px;margin-bottom:8px">📄 Past papers (${papers.length})</div>` +
+        papers.slice(0,15).map(p=>{
+          const openHandler = p.url ? `window.open('${esc(p.url)}','_blank')` : (p.file ? `window.open('${esc(p.file)}','_blank')` : `toast('No file attached')`);
+          return itemRow('📄', p.title || '(untitled)', [p.year, p.paperNumber, p.examBoard].filter(Boolean).join(' · '), openHandler);
+        }).join('') +
+        (papers.length > 15 ? `<div style="text-align:center;padding:8px;font-size:12px;color:var(--muted)">+ ${papers.length-15} more — tap Library to see all</div>` : '') +
+        `</div>`;
+    }
+    if(schemes.length){
+      body += `<div style="margin-top:14px"><div style="font-weight:800;color:var(--primary-darker);font-size:13.5px;border-bottom:1.5px solid var(--accent);padding-bottom:4px;margin-bottom:8px">📋 Schemes of Work (${schemes.length})</div>` +
+        schemes.slice(0,10).map(s=>{
+          const openHandler = s.url ? `window.open('${esc(s.url)}','_blank')` : (s.file ? `window.open('${esc(s.file)}','_blank')` : `toast('No file attached')`);
+          return itemRow('📋', s.title || '(untitled)', [s.term, s.year].filter(Boolean).join(' · '), openHandler);
+        }).join('') + `</div>`;
+    }
+    if(worksheets.length){
+      body += `<div style="margin-top:14px"><div style="font-weight:800;color:var(--primary-darker);font-size:13.5px;border-bottom:1.5px solid var(--accent);padding-bottom:4px;margin-bottom:8px">📝 Worksheets (${worksheets.length})</div>` +
+        worksheets.slice(0,10).map(w=>itemRow('📝', w.title || '(untitled)', (w.questions||[]).length + ' questions', `closeModal();go('library');setTimeout(()=>switchLibTab('worksheets'),100)`)).join('') + `</div>`;
+    }
+    if(materials.length){
+      body += `<div style="margin-top:14px"><div style="font-weight:800;color:var(--primary-darker);font-size:13.5px;border-bottom:1.5px solid var(--accent);padding-bottom:4px;margin-bottom:8px">📁 Materials (${materials.length})</div>` +
+        materials.slice(0,15).map(m=>{
+          const openHandler = m.file ? `window.open('${esc(m.file)}','_blank')` : (m.url ? `window.open('${esc(m.url)}','_blank')` : `toast('No file or link')`);
+          return itemRow('📁', m.name || '(untitled)', [m.type, m.year].filter(Boolean).join(' · '), openHandler);
+        }).join('') + `</div>`;
+    }
+    if(questions.length){
+      const jsName = JSON.stringify(name);
+      body += `<div style="margin-top:14px"><div style="font-weight:800;color:var(--primary-darker);font-size:13.5px;border-bottom:1.5px solid var(--accent);padding-bottom:4px;margin-bottom:8px">❓ Question Bank (${questions.length})</div>
+        <div style="font-size:13px;color:var(--muted)">Tap below to open the full Question Bank filtered by this subject.</div>
+        <button class="btn btn-soft btn-sm" style="margin-top:8px" data-subj="${esc(name)}" onclick="closeModal();openQuestionBankForSubject(this.dataset.subj)">Open ${questions.length} question${questions.length===1?'':'s'} →</button>
+      </div>`;
+    }
+  }
+
+  const jsName = name.replace(/"/g, '\\"');
+  body += `
+    <div class="modal-actions" style="margin-top:18px">
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      ${canEdit() ? `<button class="btn btn-soft" onclick='closeModal();go("materials");toast("Tag your upload with ${esc(jsName)} so it appears here")'>+ Add material</button>` : ''}
+    </div>`;
+
+  showModal(body);
+}
 
 /* Inject Sign Out item into sidebar + current user pill in header */
 function injectAuthChrome(){
