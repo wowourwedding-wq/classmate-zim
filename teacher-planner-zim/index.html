@@ -1629,6 +1629,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
           <button class="lib-tab" data-tab="schemes" onclick="switchLibTab('schemes')">📋 Schemes of Work</button>
           <button class="lib-tab" data-tab="worksheets" onclick="switchLibTab('worksheets')">📝 Worksheets</button>
           <button class="lib-tab" data-tab="questionBank" onclick="switchLibTab('questionBank')">❓ Question Bank</button>
+          <button class="lib-tab" data-tab="shared" onclick="switchLibTab('shared')">🌐 Shared Network</button>
         </div>
 
         <div class="lib-filters">
@@ -4725,7 +4726,8 @@ const _libTabMeta = {
   pastPapers: {icon:'📄', singular:'Past Paper', help:'ZIMSEC, Cambridge or school past papers — by year and subject.', fields:['title','subject','year','level','paperNumber','examBoard','url','file','notes']},
   schemes:    {icon:'📋', singular:'Scheme of Work', help:'Term plans, syllabus coverage documents.', fields:['title','subject','level','term','year','url','file','notes']},
   worksheets: {icon:'📝', singular:'Worksheet', help:'Build printable A4 worksheets with your school header.', fields:['title','subject','topic','level','instructions','questions']},
-  questionBank:{icon:'❓', singular:'Question', help:'Bank of practice questions by subject + topic. Use them to build worksheets.', fields:['subject','topic','level','question','answer','difficulty']}
+  questionBank:{icon:'❓', singular:'Question', help:'Bank of practice questions by subject + topic. Use them to build worksheets.', fields:['subject','topic','level','question','answer','difficulty']},
+  shared:     {icon:'🌐', singular:'Shared Paper', help:'Papers shared by other schools on the ClassMate Network. Connect to browse and contribute.', fields:[]}
 };
 
 renderers.library = function(){
@@ -5951,6 +5953,326 @@ function renderGradeReport(){
   }
   el.innerHTML = html;
 }
+
+/* ============================================================
+   SCHOOL NETWORK — cross-school paper sharing (Phase 1)
+
+   Talks to https://classmate-network.wowourwedding-c1f.workers.dev/
+   Stores connection in state.network = {code, schoolId, schoolName, country}
+   ============================================================ */
+const NETWORK_URL = 'https://classmate-network.wowourwedding-c1f.workers.dev';
+const NETWORK_COUNTRY = 'ZW';
+
+function networkApi(path, opts){
+  opts = opts || {};
+  opts.headers = Object.assign({}, opts.headers || {});
+  if(state.network && state.network.code){
+    opts.headers['X-School-Code'] = state.network.code;
+  }
+  return fetch(NETWORK_URL + path, opts);
+}
+
+async function networkRegister(){
+  const name = state.school.name || prompt('Your school\'s name?');
+  if(!name) return;
+  const phone = state.school.phone || state.teacher.phone || '';
+  const email = state.teacher.email || '';
+  try {
+    const resp = await fetch(NETWORK_URL + '/api/schools/register', {
+      method: 'POST',
+      headers: {'content-type':'application/json'},
+      body: JSON.stringify({name, country: NETWORK_COUNTRY, contact_phone: phone, contact_email: email})
+    });
+    const data = await resp.json();
+    if(!resp.ok){ toast('Could not register: ' + (data.error||'unknown error')); return; }
+    state.network = {code: data.school.code, schoolId: data.school.id, schoolName: data.school.name, country: data.school.country, registeredAt: Date.now()};
+    save();
+    showModal(`
+      <h3>🎉 Connected to ClassMate Network!</h3>
+      <p class="modal-sub">Your school is registered. Share this code with other teachers in your school so they can connect to the same library.</p>
+      <div style="background:var(--card-tint);border:2px solid var(--accent);border-radius:12px;padding:18px;text-align:center;margin:14px 0">
+        <div style="font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Your school code</div>
+        <div style="font-size:30px;font-weight:900;color:var(--primary-darker);letter-spacing:.05em;font-family:monospace">${esc(data.school.code)}</div>
+        <button class="btn btn-soft btn-sm" style="margin-top:8px" onclick="copyToClipboard('${esc(data.school.code)}');toast('Code copied');">📋 Copy code</button>
+      </div>
+      <p style="font-size:13.5px;color:var(--muted);line-height:1.55">First 5 papers your school uploads will be reviewed before going live (standard moderation). After that, uploads from your school auto-approve.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="closeModal();renderers.library&&renderers.library();">Open shared library</button>
+      </div>
+    `);
+  } catch(e){
+    toast('Network error: ' + e.message);
+  }
+}
+
+async function networkConnectWithCode(){
+  const code = prompt('Paste your school code (e.g. ZW-7K3M):');
+  if(!code) return;
+  const trimmed = code.trim().toUpperCase();
+  if(!/^[A-Z]{2}-[A-Z0-9]{4,8}$/.test(trimmed)){
+    toast('Code format looks wrong. Should be like "ZW-7K3M".');
+    return;
+  }
+  /* Try the feed endpoint to validate the code works */
+  try {
+    const resp = await fetch(NETWORK_URL + '/api/papers/feed', {
+      headers: {'X-School-Code': trimmed}
+    });
+    if(!resp.ok){
+      const data = await resp.json().catch(()=>({}));
+      toast('Could not connect: ' + (data.error||'unknown'));
+      return;
+    }
+    state.network = {code: trimmed, registeredAt: Date.now()};
+    save();
+    toast('Connected to ' + trimmed);
+    if(typeof renderers.library === 'function') renderers.library();
+  } catch(e){
+    toast('Network error: ' + e.message);
+  }
+}
+
+function networkDisconnect(){
+  if(!confirm('Disconnect from the ClassMate Network? Your uploads stay live but you\'ll need to re-enter your code to browse.')) return;
+  delete state.network;
+  save();
+  toast('Disconnected');
+  if(typeof renderers.library === 'function') renderers.library();
+}
+
+async function networkFetchFeed(){
+  if(!state.network || !state.network.code){ return {papers:[], total:0, notConnected:true}; }
+  try {
+    const resp = await networkApi('/api/papers/feed');
+    if(!resp.ok){
+      const e = await resp.json().catch(()=>({}));
+      return {papers:[], total:0, error: e.error || ('HTTP '+resp.status)};
+    }
+    return await resp.json();
+  } catch(e){
+    return {papers:[], total:0, error: e.message};
+  }
+}
+
+async function networkOpenPaper(id, title){
+  if(!state.network || !state.network.code){ toast('Connect first'); return; }
+  toast('Fetching paper...');
+  try {
+    const resp = await networkApi('/api/papers/' + id);
+    if(!resp.ok){
+      const e = await resp.json().catch(()=>({}));
+      toast('Could not fetch: ' + (e.error||'HTTP '+resp.status));
+      return;
+    }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    /* Revoke after 60s to free memory */
+    setTimeout(()=>URL.revokeObjectURL(url), 60000);
+  } catch(e){
+    toast('Network error: ' + e.message);
+  }
+}
+
+function networkOpenUploadModal(){
+  if(!state.network || !state.network.code){ toast('Connect to the network first'); return; }
+  const subjs = subjectNames();
+  showModal(`
+    <h3>📤 Share paper with other schools</h3>
+    <p class="modal-sub">Upload a past paper, worksheet, or scheme that other schools could benefit from. Goes through moderation first; you\'ll see it appear once approved.</p>
+    <div class="field"><label class="label">PDF file (max 25 MB)</label>
+      <input type="file" id="nw-file" accept="application/pdf" class="input">
+    </div>
+    <div class="field"><label class="label">Title</label>
+      <input class="input" id="nw-title" placeholder="e.g. Form 4 Mathematics Mock — 2024">
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="label">Subject</label>
+        <select class="select" id="nw-subject"><option value="">— pick —</option>${subjs.map(n=>`<option>${esc(n)}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label class="label">Level</label>
+        <select class="select" id="nw-level"><option value="">— pick —</option>${LEVELS.map(l=>`<option value="${l.k}">${esc(l.n)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="label">Grade</label>
+        <select class="select" id="nw-grade"><option value="">— any —</option>${GRADES.map(g=>`<option value="${g.k}">${esc(g.n)}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label class="label">Year</label>
+        <input class="input" id="nw-year" placeholder="e.g. 2024" maxlength="10">
+      </div>
+    </div>
+    <div class="field"><label class="label">Who can see this?</label>
+      <select class="select" id="nw-visibility">
+        <option value="country" selected>Schools in my country (recommended)</option>
+        <option value="private">Only my school</option>
+        <option value="network">All ClassMate schools worldwide</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="networkSubmitUpload()">📤 Upload</button>
+    </div>
+  `);
+}
+
+async function networkSubmitUpload(){
+  const fileEl = document.getElementById('nw-file');
+  const file = fileEl && fileEl.files[0];
+  if(!file){ toast('Pick a PDF file first'); return; }
+  if(file.size > 25*1024*1024){ toast('File too large — max 25 MB'); return; }
+  const title = document.getElementById('nw-title').value.trim();
+  if(!title){ toast('Title is required'); return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('title', title);
+  fd.append('subject',  document.getElementById('nw-subject').value);
+  fd.append('level',    document.getElementById('nw-level').value);
+  fd.append('grade',    document.getElementById('nw-grade').value);
+  fd.append('year',     document.getElementById('nw-year').value);
+  fd.append('curriculum', state.curriculum || 'zimsec');
+  fd.append('visibility', document.getElementById('nw-visibility').value);
+  toast('Uploading...');
+  try {
+    const resp = await networkApi('/api/papers/upload', {method:'POST', body: fd});
+    const data = await resp.json();
+    if(!resp.ok){ toast('Upload failed: ' + (data.error||'unknown')); return; }
+    closeModal();
+    showModal(`
+      <h3>${data.paper.mod_status === 'approved' ? '✅ Live now' : '⏳ Uploaded — pending review'}</h3>
+      <p>${esc(data.message)}</p>
+      <div class="modal-actions"><button class="btn btn-primary" onclick="closeModal();renderers.library&&renderers.library();">OK</button></div>
+    `);
+  } catch(e){
+    toast('Upload error: ' + e.message);
+  }
+}
+
+/* Render the Shared tab */
+async function renderSharedNetwork(){
+  const container = document.getElementById('lib-content');
+  if(!container) return;
+
+  if(!state.network || !state.network.code){
+    container.innerHTML = `<div class="lib-empty">
+      <div class="em-icon">🌐</div>
+      <h4>Connect to the ClassMate School Network</h4>
+      <p>Browse and share past papers with other schools. Your uploads help colleagues across the country teach better.</p>
+      <div class="em-actions">
+        <button class="btn btn-primary btn-sm" onclick="networkRegister()">🎓 Register my school</button>
+        <button class="btn btn-soft btn-sm" onclick="networkConnectWithCode()">🔑 I have a code</button>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.55">
+        Free during launch. Your school's first 5 uploads go through quick moderation.
+      </div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted)">Loading shared papers…</div>`;
+  const result = await networkFetchFeed();
+  if(result.error){
+    container.innerHTML = `<div class="lib-empty">
+      <div class="em-icon">⚠️</div>
+      <h4>Couldn't reach the network</h4>
+      <p>${esc(result.error)}</p>
+      <div class="em-actions">
+        <button class="btn btn-soft btn-sm" onclick="renderSharedNetwork()">↻ Try again</button>
+        <button class="btn btn-ghost btn-sm" onclick="networkDisconnect()">Disconnect</button>
+      </div>
+    </div>`;
+    return;
+  }
+  const papers = result.papers || [];
+  const header = `
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;padding:10px 12px;background:var(--card-tint);border:1px solid var(--line);border-radius:10px">
+      <div style="font-size:13px"><strong>Connected as:</strong> <code style="background:#fff;padding:2px 8px;border-radius:5px;font-weight:700">${esc(state.network.code)}</code></div>
+      <button class="btn btn-primary btn-sm" onclick="networkOpenUploadModal()">📤 Share a paper</button>
+      <button class="btn btn-soft btn-sm" onclick="renderSharedNetwork()">↻ Refresh</button>
+      <button class="btn btn-ghost btn-sm" onclick="networkDisconnect()" style="margin-left:auto">Disconnect</button>
+    </div>`;
+  if(!papers.length){
+    container.innerHTML = header + `<div class="lib-empty">
+      <div class="em-icon">📭</div>
+      <h4>No shared papers yet</h4>
+      <p>Be the first to share! Tap <strong>📤 Share a paper</strong> above to upload a past paper, worksheet, or scheme that other schools could use.</p>
+    </div>`;
+    return;
+  }
+  const rows = papers.map(p=>`
+    <div class="lib-item">
+      <div class="lib-icon">🌐</div>
+      <div class="lib-body">
+        <div class="lib-title">${esc(p.title)}</div>
+        <div class="lib-meta">
+          ${p.subject?`<span>${esc(p.subject)}</span>`:''}
+          ${p.grade?`<span class="badge">${esc((GRADES.find(g=>g.k===p.grade)||{}).n||p.grade)}</span>`:''}
+          ${p.year?`<span>📅 ${esc(p.year)}</span>`:''}
+          ${p.school_name?`<span style="color:var(--muted)">from <em>${esc(p.school_name)}</em></span>`:''}
+          ${p.download_count?`<span style="color:var(--muted)">⬇️ ${p.download_count}</span>`:''}
+        </div>
+      </div>
+      <div class="lib-actions">
+        <button class="btn btn-soft btn-sm" onclick="networkOpenPaper('${esc(p.id)}','${esc(p.title)}')">📄 Open</button>
+      </div>
+    </div>`).join('');
+  container.innerHTML = header + '<div class="lib-list">' + rows + '</div>';
+}
+
+/* Patch switchLibTab to render Shared tab */
+const _origSwitchLibTab = switchLibTab;
+window.switchLibTab = function(tab){
+  _libTab = tab;
+  document.querySelectorAll('.lib-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  if(tab === 'shared'){
+    /* Hide standard add button + filters for shared tab */
+    const addBtn = document.getElementById('lib-add-btn'); if(addBtn) addBtn.style.display = 'none';
+    const subjF = document.getElementById('lib-subj-filter'); if(subjF) subjF.style.display = 'none';
+    const levelF = document.getElementById('lib-level-filter'); if(levelF) levelF.style.display = 'none';
+    const gradeF = document.getElementById('lib-grade-filter'); if(gradeF) gradeF.style.display = 'none';
+    const searchEl = document.getElementById('lib-search'); if(searchEl) searchEl.style.display = 'none';
+    const tb = document.getElementById('lib-toolbar'); if(tb) tb.innerHTML = '';
+    renderSharedNetwork();
+  } else {
+    document.getElementById('lib-add-btn') && (document.getElementById('lib-add-btn').style.display = '');
+    ['lib-subj-filter','lib-level-filter','lib-grade-filter','lib-search'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.style.display = '';
+    });
+    _origSwitchLibTab(tab);
+  }
+};
+
+/* Inject the School Network card into Settings page on render */
+const _origSettingsRender = renderers.settings;
+renderers.settings = function(){
+  if(_origSettingsRender) _origSettingsRender();
+  let card = document.getElementById('settings-network-card');
+  const settingsPage = document.getElementById('page-settings');
+  if(!card && settingsPage){
+    card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'settings-network-card';
+    settingsPage.appendChild(card);
+  }
+  if(!card) return;
+  const connected = state.network && state.network.code;
+  card.innerHTML = `
+    <div class="card-head"><div class="card-title">🌐 ClassMate School Network</div></div>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:14px">Share past papers, schemes and worksheets with other schools across the country. Your uploads help build a national resource library — every school's contribution makes it richer.</p>
+    ${connected
+      ? `<div style="background:var(--card-tint);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px">
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Your school code</div>
+          <div style="font-size:22px;font-weight:900;color:var(--primary-darker);letter-spacing:.04em;font-family:monospace">${esc(state.network.code)}</div>
+          <button class="btn btn-soft btn-sm" style="margin-top:8px" onclick="copyToClipboard('${esc(state.network.code)}');toast('Code copied');">📋 Copy</button>
+          <button class="btn btn-ghost btn-sm" onclick="go('library');setTimeout(()=>switchLibTab('shared'),100)">Open shared library →</button>
+          <button class="btn btn-danger btn-sm" onclick="networkDisconnect()">Disconnect</button>
+        </div>`
+      : `<div class="page-actions">
+          <button class="btn btn-primary btn-sm" onclick="networkRegister()">🎓 Register my school</button>
+          <button class="btn btn-soft btn-sm" onclick="networkConnectWithCode()">🔑 I have a code</button>
+        </div>`}
+  `;
+};
 
 /* ---- Boot ---- */
 refreshSubjectsDatalist();
