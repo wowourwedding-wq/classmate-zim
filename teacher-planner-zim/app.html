@@ -1050,7 +1050,10 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       <div class="sb-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
       <span class="mobile-title">ClassMate Zim</span>
     </div>
-    <button class="menu-btn" id="menu-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="menu-btn" id="refresh-btn" onclick="appRefresh()" title="Refresh — reload the current page and check for app updates" style="background:none;border:none;cursor:pointer;color:#fff;padding:6px"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg></button>
+      <button class="menu-btn" id="menu-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    </div>
   </div>
 
   <aside class="sidebar" id="sidebar">
@@ -1203,9 +1206,27 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       </div>
       <div class="card">
         <div class="card-head"><div class="card-title">👤 Personal information</div></div>
+
+        <!-- School logo banner + teacher avatar -->
+        <div id="profile-identity" style="display:flex;gap:18px;align-items:center;padding:14px 16px;background:var(--card-tint);border:1px solid var(--line);border-radius:12px;margin-bottom:18px;flex-wrap:wrap">
+          <div id="profile-logo-slot" style="flex-shrink:0"></div>
+          <div id="profile-avatar-slot" style="flex-shrink:0">
+            <div style="position:relative">
+              <div id="profile-avatar-img" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:3px solid var(--accent);overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:800;font-family:Georgia,serif"></div>
+              <button onclick="document.getElementById('avatar-upload').click()" title="Change photo" style="position:absolute;bottom:-2px;right:-2px;background:var(--accent);border:2px solid #fff;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px">📷</button>
+              <input type="file" id="avatar-upload" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+            </div>
+          </div>
+          <div style="flex:1;min-width:140px">
+            <div id="profile-name-display" style="font-size:18px;font-weight:800;color:var(--primary-darker)">—</div>
+            <div id="profile-role-display" style="font-size:13.5px;color:var(--muted);margin-top:2px">—</div>
+            <div id="profile-school-display" style="font-size:13px;color:var(--ink);margin-top:6px;font-style:italic">—</div>
+          </div>
+        </div>
+
         <div class="field-row">
-          <div class="field"><label class="label">Full name</label><input class="input" data-bind="teacher.name"></div>
-          <div class="field"><label class="label">Role / Title</label><input class="input" data-bind="teacher.role" placeholder="Class Teacher"></div>
+          <div class="field"><label class="label">Full name</label><input class="input" data-bind="teacher.name" oninput="renderProfileIdentity()"></div>
+          <div class="field"><label class="label">Role / Title</label><input class="input" data-bind="teacher.role" placeholder="Class Teacher" oninput="renderProfileIdentity()"></div>
         </div>
         <div class="field-row-3">
           <div class="field"><label class="label">EC Number</label><input class="input" data-bind="teacher.ecNumber" placeholder="EC123456X"></div>
@@ -1296,8 +1317,13 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
     <!-- CLASS LIST -->
     <section class="page" id="page-classlist" style="display:none">
       <div class="page-head">
-        <div><h1>Class list <span id="cl-meta" style="font-size:14px;color:var(--muted);font-weight:600;margin-left:6px"></span></h1><p>All the learners in your class. Tap a name to open their profile.</p></div>
-        <div class="page-actions"><button class="btn btn-primary" onclick="openStudentEditor()">+ Add learner</button></div>
+        <div><h1>Class list <span id="cl-meta" style="font-size:14px;color:var(--muted);font-weight:600;margin-left:6px"></span></h1><p>All the learners in your class. Tap a name to open their profile. Bulk-add many learners at once with the CSV import.</p></div>
+        <div class="page-actions">
+          <button class="btn btn-soft" onclick="document.getElementById('cl-csv').click()">📥 Import CSV</button>
+          <input type="file" id="cl-csv" accept=".csv,text/csv" style="display:none" onchange="importClassListCSV(this)">
+          <button class="btn btn-soft btn-sm" onclick="downloadClassListTemplate()">📄 CSV template</button>
+          <button class="btn btn-primary" onclick="openStudentEditor()">+ Add learner</button>
+        </div>
       </div>
       <div class="card">
         <div class="class-grid">
@@ -1649,7 +1675,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
     <!-- MATERIALS -->
     <section class="page" id="page-materials" style="display:none">
       <div class="page-head">
-        <div><h1>Materials &amp; past papers</h1><p>Past papers, marking schemes, notes, textbooks and links — organised by subject. Add a link to a Google Drive / Dropbox file, or upload a small file (under 600 KB) directly.</p></div>
+        <div><h1>Materials &amp; past papers</h1><p>Past papers, marking schemes, notes, textbooks and links — organised by subject. Add a link to a Google Drive / Dropbox file, or upload a small file (under 5 MB) directly.</p></div>
         <div class="page-actions"><button class="btn btn-primary" onclick="addMaterial()">+ Add material</button></div>
       </div>
       <div class="card">
@@ -3039,7 +3065,7 @@ renderers.settings = function(){ bindInputs(); renderThemePicker(); renderEditio
 
 function uploadLogo(input){
   const f = input.files[0]; if(!f) return;
-  if(f.size > 600*1024){ toast('Logo is too large — please use an image under 600KB.'); input.value=''; return; }
+  if(f.size > 5*1024*1024){ toast('Logo is too large — please use an image under 5MB.'); input.value=''; return; }
   const r = new FileReader();
   r.onload = ()=>{ state.school.logo = r.result; save(); applyTheme(); renderLogoPreview(); renderCover(); toast('Logo uploaded'); };
   r.readAsDataURL(f);
@@ -3339,7 +3365,7 @@ renderers.materials = function(){
           <button class="del" onclick="delMaterial('${r.id}')">×</button>
         </div>`;
       }).join('')
-    : '<div class="empty-list">No materials yet — tap <strong>+ Add material</strong>. Use links for big files (Google Drive, Dropbox) or upload small files (under 600 KB) directly.</div>';
+    : '<div class="empty-list">No materials yet — tap <strong>+ Add material</strong>. Use links for big files (Google Drive, Dropbox) or upload small files (under 5 MB) directly.</div>';
 };
 function addMaterial(){
   const subjs = subjectNames();
@@ -3356,7 +3382,7 @@ function addMaterial(){
       <div class="field"><label class="label">Year (optional)</label><input class="input" id="mat-year" placeholder="e.g. 2024"></div>
     </div>
     <div class="field"><label class="label">Link URL (Google Drive, Dropbox, YouTube, etc.)</label><input class="input" id="mat-url" placeholder="https://..."></div>
-    <div class="field"><label class="label">Or upload small file (≤ 600 KB)</label><input type="file" id="mat-file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" class="input"></div>
+    <div class="field"><label class="label">Or upload small file (≤ 5 MB)</label><input type="file" id="mat-file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" class="input"></div>
     <div class="field"><label class="label">Notes</label><textarea class="textarea" id="mat-notes" placeholder="Anything to remember..."></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
@@ -3379,7 +3405,7 @@ function saveMaterial(){
   const file = fileInput.files[0];
   const finish = () => { state.resources.push(data); save(); closeModal(); renderers.materials(); toast('Material added'); };
   if(file){
-    if(file.size > 600*1024){ toast('File is too large — use a link instead, or upload to Drive and paste the URL.'); return; }
+    if(file.size > 5*1024*1024){ toast('File is too large — use a link instead (Google Drive / Dropbox) for files over 5MB.'); return; }
     const r = new FileReader();
     r.onload = ()=>{ data.file = r.result; data.fileName = file.name; finish(); };
     r.readAsDataURL(file);
@@ -4873,7 +4899,7 @@ function editLibraryItem(id){
       </div>
       <div class="field"><label class="label">Exam board</label><select class="select" id="lib-examBoard"><option value="">— pick —</option>${['ZIMSEC','Cambridge IGCSE','Cambridge A-Level','CAPS','IEB','School-set'].map(b=>`<option ${data.examBoard===b?'selected':''}>${b}</option>`).join('')}</select></div>
       <div class="field"><label class="label">Link (Google Drive / Dropbox URL)</label><input class="input" id="lib-url" value="${esc(data.url||'')}" placeholder="https://..."></div>
-      <div class="field"><label class="label">Or upload PDF/file (≤600 KB)</label><input type="file" id="lib-file" accept=".pdf,.doc,.docx,.png,.jpg" class="input"></div>
+      <div class="field"><label class="label">Or upload PDF/file (≤5 MB)</label><input type="file" id="lib-file" accept=".pdf,.doc,.docx,.png,.jpg" class="input"></div>
       <div class="field"><label class="label">Notes</label><textarea class="textarea" id="lib-notes">${esc(data.notes||'')}</textarea></div>`;
   } else if(tab === 'schemes'){
     formHtml = `
@@ -4887,7 +4913,7 @@ function editLibraryItem(id){
         <div class="field"><label class="label">Year</label><input class="input" id="lib-year" value="${esc(data.year||'')}"></div>
       </div>
       <div class="field"><label class="label">Link (URL)</label><input class="input" id="lib-url" value="${esc(data.url||'')}"></div>
-      <div class="field"><label class="label">Or upload file (≤600 KB)</label><input type="file" id="lib-file" accept=".pdf,.doc,.docx" class="input"></div>
+      <div class="field"><label class="label">Or upload file (≤5 MB)</label><input type="file" id="lib-file" accept=".pdf,.doc,.docx" class="input"></div>
       <div class="field"><label class="label">Notes</label><textarea class="textarea" id="lib-notes">${esc(data.notes||'')}</textarea></div>`;
   } else if(tab === 'worksheets'){
     const qs = data.questions || [];
@@ -5000,7 +5026,7 @@ function saveLibraryItem(id, isEdit){
       save(); closeModal(); renderers.library(); toast(isEdit?'Updated':'Added');
     };
     if(file){
-      if(file.size > 600*1024){ toast('File too large — use a link instead.'); return; }
+      if(file.size > 5*1024*1024){ toast('File too large — use a link instead (max 5MB per file).'); return; }
       const r = new FileReader();
       r.onload = ()=>{ data.file = r.result; data.fileName = file.name; finish(); };
       r.readAsDataURL(file);
@@ -5862,7 +5888,7 @@ window.saveMaterial = function(){
   const file = fileInput.files[0];
   const finish = () => { state.resources.push(data); save(); closeModal(); renderers.materials(); toast('Material added'); };
   if(file){
-    if(file.size > 600*1024){ toast('File is too large — use a link instead, or upload to Drive and paste the URL.'); return; }
+    if(file.size > 5*1024*1024){ toast('File is too large — use a link instead (Google Drive / Dropbox) for files over 5MB.'); return; }
     const r = new FileReader();
     r.onload = ()=>{ data.file = r.result; data.fileName = file.name; finish(); };
     r.readAsDataURL(file);
@@ -5952,6 +5978,207 @@ function renderGradeReport(){
     html += `<div class="empty-list">No daily assessments tagged for ${esc(gradeName)} yet. When teachers tag their daily reflection with this grade, it shows up here.</div>`;
   }
   el.innerHTML = html;
+}
+
+/* ============================================================
+   ROUND 1 — Refresh, Avatar, CSV import, Profile identity card
+   ============================================================ */
+
+/* Universal refresh button — soft reload + re-render current page */
+function appRefresh(){
+  /* Visual feedback */
+  const btn = document.getElementById('refresh-btn');
+  if(btn) btn.style.transform = 'rotate(360deg)';
+  if(btn) btn.style.transition = 'transform .6s';
+
+  /* Re-render current page if a renderer exists */
+  if(currentPage && renderers[currentPage]){
+    try { renderers[currentPage](); } catch(e){ console.warn('Refresh render error:', e); }
+  }
+  /* Also re-bind data inputs (in case state changed elsewhere) */
+  if(typeof bindInputs === 'function') bindInputs();
+
+  /* Check for new app version: tell SW to update */
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.update()));
+  }
+
+  toast('🔄 Refreshed');
+  setTimeout(()=>{ if(btn){ btn.style.transform=''; btn.style.transition=''; } }, 600);
+}
+
+/* Teacher avatar upload */
+function uploadAvatar(input){
+  const f = input.files[0]; if(!f) return;
+  if(f.size > 5*1024*1024){ toast('Avatar too large — use an image under 5MB.'); input.value=''; return; }
+  if(!f.type.startsWith('image/')){ toast('Pick an image file'); input.value=''; return; }
+  const r = new FileReader();
+  r.onload = ()=>{
+    state.teacher.avatar = r.result;
+    save();
+    renderProfileIdentity();
+    toast('Profile photo updated');
+  };
+  r.readAsDataURL(f);
+  input.value = '';
+}
+function clearAvatar(){
+  if(!confirm('Remove your profile photo?')) return;
+  delete state.teacher.avatar;
+  save();
+  renderProfileIdentity();
+}
+
+/* Render the school-logo + avatar + name identity banner at top of Personal Information */
+function renderProfileIdentity(){
+  const logoSlot = document.getElementById('profile-logo-slot');
+  const avImg = document.getElementById('profile-avatar-img');
+  const nameEl = document.getElementById('profile-name-display');
+  const roleEl = document.getElementById('profile-role-display');
+  const schoolEl = document.getElementById('profile-school-display');
+  if(!nameEl) return;  // page not rendered
+
+  /* School logo (if uploaded), else hidden */
+  if(logoSlot){
+    if(state.school && state.school.logo){
+      logoSlot.innerHTML = `<img src="${esc(state.school.logo)}" alt="School logo" style="width:80px;height:80px;border-radius:12px;object-fit:contain;background:#fff;border:1px solid var(--line);padding:6px">`;
+    } else {
+      logoSlot.innerHTML = `<div style="width:80px;height:80px;border-radius:12px;background:var(--bg-soft);border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center;line-height:1.3;padding:8px">School<br>logo<br>here</div>`;
+    }
+  }
+
+  /* Teacher avatar — photo or initials */
+  if(avImg){
+    if(state.teacher && state.teacher.avatar){
+      avImg.style.background = '#fff';
+      avImg.innerHTML = `<img src="${esc(state.teacher.avatar)}" alt="Profile photo" style="width:100%;height:100%;object-fit:cover">`;
+    } else {
+      const initials = ((state.teacher && state.teacher.name) || '?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+      avImg.style.background = 'linear-gradient(135deg,var(--primary),var(--primary-dark))';
+      avImg.innerHTML = initials || '?';
+    }
+  }
+
+  nameEl.textContent = (state.teacher && state.teacher.name) || '— Your name —';
+  roleEl.textContent = (state.teacher && state.teacher.role) || 'Class Teacher';
+  schoolEl.textContent = (state.school && state.school.name)
+    ? '🏫 ' + state.school.name + ((state.school.district || state.school.province) ? ' · ' + (state.school.district || state.school.province) : '')
+    : 'Set your school name below';
+}
+
+/* Patch profile renderer to also render the identity banner */
+if(renderers.profile){
+  const _origProfileRender = renderers.profile;
+  renderers.profile = function(){
+    _origProfileRender();
+    renderProfileIdentity();
+  };
+} else {
+  renderers.profile = function(){ bindInputs(); renderProfileIdentity(); };
+}
+
+/* ============================================================
+   CSV import for class list
+   ============================================================ */
+
+/* Tiny CSV parser — handles quoted fields with commas and escaped quotes */
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i], n = text[i+1];
+    if(inQuotes){
+      if(c === '"' && n === '"'){ field += '"'; i++; }
+      else if(c === '"'){ inQuotes = false; }
+      else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ','){ row.push(field); field = ''; }
+      else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+      else if(c === '\r'){ /* skip */ }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function downloadClassListTemplate(){
+  const csv = 'Full Name,Gender (M/F),Date of Birth (YYYY-MM-DD),Parent/Guardian Name,Parent Phone,Address,Notes\n' +
+              'Tendai Moyo,M,2015-03-15,Mrs J Moyo,+263771234567,123 Main St Harare,Asthma — has inhaler\n' +
+              'Tariro Banda,F,2014-08-22,Mr S Banda,+263772345678,456 Park Ave,\n';
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'class-list-template.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('📄 Template downloaded — fill it in, then Import CSV');
+}
+
+function importClassListCSV(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try {
+      const rows = parseCSV(reader.result);
+      if(rows.length < 2){ toast('CSV is empty or missing data rows'); return; }
+      /* Header row — try to map columns */
+      const headers = rows[0].map(h => h.toLowerCase().trim());
+      const col = (names) => {
+        for(const n of names){
+          const i = headers.findIndex(h => h.includes(n));
+          if(i !== -1) return i;
+        }
+        return -1;
+      };
+      const cName    = col(['full name','name','learner','student']);
+      const cGender  = col(['gender','sex']);
+      const cDob     = col(['birth','dob','date of birth']);
+      const cParent  = col(['parent','guardian']);
+      const cPhone   = col(['phone','mobile','contact']);
+      const cAddr    = col(['address']);
+      const cNotes   = col(['notes','medical','remark']);
+
+      if(cName === -1){
+        toast('Could not find a Name column — check your CSV header row');
+        return;
+      }
+
+      state.students = state.students || [];
+      let added = 0, skipped = 0;
+      for(let i = 1; i < rows.length; i++){
+        const r = rows[i];
+        if(r.every(c => !c.trim())) continue;  /* blank row */
+        const name = (r[cName]||'').trim();
+        if(!name){ skipped++; continue; }
+        const dup = state.students.some(s => (s.name||'').toLowerCase() === name.toLowerCase());
+        if(dup){ skipped++; continue; }
+        let gender = (cGender !== -1 ? r[cGender] : '').trim().toUpperCase();
+        if(gender.startsWith('M')) gender = 'M';
+        else if(gender.startsWith('F')) gender = 'F';
+        else gender = '';
+        state.students.push({
+          id: 'st_' + Date.now() + '_' + i,
+          name,
+          gender,
+          dob: cDob !== -1 ? (r[cDob]||'').trim() : '',
+          parentName: cParent !== -1 ? (r[cParent]||'').trim() : '',
+          parentPhone: cPhone !== -1 ? (r[cPhone]||'').trim() : '',
+          address: cAddr !== -1 ? (r[cAddr]||'').trim() : '',
+          notes: cNotes !== -1 ? (r[cNotes]||'').trim() : ''
+        });
+        added++;
+      }
+      save();
+      input.value = '';
+      if(typeof renderers.classlist === 'function') renderers.classlist();
+      toast(`✓ Imported ${added} learner${added===1?'':'s'}${skipped?` (${skipped} skipped — duplicates or blank rows)`:''}`);
+    } catch(e){
+      toast('CSV parse error: ' + e.message);
+    }
+  };
+  reader.readAsText(file);
 }
 
 /* ============================================================
@@ -6080,7 +6307,7 @@ function networkOpenUploadModal(){
   showModal(`
     <h3>📤 Share paper with other schools</h3>
     <p class="modal-sub">Upload a past paper, worksheet, or scheme that other schools could benefit from. Goes through moderation first; you\'ll see it appear once approved.</p>
-    <div class="field"><label class="label">PDF file (max 25 MB)</label>
+    <div class="field"><label class="label">PDF file (max 50 MB)</label>
       <input type="file" id="nw-file" accept="application/pdf" class="input">
     </div>
     <div class="field"><label class="label">Title</label>
@@ -6120,7 +6347,7 @@ async function networkSubmitUpload(){
   const fileEl = document.getElementById('nw-file');
   const file = fileEl && fileEl.files[0];
   if(!file){ toast('Pick a PDF file first'); return; }
-  if(file.size > 25*1024*1024){ toast('File too large — max 25 MB'); return; }
+  if(file.size > 50*1024*1024){ toast('File too large — max 50 MB'); return; }
   const title = document.getElementById('nw-title').value.trim();
   if(!title){ toast('Title is required'); return; }
   const fd = new FormData();
