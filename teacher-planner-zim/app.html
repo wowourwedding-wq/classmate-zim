@@ -6342,6 +6342,330 @@ renderers.settings = function(){
 };
 
 /* ============================================================
+   ROUND 3 — Per-subject student enrollment + sport,
+   timetable click-through to roster, letter templates
+   ============================================================ */
+
+const SPORTS_LIST = ['Football','Netball','Basketball','Volleyball','Athletics','Tennis','Swimming','Rugby','Hockey','Cricket','Chess','Music / Choir','Drama','Scouts / Pathfinders','None / Not yet'];
+
+/* Replace student editor with extended version (subjects + sport + class) */
+window.openStudentEditor = function(id){
+  const isEdit = !!id;
+  const existing = id ? (state.students||[]).find(x=>x.id===id) : null;
+  const stud = existing || {
+    id:'s_'+Date.now(), name:'', gender:'M', birthday:'',
+    classGrade:'', subjects:[], sport:'',
+    parentName:'', parentPhone:'', parentEmail:'',
+    strength:'', weakness:'', overview:'', rating:0
+  };
+  const allSubjects = (state.subjects || []).map(s=>s.name).filter(Boolean);
+  const selectedSubs = stud.subjects || [];
+  const subjectsHtml = allSubjects.length
+    ? allSubjects.map(sn=>`<label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px;padding:5px 6px;background:#fff;border-radius:6px;border:1px solid var(--line)">
+        <input type="checkbox" name="m-subj" value="${esc(sn)}" ${selectedSubs.includes(sn)?'checked':''}> ${esc(sn)}
+      </label>`).join('')
+    : `<div style="color:var(--muted);font-size:13px;padding:10px;text-align:center">No subjects yet — go to <strong>My Subjects</strong> page to add them, then come back.</div>`;
+
+  showModal(`
+    <h3>${isEdit?'Edit learner':'Add learner'}</h3>
+    <p class="modal-sub">Basic details + which subjects they take + sport. Enrollment per-subject powers attendance, timetable roster, and per-subject assessment.</p>
+    <div class="field"><label class="label">Full name</label><input class="input" id="m-name" value="${esc(stud.name)}"></div>
+    <div class="field-row">
+      <div class="field"><label class="label">Gender</label><select class="select" id="m-gender"><option value="M" ${stud.gender==='M'?'selected':''}>Male</option><option value="F" ${stud.gender==='F'?'selected':''}>Female</option></select></div>
+      <div class="field"><label class="label">Date of birth</label><input class="input" type="date" id="m-bday" value="${esc(stud.birthday)}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="label">Class / Form / Grade</label><input class="input" id="m-class" value="${esc(stud.classGrade||'')}" placeholder="e.g. Grade 4 Red, Form 3B"></div>
+      <div class="field"><label class="label">Sport / activity</label><select class="select" id="m-sport"><option value="">— Select —</option>${SPORTS_LIST.map(sp=>`<option ${stud.sport===sp?'selected':''}>${esc(sp)}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label class="label">Subjects they take (tick all that apply)</label>
+      <div id="m-subjects" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;background:var(--card-tint);padding:10px;border-radius:8px;max-height:200px;overflow-y:auto;border:1px solid var(--line)">
+        ${subjectsHtml}
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="label">Parent / guardian name</label><input class="input" id="m-pname" value="${esc(stud.parentName)}"></div>
+      <div class="field"><label class="label">Parent phone</label><input class="input" id="m-pphone" value="${esc(stud.parentPhone)}"></div>
+    </div>
+    <div class="modal-actions">
+      ${isEdit?`<button class="btn btn-danger" onclick="deleteStudent('${stud.id}')">Delete</button>`:''}
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudent('${stud.id}', ${isEdit})">Save</button>
+    </div>
+  `);
+  setTimeout(()=>document.getElementById('m-name').focus(),50);
+};
+
+/* Replace saveStudent to capture new fields */
+window.saveStudent = function(id, isEdit){
+  const data = {
+    name: document.getElementById('m-name').value.trim(),
+    gender: document.getElementById('m-gender').value,
+    birthday: document.getElementById('m-bday').value,
+    classGrade: document.getElementById('m-class').value.trim(),
+    sport: document.getElementById('m-sport').value,
+    subjects: Array.from(document.querySelectorAll('input[name="m-subj"]:checked')).map(c=>c.value),
+    parentName: document.getElementById('m-pname').value.trim(),
+    parentPhone: document.getElementById('m-pphone').value.trim()
+  };
+  if(!data.name){ toast('Please enter a name'); return; }
+  state.students = state.students || [];
+  if(isEdit){
+    const s = state.students.find(x=>x.id===id);
+    if(s) Object.assign(s, data);
+  } else {
+    state.students.push(Object.assign({id, parentEmail:'',strength:'',weakness:'',overview:'',rating:0}, data));
+  }
+  save(); closeModal();
+  if(typeof renderers.classlist === 'function') renderers.classlist();
+  toast(isEdit ? 'Updated' : 'Added');
+};
+
+/* Timetable click-through: tap a subject cell → show students enrolled in it */
+const _origRenderTimetable = renderers.timetable;
+renderers.timetable = function(){
+  if(_origRenderTimetable) _origRenderTimetable();
+  const tbl = document.getElementById('tt-table');
+  if(!tbl) return;
+  tbl.querySelectorAll('tbody td').forEach(td=>{
+    /* Skip time column (first cell) and break rows */
+    if(td.cellIndex === 0) return;
+    if(td.closest('tr.brk')) return;
+    /* Read the cell's text (or its input's value if it has one) */
+    const inp = td.querySelector('input');
+    let subj = inp ? inp.value : td.textContent;
+    subj = (subj || '').trim();
+    if(!subj) return;
+    td.style.cursor = 'pointer';
+    td.title = 'Tap to see learners enrolled in ' + subj;
+    td.addEventListener('click', (e)=>{
+      /* Don't trigger when clicking the input directly for editing */
+      if(e.target.tagName === 'INPUT') return;
+      const currentSubj = (td.querySelector('input')?.value || td.textContent || '').trim();
+      if(currentSubj) showTimetableSubjectRoster(currentSubj);
+    });
+  });
+};
+
+function showTimetableSubjectRoster(subjectName){
+  const all = state.students || [];
+  const enrolled = all.filter(s => (s.subjects||[]).includes(subjectName));
+  const male = enrolled.filter(s=>s.gender==='M').length;
+  const female = enrolled.filter(s=>s.gender==='F').length;
+  showModal(`
+    <h3>📚 ${esc(subjectName)} class</h3>
+    <p class="modal-sub">${enrolled.length} of ${all.length} learners enrolled · ♂ ${male} · ♀ ${female}</p>
+    ${enrolled.length === 0 ? `<div class="empty-list">No learners enrolled in <strong>${esc(subjectName)}</strong> yet. Tap <strong>Manage enrollments</strong> below to add them.</div>` : `
+    <div style="max-height:380px;overflow-y:auto;border:1px solid var(--line);border-radius:8px">
+      ${enrolled.map(s=>`
+        <div class="log-row" style="grid-template-columns:auto 1fr auto;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line-soft)">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11.5px;font-family:Georgia,serif">${esc((s.name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase())}</div>
+          <div>
+            <strong style="font-size:14px">${esc(s.name)}</strong>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:1px">${s.gender==='M'?'♂':'♀'}${s.classGrade?' · '+esc(s.classGrade):''}${s.sport?' · ⚽ '+esc(s.sport):''}</div>
+          </div>
+          <button class="btn btn-soft btn-sm" onclick="closeModal();openStudent('${esc(s.id)}')">View</button>
+        </div>`).join('')}
+    </div>`}
+    <div class="modal-actions">
+      <button class="btn btn-soft" data-subj="${esc(subjectName)}" onclick="closeModal();openSubjectEnrollManager(this.dataset.subj)">📝 Manage enrollments</button>
+      <button class="btn btn-primary" onclick="closeModal()">Close</button>
+    </div>
+  `);
+}
+
+function openSubjectEnrollManager(subjectName){
+  const all = state.students || [];
+  showModal(`
+    <h3>📝 Manage ${esc(subjectName)} enrollments</h3>
+    <p class="modal-sub">Tick learners who take this subject. Untick to remove them.</p>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button class="btn btn-soft btn-sm" onclick="document.querySelectorAll('input[data-sid]').forEach(c=>c.checked=true)">Select all</button>
+      <button class="btn btn-soft btn-sm" onclick="document.querySelectorAll('input[data-sid]').forEach(c=>c.checked=false)">Clear all</button>
+    </div>
+    <div style="max-height:400px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;background:var(--card-tint);padding:6px">
+      ${all.length ? all.map(s=>`
+        <label style="display:flex;gap:8px;align-items:center;padding:8px 10px;cursor:pointer;border-radius:6px;background:#fff;margin-bottom:3px">
+          <input type="checkbox" data-sid="${esc(s.id)}" ${(s.subjects||[]).includes(subjectName)?'checked':''}>
+          <strong style="font-size:13.5px">${esc(s.name)}</strong>
+          <span style="font-size:11.5px;color:var(--muted);margin-left:auto">${s.gender==='M'?'♂':'♀'} ${esc(s.classGrade||'')}</span>
+        </label>
+      `).join('') : '<div style="color:var(--muted);font-size:13px;padding:14px;text-align:center">No learners yet. Add them in Class List first.</div>'}
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" data-subj="${esc(subjectName)}" onclick="saveSubjectEnrollManager(this.dataset.subj)">Save enrollments</button>
+    </div>
+  `);
+}
+
+function saveSubjectEnrollManager(subjectName){
+  let changed = 0;
+  document.querySelectorAll('input[data-sid]').forEach(cb=>{
+    const sid = cb.dataset.sid;
+    const stud = (state.students||[]).find(s=>s.id===sid); if(!stud) return;
+    stud.subjects = stud.subjects || [];
+    const has = stud.subjects.includes(subjectName);
+    if(cb.checked && !has){ stud.subjects.push(subjectName); changed++; }
+    else if(!cb.checked && has){ stud.subjects = stud.subjects.filter(x=>x!==subjectName); changed++; }
+  });
+  save(); closeModal();
+  toast(`✓ Updated ${changed} enrollment${changed===1?'':'s'}`);
+}
+
+/* Letter templates */
+const LETTER_TEMPLATES = [
+  {id:'admission', icon:'🎓', title:'Admission confirmation', body:`Dear {parent},\n\nWe are pleased to confirm that {student} has been admitted to {grade} at {school} for the {year} academic year.\n\nReporting date: ____________\nFees due: ____________\nUniform requirements: ____________\n\nPlease report to the school office on the reporting date with all required documents.\n\nWe look forward to welcoming {student} to our school family.\n\nYours sincerely,\n\n_______________\n{teacher}\n{school}`},
+  {id:'transfer', icon:'📦', title:'Transfer letter', body:`To whom it may concern,\n\nThis is to confirm that {student} was a learner at {school} from ____________ to ____________ in {grade}.\n\nDuring this time, {student} conducted themselves with good behaviour and was an active member of the school.\n\nAll fees and school property have been accounted for, and the school has no objection to {student}'s transfer.\n\nWe wish {student} every success in their continued education.\n\n_______________\n{teacher}\nHead Teacher\n{school}`},
+  {id:'sickexcuse', icon:'🤒', title:'Sick excuse letter', body:`Dear {teacher},\n\nMy child {student} of {grade} was unable to attend school on ____________ due to illness.\n\n(Brief reason: ___________________________)\n\nKindly excuse the absence. {student} has caught up on missed work.\n\nThank you for understanding.\n\n_______________\n{parent}\nParent / Guardian`},
+  {id:'feesremind', icon:'💵', title:'Fees reminder', body:`Dear {parent},\n\nThis is a friendly reminder that {term} school fees for {student} are now due.\n\nAmount outstanding: ____________\nPayment deadline: ____________\nAccepted methods: ____________\n\nKindly arrange payment by the deadline. If you are facing financial difficulty, please contact the school office to discuss payment arrangements.\n\nThank you for your continued support.\n\nYours sincerely,\nThe Bursar\n{school}`},
+  {id:'parentmeet', icon:'📅', title:'Parent meeting invitation', body:`Dear {parent},\n\nYou are warmly invited to a parent-teacher meeting at {school}.\n\nDate: ____________\nTime: ____________\nVenue: ____________\n\nWe will discuss {student}'s progress this term and the way forward. Your input is valuable.\n\nPlease confirm your attendance by replying to this notice.\n\nYours sincerely,\n_______________\n{teacher}\n{school}`},
+  {id:'achieve', icon:'🌟', title:'Achievement / award letter', body:`Dear {parent},\n\nIt gives me great pleasure to inform you that {student} has been awarded ____________ for ____________ (e.g. academic excellence in Mathematics, outstanding sportsmanship, leadership).\n\nThis recognition reflects {student}'s hard work and dedication. We are proud to celebrate this achievement.\n\nThe award will be presented at our next assembly / prize giving. Your presence would be most welcome.\n\nCongratulations to {student} and to you for the support you provide.\n\nYours sincerely,\n_______________\n{teacher}\n{school}`},
+  {id:'discipline', icon:'⚠️', title:'Discipline notice', body:`Dear {parent},\n\nWe regret to inform you that on ____________, {student} was involved in an incident requiring disciplinary attention.\n\nIncident: ____________\nDisciplinary action taken: ____________\nNext steps: ____________\n\nWe would appreciate your cooperation in addressing this matter at home. We believe with parental support, {student} can make positive choices going forward.\n\nPlease arrange to meet the head teacher within the next 3 school days.\n\nYours sincerely,\n_______________\n{teacher}\n{school}`},
+  {id:'sportscert', icon:'🏆', title:'Sports / merit certificate', body:`{school}\n\n_______________________________\n\nCertificate of Achievement\n\nThis is to certify that\n\n** {student} **\nof {grade}\n\nhas been awarded ____________ (Gold / Silver / Bronze / 1st / 2nd / 3rd Place)\n\nin ____________ (event)\n\nat ____________ (occasion)\n\nheld on {date}\n\nWell done!\n\n____________________     ____________________\n     Sports Master                          Head Teacher`},
+  {id:'leaveapp', icon:'📋', title:'Teacher leave application', body:`{date}\n\nThe Head Teacher\n{school}\n\nDear Sir / Madam,\n\nRe: Application for Leave\n\nI hereby request _______ day(s) of leave from ____________ to ____________ for the following reason:\n\n____________________________________________\n\nI will ensure that all my classes are covered during my absence. Substitute teaching arrangements:\n\n• ____________\n• ____________\n• ____________\n\nThank you for your kind consideration.\n\nYours faithfully,\n\n_______________\n{teacher}\n{role}`},
+  {id:'recom', icon:'✉️', title:'Letter of recommendation', body:`{date}\n\nTo whom it may concern,\n\nRe: Letter of recommendation for {student}\n\nIt is my pleasure to recommend {student}, who has been a learner at {school} for _______ years.\n\nDuring this time, {student} has demonstrated:\n• Academic strengths: ____________\n• Character traits: ____________\n• Notable achievements: ____________\n• Leadership / service: ____________\n\nI am confident that {student} will be a positive contribution to any institution they join. Please do not hesitate to contact me for any further information.\n\nYours sincerely,\n_______________\n{teacher}\n{role}\n{school}`},
+  {id:'sportsday', icon:'🏃', title:'Sports day invitation', body:`Dear {parent},\n\nYou are warmly invited to our Annual Sports Day at {school}.\n\nDate: ____________\nTime: ____________\nVenue: {school} sports grounds\n\nYour child {student} will be participating in:\n• ____________\n• ____________\n\nWe look forward to your presence and support. Refreshments will be on sale. Please come dressed in house colours.\n\nLet us cheer the learners on to victory!\n\nYours sincerely,\nSports Master\n{school}`},
+  {id:'reportcollect', icon:'📄', title:'Report collection notice', body:`Dear {parent},\n\nWe are pleased to inform you that {student}'s end-of-{term} school report is now ready for collection.\n\nCollection details:\n• Date: ____________\n• Time: ____________\n• Venue: {school} office\n• Bring: Parent/guardian ID\n\nA parent or guardian must collect the report in person. This is also an opportunity to discuss {student}'s progress with their class teacher.\n\nThank you,\n_______________\n{teacher}\n{school}`}
+];
+
+function fillCommonPlaceholders(template){
+  const m = currentUser() || {};
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+  return template
+    .replace(/\{school\}/g, (state.school&&state.school.name) || '[Your school]')
+    .replace(/\{teacher\}/g, (state.teacher&&state.teacher.name) || m.name || '[Your name]')
+    .replace(/\{role\}/g, (state.teacher&&state.teacher.role) || m.title || 'Class Teacher')
+    .replace(/\{date\}/g, dateStr)
+    .replace(/\{year\}/g, String(now.getFullYear()))
+    .replace(/\{term\}/g, (state.school&&state.school.term) || 'this term');
+}
+
+function openLettersPage(){
+  showModal(`
+    <h3>📝 Letter Templates</h3>
+    <p class="modal-sub">${LETTER_TEMPLATES.length} ready-to-use formal letters — tap any to customise and print on your school letterhead.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;max-height:480px;overflow-y:auto;padding:4px">
+      ${LETTER_TEMPLATES.map(t=>`
+        <button class="btn btn-soft" style="text-align:left;padding:14px 12px;height:auto;line-height:1.3;display:flex;flex-direction:column;gap:6px;align-items:flex-start" onclick="openLetterEditor('${esc(t.id)}')">
+          <div style="font-size:28px">${t.icon}</div>
+          <div style="font-weight:800;font-size:13px;color:var(--primary-darker);text-align:left">${esc(t.title)}</div>
+        </button>
+      `).join('')}
+    </div>
+    <div class="modal-actions"><button class="btn btn-primary" onclick="closeModal()">Close</button></div>
+  `);
+}
+
+function openLetterEditor(templateId){
+  const tpl = LETTER_TEMPLATES.find(t=>t.id===templateId); if(!tpl) return;
+  const students = state.students || [];
+  const studentSelector = students.length
+    ? `<select class="select" id="lt-student" onchange="refillLetter()"><option value="">— No specific learner —</option>${students.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</select>`
+    : `<input class="input" id="lt-studentname" placeholder="Student name" oninput="refillLetter()">`;
+
+  showModal(`
+    <h3>${tpl.icon} ${esc(tpl.title)}</h3>
+    <div class="field-row">
+      <div class="field"><label class="label">Personalise for learner</label>${studentSelector}</div>
+      <div class="field"><label class="label">Grade / class</label><input class="input" id="lt-grade" placeholder="e.g. Grade 4" oninput="refillLetter()"></div>
+    </div>
+    <div class="field"><label class="label">Parent / guardian name (override if not in class list)</label><input class="input" id="lt-parent" placeholder="Optional" oninput="refillLetter()"></div>
+    <div class="field"><label class="label">Letter body — edit freely before printing</label>
+      <textarea class="textarea" id="lt-body" data-tpl="${esc(templateId)}" style="min-height:340px;font-family:Georgia,serif;font-size:13.5px;line-height:1.6"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-soft" onclick="copyLetter()">📋 Copy</button>
+      <button class="btn btn-soft" onclick="emailLetter()">📧 Email</button>
+      <button class="btn btn-primary" onclick="printLetter()">🖨 Print / PDF</button>
+    </div>
+  `);
+  refillLetter();
+}
+
+function refillLetter(){
+  const ta = document.getElementById('lt-body'); if(!ta) return;
+  const tpl = LETTER_TEMPLATES.find(t=>t.id===ta.dataset.tpl); if(!tpl) return;
+  let body = fillCommonPlaceholders(tpl.body);
+  const sSel = document.getElementById('lt-student');
+  const sNameEl = document.getElementById('lt-studentname');
+  let studentName = '', parentName = '';
+  if(sSel && sSel.value){
+    const stud = (state.students||[]).find(s=>s.id===sSel.value);
+    if(stud){ studentName = stud.name; parentName = stud.parentName || ''; }
+  } else if(sNameEl){ studentName = sNameEl.value; }
+  const explicitParent = document.getElementById('lt-parent')?.value;
+  if(explicitParent) parentName = explicitParent;
+  const grade = document.getElementById('lt-grade')?.value || '[Grade]';
+  body = body
+    .replace(/\{student\}/g, studentName || '[Student name]')
+    .replace(/\{parent\}/g, parentName || 'Parent / Guardian')
+    .replace(/\{grade\}/g, grade);
+  ta.value = body;
+}
+
+function copyLetter(){
+  const body = document.getElementById('lt-body').value;
+  copyToClipboard(body);
+  toast('Letter copied to clipboard');
+}
+function emailLetter(){
+  const ta = document.getElementById('lt-body');
+  const tpl = LETTER_TEMPLATES.find(t=>t.id===ta.dataset.tpl);
+  const subj = tpl ? tpl.title : 'Letter';
+  window.location.href = 'mailto:?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(ta.value);
+}
+function printLetter(){
+  const body = document.getElementById('lt-body').value;
+  const w = window.open('', '_blank');
+  if(!w){ toast('Pop-up blocked — allow pop-ups to print'); return; }
+  w.document.write(`<!doctype html><html><head><title>Letter — ${esc(state.school?.name||'School')}</title>
+    <style>
+      body{font-family:Georgia,serif;line-height:1.7;color:#000;margin:0;padding:40px;max-width:780px}
+      .letterhead{border-bottom:2.5px solid #1A2E4F;padding-bottom:14px;margin-bottom:30px;display:flex;align-items:center;gap:16px}
+      .letterhead img{max-height:64px;max-width:64px;object-fit:contain}
+      .letterhead h2{margin:0;color:#1A2E4F;font-size:22px}
+      .letterhead .addr{font-size:12.5px;color:#555;margin-top:2px}
+      .letterhead .motto{font-size:11.5px;color:#888;font-style:italic;margin-top:3px}
+      pre{font-family:Georgia,serif;line-height:1.75;font-size:14px;white-space:pre-wrap;color:#000;margin:0}
+      @media print{ body{padding:0} }
+    </style></head><body>
+    <div class="letterhead">
+      ${state.school?.logo ? `<img src="${esc(state.school.logo)}" alt="logo">` : ''}
+      <div>
+        <h2>${esc(state.school?.name || 'Your school')}</h2>
+        ${state.school?.address ? `<div class="addr">${esc(state.school.address)}</div>` : ''}
+        ${state.school?.motto ? `<div class="motto">${esc(state.school.motto)}</div>` : ''}
+      </div>
+    </div>
+    <pre>${esc(body)}</pre>
+  </body></html>`);
+  w.document.close();
+  setTimeout(()=>{ try { w.print(); } catch(e){} }, 300);
+}
+
+/* Inject 📝 Letters into sidebar (under Resources section) at boot */
+function injectLettersSidebarItem(){
+  if(document.getElementById('sb-letters')) return;
+  const sb = document.querySelector('.sidebar');
+  if(!sb) return;
+  /* Find the Resources section title */
+  const sectionTitles = Array.from(sb.querySelectorAll('.sb-section-title'));
+  const resTitle = sectionTitles.find(t=>t.textContent.trim().toLowerCase() === 'resources');
+  if(!resTitle) return;
+  const resNav = resTitle.nextElementSibling;
+  if(!resNav || !resNav.classList.contains('sb-nav')) return;
+  const btn = document.createElement('button');
+  btn.className = 'sb-item';
+  btn.id = 'sb-letters';
+  btn.innerHTML = '<span class="ico">📝</span>Letters';
+  btn.addEventListener('click', ()=>openLettersPage());
+  resNav.appendChild(btn);
+}
+
+/* ============================================================
    ROUND 2 — Click subject → see all resources for that subject
    ============================================================ */
 
@@ -7031,6 +7355,7 @@ const _origEnterApp = enterApp;
 window.enterApp = function(){
   _origEnterApp();
   injectAuthChrome();
+  if(typeof injectLettersSidebarItem === 'function') injectLettersSidebarItem();
 };
 document.getElementById('welcome-start').addEventListener('click', ()=>{ showAppView(); });
 document.getElementById('welcome-tour').addEventListener('click', ()=>{ document.querySelector('.welcome-features').scrollIntoView({behavior:'smooth'}); });
