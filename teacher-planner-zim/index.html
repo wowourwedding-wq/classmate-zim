@@ -5981,6 +5981,388 @@ function renderGradeReport(){
 }
 
 /* ============================================================
+   AUTH — PIN-based login, 3 roles, user management
+   Goal: app starts at a login screen; admin sets up first; admin
+   then creates accounts for head + teachers; no anonymous access.
+   ============================================================ */
+
+const AUTH_SALT = 'classmate-2026-saltA9X';
+const AUTH_ROLES = {
+  admin:   {n:'Super Admin',   icon:'👑', desc:'Full control. Adds users, edits everything, resets PINs.'},
+  head:    {n:'Headmaster',    icon:'🏫', desc:'View-only. Sees every page but cannot edit.'},
+  teacher: {n:'Teacher',       icon:'🧑‍🏫', desc:'Edits own classes, students, lessons and assessments.'}
+};
+
+async function _sha256Hex(s){
+  const buf = new TextEncoder().encode(s);
+  const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function hashPin(pin){ return _sha256Hex(pin + '|' + AUTH_SALT); }
+async function verifyPin(pin, hash){ return (await hashPin(pin)) === hash; }
+
+function currentUser(){
+  if(!state.currentSession || !state.currentSession.userId) return null;
+  return (state.users || []).find(u => u.id === state.currentSession.userId) || null;
+}
+function isAdmin(){ const u = currentUser(); return !!(u && u.role === 'admin'); }
+function isHead(){  const u = currentUser(); return !!(u && u.role === 'head'); }
+function canEdit(){ const u = currentUser(); return !!(u && u.role !== 'head'); }
+
+function authOverlay(html){
+  let o = document.getElementById('auth-overlay');
+  if(!o){
+    o = document.createElement('div');
+    o.id = 'auth-overlay';
+    o.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#1A2E4F 0%,#0F1B30 100%);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;overflow-y:auto';
+    document.body.appendChild(o);
+  }
+  o.innerHTML = `<div style="background:#fff;border-radius:18px;padding:28px;max-width:460px;width:100%;box-shadow:0 12px 50px rgba(0,0,0,.4);max-height:92vh;overflow-y:auto">${html}</div>`;
+}
+function closeAuthOverlay(){ const o = document.getElementById('auth-overlay'); if(o) o.remove(); }
+
+/* Boot-time gate. Call before enterApp / showWelcome. */
+function authGate(){
+  state.users = state.users || [];
+  if(!state.users.length){ showFirstTimeSetup(); return false; }
+  const u = currentUser();
+  if(!u){ showLoginScreen(); return false; }
+  return true;
+}
+
+function showFirstTimeSetup(){
+  authOverlay(`
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:50px">🎉</div>
+      <h2 style="font-size:22px;margin:6px 0 4px;color:#1A2E4F;font-weight:900">Welcome to ClassMate</h2>
+      <p style="color:#666;font-size:14px;margin:0">Set up your <strong>Super Admin</strong> account. You'll then add headmaster + teacher accounts from Settings.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px">
+      <div><label style="font-size:12.5px;font-weight:700;color:#1A2E4F;display:block;margin-bottom:3px">Your full name</label>
+        <input id="au-name" autocomplete="name" placeholder="Mrs L. Mavhaire" style="width:100%;padding:11px 13px;border:1.5px solid #ddd;border-radius:9px;font-size:14.5px;box-sizing:border-box"></div>
+      <div><label style="font-size:12.5px;font-weight:700;color:#1A2E4F;display:block;margin-bottom:3px">Your role / title</label>
+        <input id="au-role" placeholder="Director / Owner / Founder" style="width:100%;padding:11px 13px;border:1.5px solid #ddd;border-radius:9px;font-size:14.5px;box-sizing:border-box"></div>
+      <div><label style="font-size:12.5px;font-weight:700;color:#1A2E4F;display:block;margin-bottom:3px">Email <span style="color:#999;font-weight:400">(for PIN reset — recommended)</span></label>
+        <input id="au-email" type="email" autocomplete="email" placeholder="you@school.edu" style="width:100%;padding:11px 13px;border:1.5px solid #ddd;border-radius:9px;font-size:14.5px;box-sizing:border-box"></div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label style="font-size:12.5px;font-weight:700;color:#1A2E4F;display:block;margin-bottom:3px">4-digit PIN</label>
+          <input id="au-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" style="width:100%;padding:11px 13px;border:1.5px solid #ddd;border-radius:9px;font-size:16px;letter-spacing:.2em;text-align:center;box-sizing:border-box"></div>
+        <div style="flex:1"><label style="font-size:12.5px;font-weight:700;color:#1A2E4F;display:block;margin-bottom:3px">Confirm PIN</label>
+          <input id="au-pin2" type="password" inputmode="numeric" maxlength="6" placeholder="••••" style="width:100%;padding:11px 13px;border:1.5px solid #ddd;border-radius:9px;font-size:16px;letter-spacing:.2em;text-align:center;box-sizing:border-box"></div>
+      </div>
+      <label style="display:flex;gap:10px;align-items:flex-start;background:#FFF5DC;border:1px solid #E8C97A;border-radius:9px;padding:11px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="au-wipe" checked style="margin-top:3px;flex-shrink:0">
+        <span><strong>Start with a clean slate</strong> — clear any existing data on this device (students, lessons, profile etc.). Recommended for a fresh setup.</span>
+      </label>
+      <div id="au-err" style="font-size:13px;color:#c0392b;font-weight:600;min-height:18px"></div>
+      <button id="au-submit" onclick="finishFirstTimeSetup()" style="background:linear-gradient(135deg,#1A2E4F,#0F1B30);color:#fff;border:none;border-radius:10px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;margin-top:4px">🔐 Create Admin Account</button>
+      <div style="font-size:11.5px;color:#999;text-align:center;line-height:1.55">Your PIN is stored hashed (SHA-256) on this device only. Nobody — including us — can recover a forgotten PIN; only reset it via email (if you provided one).</div>
+    </div>
+  `);
+  setTimeout(()=>document.getElementById('au-name').focus(), 80);
+}
+
+async function finishFirstTimeSetup(){
+  const name = document.getElementById('au-name').value.trim();
+  const role = document.getElementById('au-role').value.trim() || 'Administrator';
+  const email = document.getElementById('au-email').value.trim();
+  const pin = document.getElementById('au-pin').value;
+  const pin2 = document.getElementById('au-pin2').value;
+  const wipe = document.getElementById('au-wipe').checked;
+  const err = (m)=> document.getElementById('au-err').textContent = m;
+  err('');
+  if(!name){ err('Please enter your name'); return; }
+  if(pin.length < 4){ err('PIN must be at least 4 digits'); return; }
+  if(pin !== pin2){ err('PINs do not match'); return; }
+
+  const btn = document.getElementById('au-submit'); btn.disabled = true; btn.textContent = 'Creating…';
+  const pinHash = await hashPin(pin);
+
+  if(wipe){
+    const fresh = defaultState();
+    /* Keep users/session fields out of the reset and reapply */
+    Object.keys(state).forEach(k=>{ if(k !== 'users' && k !== 'currentSession') state[k] = fresh[k]; });
+  }
+  state.users = [{
+    id: 'u_'+Date.now(),
+    name, email, role: 'admin', title: role,
+    pinHash, createdAt: Date.now(), lastLogin: Date.now()
+  }];
+  state.currentSession = {userId: state.users[0].id, role: 'admin', loginTime: Date.now()};
+  state.teacher = state.teacher || {};
+  state.teacher.name = name;
+  state.teacher.email = email;
+  state.teacher.role = role;
+  save();
+  closeAuthOverlay();
+  if(typeof _origShowAppView === 'function') _origShowAppView();
+  setTimeout(()=>toast('🎉 Welcome, ' + name + '. You are signed in as Super Admin.'), 200);
+}
+
+function showLoginScreen(){
+  const users = state.users || [];
+  authOverlay(`
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:42px">🔐</div>
+      <h2 style="font-size:21px;margin:6px 0 4px;color:#1A2E4F;font-weight:900">Sign in to ClassMate</h2>
+      <p style="color:#666;font-size:14px;margin:0">Pick your name + enter your PIN</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px">
+      <div><label style="font-size:12.5px;font-weight:700;color:#1A2E4F;display:block;margin-bottom:3px">Who are you?</label>
+        <select id="au-user" style="width:100%;padding:12px 13px;border:1.5px solid #ddd;border-radius:9px;font-size:14.5px;box-sizing:border-box;background:#fff">
+          ${users.map(u=>`<option value="${esc(u.id)}">${esc(u.name)} · ${esc(AUTH_ROLES[u.role]?.n||u.role)}</option>`).join('')}
+        </select></div>
+      <div><label style="font-size:12.5px;font-weight:700;color:#1A2E4F;display:block;margin-bottom:3px">Your PIN</label>
+        <input id="au-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" onkeypress="if(event.key==='Enter')attemptLogin()" style="width:100%;padding:13px;border:1.5px solid #ddd;border-radius:9px;font-size:18px;letter-spacing:.3em;text-align:center;box-sizing:border-box"></div>
+      <div id="au-err" style="font-size:13px;color:#c0392b;font-weight:600;min-height:18px;text-align:center"></div>
+      <button id="au-submit" onclick="attemptLogin()" style="background:linear-gradient(135deg,#1A2E4F,#0F1B30);color:#fff;border:none;border-radius:10px;padding:14px;font-weight:800;font-size:15px;cursor:pointer">Sign in →</button>
+      <div style="text-align:center;font-size:12.5px;color:#999;margin-top:6px"><a href="#" onclick="forgotPinPrompt();return false" style="color:#1A2E4F">Forgot PIN?</a></div>
+    </div>
+  `);
+  setTimeout(()=>document.getElementById('au-pin').focus(), 80);
+}
+
+async function attemptLogin(){
+  const userId = document.getElementById('au-user').value;
+  const pin = document.getElementById('au-pin').value;
+  const user = (state.users||[]).find(u=>u.id===userId);
+  const err = (m)=>{ const e=document.getElementById('au-err'); if(e) e.textContent = m; };
+  err('');
+  if(!user){ err('User not found'); return; }
+  if(!pin){ err('Enter your PIN'); return; }
+  const btn = document.getElementById('au-submit'); btn.disabled = true; btn.textContent = 'Checking…';
+  const ok = await verifyPin(pin, user.pinHash);
+  if(!ok){ err('Wrong PIN — try again'); btn.disabled = false; btn.textContent = 'Sign in →'; document.getElementById('au-pin').value = ''; return; }
+  state.currentSession = {userId, role: user.role, loginTime: Date.now()};
+  user.lastLogin = Date.now();
+  save();
+  closeAuthOverlay();
+  if(typeof _origShowAppView === 'function') _origShowAppView();
+  setTimeout(()=>toast('Welcome back, ' + user.name), 200);
+}
+
+function forgotPinPrompt(){
+  alert('PIN reset:\n\n• If you signed up with an email, ask your admin to reset your PIN, or contact support@classmate.zw.\n• Super Admin can reset PINs from Settings → Users.\n• If you ARE the Super Admin and forgot your PIN, you may need to clear app data and start fresh (this wipes everything on this device).');
+}
+
+function logout(){
+  if(!confirm('Sign out?')) return;
+  state.currentSession = null;
+  save();
+  showLoginScreen();
+}
+
+/* User management UI in Settings (admin only) */
+function renderUsersCard(){
+  let card = document.getElementById('settings-users-card');
+  const settingsPage = document.getElementById('page-settings');
+  if(!card && settingsPage){
+    card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'settings-users-card';
+    settingsPage.insertBefore(card, settingsPage.firstChild);
+  }
+  if(!card) return;
+  const me = currentUser();
+  const users = state.users || [];
+  const adminOnly = me && me.role === 'admin';
+  card.innerHTML = `
+    <div class="card-head"><div class="card-title">👥 Users &amp; access</div>
+      ${adminOnly ? '<button class="btn btn-primary btn-sm" onclick="openAddUserModal()">+ Add user</button>' : ''}
+    </div>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:14px">${adminOnly
+      ? 'Manage staff who can sign in to this device. Each user gets their own PIN and role.'
+      : 'You can change your own PIN below. Ask your Super Admin to add or remove other users.'}</p>
+    ${users.map(u=>`
+      <div class="log-row" style="grid-template-columns:auto 1fr auto;align-items:center">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px;font-family:Georgia,serif">${esc((u.name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?')}</div>
+        <div>
+          <strong>${esc(u.name)}</strong>
+          ${u.id===me?.id?'<span class="badge gold" style="margin-left:6px;font-size:10.5px">You</span>':''}
+          <div style="font-size:12.5px;color:var(--muted);margin-top:2px">
+            ${AUTH_ROLES[u.role]?.icon||''} ${esc(AUTH_ROLES[u.role]?.n||u.role)}${u.title?' · '+esc(u.title):''}${u.email?' · '+esc(u.email):''}
+            ${u.lastLogin?` · last login ${fmtDate(localDateStr(new Date(u.lastLogin)))}`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:4px">
+          ${u.id===me?.id ? `<button class="btn btn-soft btn-sm" onclick="changeMyPin()">Change PIN</button>` : (adminOnly ? `<button class="btn btn-soft btn-sm" onclick="resetUserPin('${esc(u.id)}')">Reset PIN</button><button class="btn btn-danger btn-sm" onclick="removeUser('${esc(u.id)}')">×</button>` : '')}
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function openAddUserModal(){
+  if(!isAdmin()){ toast('Admin only'); return; }
+  showModal(`
+    <h3>+ Add a user</h3>
+    <p class="modal-sub">Create login details for a head teacher or class teacher. Pass them the username and PIN privately.</p>
+    <div class="field"><label class="label">Full name</label><input class="input" id="nu-name" placeholder="Mr T. Mwanza"></div>
+    <div class="field-row">
+      <div class="field"><label class="label">Role</label>
+        <select class="select" id="nu-role">
+          <option value="teacher">🧑‍🏫 Teacher (can edit)</option>
+          <option value="head">🏫 Headmaster (view only)</option>
+          <option value="admin">👑 Co-Admin (full control)</option>
+        </select></div>
+      <div class="field"><label class="label">Title (optional)</label><input class="input" id="nu-title" placeholder="HOD Sciences"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="label">Email (for PIN reset)</label><input class="input" type="email" id="nu-email" placeholder="optional"></div>
+      <div class="field"><label class="label">Phone</label><input class="input" id="nu-phone" placeholder="optional"></div>
+    </div>
+    <div class="field"><label class="label">Starting PIN (give to user — they can change it after)</label>
+      <input class="input" id="nu-pin" type="text" inputmode="numeric" maxlength="6" placeholder="4–6 digits" style="font-size:18px;letter-spacing:.3em;text-align:center">
+      <div style="font-size:12px;color:var(--muted);margin-top:4px"><button type="button" class="btn btn-soft btn-sm" onclick="document.getElementById('nu-pin').value=Math.floor(1000+Math.random()*9000).toString();" style="font-size:11.5px;padding:3px 8px">🎲 Generate random 4-digit PIN</button></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewUser()">Add user</button>
+    </div>
+  `);
+}
+
+async function submitNewUser(){
+  if(!isAdmin()){ toast('Admin only'); return; }
+  const name = document.getElementById('nu-name').value.trim();
+  const role = document.getElementById('nu-role').value;
+  const title = document.getElementById('nu-title').value.trim();
+  const email = document.getElementById('nu-email').value.trim();
+  const phone = document.getElementById('nu-phone').value.trim();
+  const pin = document.getElementById('nu-pin').value;
+  if(!name){ toast('Name is required'); return; }
+  if(pin.length < 4){ toast('PIN must be at least 4 digits'); return; }
+  const pinHash = await hashPin(pin);
+  state.users.push({
+    id:'u_'+Date.now(), name, role, title, email, phone, pinHash, createdAt: Date.now()
+  });
+  save();
+  closeModal();
+  if(currentPage === 'settings') renderUsersCard();
+  showModal(`
+    <h3>✅ User added</h3>
+    <p>Share these login details with <strong>${esc(name)}</strong>:</p>
+    <div style="background:var(--card-tint);border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0">
+      <div style="font-size:13px;margin-bottom:6px"><strong>Name:</strong> ${esc(name)}</div>
+      <div style="font-size:13px;margin-bottom:6px"><strong>Role:</strong> ${AUTH_ROLES[role].icon} ${AUTH_ROLES[role].n}</div>
+      <div style="font-size:13px"><strong>PIN:</strong> <span style="font-family:monospace;font-size:18px;font-weight:800;letter-spacing:.1em">${esc(pin)}</span>
+        <button class="btn btn-soft btn-sm" onclick="copyToClipboard('${esc(pin)}');toast('PIN copied');" style="font-size:11.5px;padding:3px 8px">📋</button>
+      </div>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted)">They sign in by picking their name and entering this PIN. They can change the PIN after first login.</p>
+    <div class="modal-actions"><button class="btn btn-primary" onclick="closeModal()">Done</button></div>
+  `);
+}
+
+async function changeMyPin(){
+  const me = currentUser(); if(!me) return;
+  showModal(`
+    <h3>Change your PIN</h3>
+    <div class="field"><label class="label">Current PIN</label>
+      <input class="input" type="password" inputmode="numeric" id="cp-old" maxlength="6" style="font-size:18px;letter-spacing:.3em;text-align:center"></div>
+    <div class="field-row">
+      <div class="field"><label class="label">New PIN</label>
+        <input class="input" type="password" inputmode="numeric" id="cp-new" maxlength="6" style="font-size:18px;letter-spacing:.3em;text-align:center"></div>
+      <div class="field"><label class="label">Confirm new</label>
+        <input class="input" type="password" inputmode="numeric" id="cp-new2" maxlength="6" style="font-size:18px;letter-spacing:.3em;text-align:center"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitChangePin()">Update PIN</button>
+    </div>
+  `);
+}
+async function submitChangePin(){
+  const me = currentUser(); if(!me) return;
+  const oldPin = document.getElementById('cp-old').value;
+  const newPin = document.getElementById('cp-new').value;
+  const newPin2 = document.getElementById('cp-new2').value;
+  if(!await verifyPin(oldPin, me.pinHash)){ toast('Current PIN is wrong'); return; }
+  if(newPin.length < 4){ toast('New PIN must be 4+ digits'); return; }
+  if(newPin !== newPin2){ toast('New PINs do not match'); return; }
+  me.pinHash = await hashPin(newPin);
+  save();
+  closeModal();
+  toast('✓ PIN updated');
+}
+
+async function resetUserPin(userId){
+  if(!isAdmin()){ toast('Admin only'); return; }
+  const user = state.users.find(u=>u.id===userId); if(!user) return;
+  const newPin = prompt(`Reset PIN for ${user.name}. Enter a new PIN (4-6 digits):`);
+  if(!newPin) return;
+  if(newPin.length < 4){ toast('PIN must be at least 4 digits'); return; }
+  user.pinHash = await hashPin(newPin);
+  save();
+  if(currentPage === 'settings') renderUsersCard();
+  showModal(`
+    <h3>PIN reset</h3>
+    <p>New PIN for <strong>${esc(user.name)}</strong>: <span style="font-family:monospace;font-size:20px;font-weight:800;letter-spacing:.1em">${esc(newPin)}</span></p>
+    <p style="font-size:13px;color:var(--muted)">Share this with them privately. They should change it after signing in.</p>
+    <div class="modal-actions"><button class="btn btn-primary" onclick="closeModal()">Done</button></div>
+  `);
+}
+
+function removeUser(userId){
+  if(!isAdmin()){ toast('Admin only'); return; }
+  const user = state.users.find(u=>u.id===userId); if(!user) return;
+  if(user.id === currentUser()?.id){ toast("You can't remove yourself"); return; }
+  /* Don't allow removing the last admin */
+  const adminCount = state.users.filter(u=>u.role==='admin').length;
+  if(user.role === 'admin' && adminCount <= 1){ toast('Cannot remove the only Admin'); return; }
+  if(!confirm(`Remove ${user.name}? They will no longer be able to sign in.`)) return;
+  state.users = state.users.filter(u=>u.id!==userId);
+  save();
+  if(currentPage === 'settings') renderUsersCard();
+  toast('User removed');
+}
+
+/* Patch showAppView with auth gate */
+const _origShowAppView = showAppView;
+window.showAppView = function(){
+  document.getElementById('view-landing').style.display = 'none';
+  document.getElementById('view-app').style.display = 'block';
+  window.scrollTo(0,0);
+  if(!authGate()) return; /* Overlay shown; will call _origShowAppView() on success */
+  _origShowAppView();
+};
+
+/* Patch settings renderer to also show users card */
+const _origSettingsRenderAuth = renderers.settings;
+renderers.settings = function(){
+  if(_origSettingsRenderAuth) _origSettingsRenderAuth();
+  renderUsersCard();
+};
+
+/* Inject Sign Out item into sidebar + current user pill in header */
+function injectAuthChrome(){
+  const sb = document.querySelector('.sidebar');
+  if(sb && !document.getElementById('sb-logout')){
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'padding:14px 12px 18px;border-top:1px solid var(--line);margin-top:auto';
+    const u = currentUser();
+    wrap.innerHTML = `
+      <div id="sb-currentuser" style="display:flex;gap:9px;align-items:center;padding:8px 10px;background:var(--card-tint);border-radius:10px;margin-bottom:8px;font-size:12.5px">
+        <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:11.5px">${esc((u?.name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase())}</div>
+        <div style="flex:1;min-width:0;overflow:hidden">
+          <div style="font-weight:700;color:var(--primary-darker);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u?.name||'?')}</div>
+          <div style="font-size:11px;color:var(--muted)">${AUTH_ROLES[u?.role]?.icon||''} ${esc(AUTH_ROLES[u?.role]?.n||u?.role||'')}</div>
+        </div>
+      </div>
+      <button id="sb-logout" onclick="logout()" style="width:100%;padding:9px;background:transparent;border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:13px;color:var(--ink);font-weight:600;display:flex;gap:6px;align-items:center;justify-content:center">🚪 Sign out</button>
+    `;
+    sb.appendChild(wrap);
+  }
+}
+
+/* Re-inject + re-render on user change */
+function refreshAuthChrome(){
+  const wrap = document.getElementById('sb-logout')?.parentNode;
+  if(wrap) wrap.remove();
+  injectAuthChrome();
+}
+
+/* ============================================================
    ROUND 1 — Refresh, Avatar, CSV import, Profile identity card
    ============================================================ */
 
@@ -6507,7 +6889,14 @@ applyTheme();
 document.querySelectorAll('.sb-item').forEach(b=>b.addEventListener('click', ()=>go(b.dataset.page)));
 document.getElementById('menu-toggle').addEventListener('click', ()=>{ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('scrim').classList.toggle('show'); });
 document.getElementById('scrim').addEventListener('click', ()=>{ document.getElementById('sidebar').classList.remove('open'); document.getElementById('scrim').classList.remove('show'); });
-document.getElementById('welcome-start').addEventListener('click', enterApp);
+/* enterApp gets called after auth passes (via showAppView). Also patch enterApp
+   to inject auth chrome (current-user pill + logout button) into the sidebar. */
+const _origEnterApp = enterApp;
+window.enterApp = function(){
+  _origEnterApp();
+  injectAuthChrome();
+};
+document.getElementById('welcome-start').addEventListener('click', ()=>{ showAppView(); });
 document.getElementById('welcome-tour').addEventListener('click', ()=>{ document.querySelector('.welcome-features').scrollIntoView({behavior:'smooth'}); });
 
 /* Don't auto-enter the app — let the user click "Open the planner" from the landing first.
