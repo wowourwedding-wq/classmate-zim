@@ -6995,9 +6995,9 @@ function parseCSV(text){
 }
 
 function downloadClassListTemplate(){
-  const csv = 'Full Name,Gender (M/F),Date of Birth (YYYY-MM-DD),Parent/Guardian Name,Parent Phone,Address,Notes\n' +
-              'Tendai Moyo,M,2015-03-15,Mrs J Moyo,+263771234567,123 Main St Harare,Asthma — has inhaler\n' +
-              'Tariro Banda,F,2014-08-22,Mr S Banda,+263772345678,456 Park Ave,\n';
+  const csv = 'Full Name,Gender (M/F),Date of Birth (YYYY-MM-DD),Class/Form,Subjects (semicolon-separated),Sport,Parent/Guardian Name,Parent Phone,Address,Notes\n' +
+              'Tendai Moyo,M,2015-03-15,Grade 5 Red,Mathematics;English;Science,Football,Mrs J Moyo,+263771234567,123 Main St Harare,Asthma — has inhaler\n' +
+              'Tariro Banda,F,2014-08-22,Grade 5 Red,Mathematics;English;Shona,Netball,Mr S Banda,+263772345678,456 Park Ave,\n';
   const blob = new Blob([csv], {type:'text/csv'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -7023,13 +7023,16 @@ function importClassListCSV(input){
         }
         return -1;
       };
-      const cName    = col(['full name','name','learner','student']);
-      const cGender  = col(['gender','sex']);
-      const cDob     = col(['birth','dob','date of birth']);
-      const cParent  = col(['parent','guardian']);
-      const cPhone   = col(['phone','mobile','contact']);
-      const cAddr    = col(['address']);
-      const cNotes   = col(['notes','medical','remark']);
+      const cName     = col(['full name','name','learner','student']);
+      const cGender   = col(['gender','sex']);
+      const cDob      = col(['birth','dob','date of birth']);
+      const cClass    = col(['class','form','grade']);
+      const cSubjects = col(['subject','stream']);
+      const cSport    = col(['sport','activity']);
+      const cParent   = col(['parent','guardian']);
+      const cPhone    = col(['phone','mobile','contact']);
+      const cAddr     = col(['address']);
+      const cNotes    = col(['notes','medical','remark']);
 
       if(cName === -1){
         toast('Could not find a Name column — check your CSV header row');
@@ -7049,18 +7052,29 @@ function importClassListCSV(input){
         if(gender.startsWith('M')) gender = 'M';
         else if(gender.startsWith('F')) gender = 'F';
         else gender = '';
+        /* Parse subjects: semicolon-separated, comma-separated, or pipe-separated */
+        const subjectsRaw = cSubjects !== -1 ? (r[cSubjects]||'').trim() : '';
+        const subjects = subjectsRaw ? subjectsRaw.split(/[;|]/).map(s=>s.trim()).filter(Boolean) : [];
         state.students.push({
           id: 'st_' + Date.now() + '_' + i,
           name,
           gender,
-          dob: cDob !== -1 ? (r[cDob]||'').trim() : '',
+          birthday: cDob !== -1 ? (r[cDob]||'').trim() : '',   /* FIX: was 'dob' — birthday calendar reads 'birthday' */
+          classGrade: cClass !== -1 ? (r[cClass]||'').trim() : '',
+          subjects,
+          sport: cSport !== -1 ? (r[cSport]||'').trim() : '',
           parentName: cParent !== -1 ? (r[cParent]||'').trim() : '',
           parentPhone: cPhone !== -1 ? (r[cPhone]||'').trim() : '',
           address: cAddr !== -1 ? (r[cAddr]||'').trim() : '',
-          notes: cNotes !== -1 ? (r[cNotes]||'').trim() : ''
+          notes: cNotes !== -1 ? (r[cNotes]||'').trim() : '',
+          parentEmail: '', strength: '', weakness: '', overview: '', rating: 0
         });
         added++;
       }
+      /* Migrate any old students that used 'dob' to 'birthday' */
+      state.students.forEach(s => {
+        if(s.dob && !s.birthday){ s.birthday = s.dob; delete s.dob; }
+      });
       save();
       input.value = '';
       if(typeof renderers.classlist === 'function') renderers.classlist();
