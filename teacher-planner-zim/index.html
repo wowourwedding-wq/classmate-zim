@@ -1096,6 +1096,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       <button class="sb-item" data-page="timetable"><span class="ico">🕘</span>Daily Timetable</button>
       <button class="sb-item" data-page="lessons"><span class="ico">📚</span>Lesson Plan</button>
       <button class="sb-item" data-page="attendance"><span class="ico">✅</span>Attendance</button>
+      <button class="sb-item" data-page="subjectRegister"><span class="ico">📒</span>Subject Register</button>
       <button class="sb-item" data-page="dailyAssessment"><span class="ico">📝</span>Daily Assessment</button>
       <button class="sb-item" data-page="todo"><span class="ico">📌</span>To-Do</button>
       <button class="sb-item" data-page="cleaners"><span class="ico">🧹</span>Cleaners</button>
@@ -1400,6 +1401,35 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       </div>
     </section>
 
+    <!-- SUBJECT REGISTER -->
+    <section class="page" id="page-subjectRegister" style="display:none">
+      <div class="page-head">
+        <div><span class="tag">Per-subject roll</span><h1>📒 Subject Register</h1><p>Not all learners in a class take the same subjects. Mark attendance for the learners enrolled in <em>this</em> subject only. Independent of the general class register.</p></div>
+        <div class="page-actions">
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+          <button class="btn btn-primary btn-sm" onclick="markAllSubjectToday('P')">Mark all Present</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="field-row" style="margin-bottom:14px;align-items:flex-end">
+          <div class="field"><label class="label">Subject</label><select class="select" id="sr-subject" onchange="renderers.subjectRegister()"></select></div>
+          <div class="field"><label class="label">Date</label><input class="input" type="date" id="sr-date" onchange="renderers.subjectRegister()"></div>
+          <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-soft btn-sm" onclick="srToday()">Today</button></div>
+        </div>
+        <div id="sr-empty-hint" style="display:none;padding:18px;text-align:center;color:var(--muted);font-size:13.5px;background:var(--card-tint);border-radius:9px;margin-bottom:12px"></div>
+        <div class="att-wrap"><table class="att-table" id="sr-table"></table></div>
+        <div class="att-summary" id="sr-summary"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3 style="margin-bottom:6px">How this differs from the main Attendance register</h3>
+        <ul style="font-size:13.5px;line-height:1.7;color:var(--ink);padding-left:22px;margin:0">
+          <li><strong>Attendance</strong> = the whole class, every day. One row per learner across the week.</li>
+          <li><strong>Subject Register</strong> = only learners who picked <em>this subject</em> as an option. Useful at O/A-Level where each learner takes a different subject combination.</li>
+          <li>Enrollment per subject is set on each learner's profile (Class List → ✏️ → Subjects). Learners without the subject won't appear here.</li>
+        </ul>
+      </div>
+    </section>
+
     <!-- DAILY ASSESSMENT -->
     <section class="page" id="page-dailyAssessment" style="display:none">
       <div class="page-head">
@@ -1571,8 +1601,12 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
     <!-- MEETINGS -->
     <section class="page" id="page-meetings" style="display:none">
       <div class="page-head">
-        <div><h1>Staff meetings</h1><p>Agendas, attendees, action items and follow-ups.</p></div>
-        <div class="page-actions"><button class="btn btn-primary" onclick="addLog('meetings')">+ Add meeting</button></div>
+        <div><h1>Staff meetings</h1><p>Minutes template — date, type, chair, attendees, apologies, agenda, discussion, decisions, action items, next meeting.</p></div>
+        <div class="page-actions">
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+          <button class="btn btn-soft btn-sm" onclick="importLogsCSV('meetings')">📥 Import CSV</button>
+          <button class="btn btn-primary" onclick="addLog('meetings')">+ Add minutes</button>
+        </div>
       </div>
       <div class="card"><div id="meetings-list" class="log-table"></div></div>
     </section>
@@ -1590,7 +1624,10 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
     <section class="page" id="page-inventory" style="display:none">
       <div class="page-head">
         <div><h1>Classroom inventory</h1><p>Textbooks, sports equipment, lab materials, stationery. What you have, where it is, condition.</p></div>
-        <div class="page-actions"><button class="btn btn-primary" onclick="addLog('inventory')">+ Add item</button></div>
+        <div class="page-actions">
+          <button class="btn btn-soft btn-sm" onclick="importLogsCSV('inventory')">📥 Import CSV</button>
+          <button class="btn btn-primary" onclick="addLog('inventory')">+ Add item</button>
+        </div>
       </div>
       <div class="card"><div id="inventory-list" class="log-table"></div></div>
     </section>
@@ -1599,7 +1636,10 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
     <section class="page" id="page-contacts" style="display:none">
       <div class="page-head">
         <div><h1>Important contacts</h1><p>HOD, Head, District office, emergency services and key parents.</p></div>
-        <div class="page-actions"><button class="btn btn-primary" onclick="addLog('contacts')">+ Add contact</button></div>
+        <div class="page-actions">
+          <button class="btn btn-soft btn-sm" onclick="importLogsCSV('contacts')">📥 Import CSV</button>
+          <button class="btn btn-primary" onclick="addLog('contacts')">+ Add contact</button>
+        </div>
       </div>
       <div class="card"><div id="contacts-list" class="log-table"></div></div>
     </section>
@@ -2185,6 +2225,7 @@ function defaultState(){
     calendar: ZIM_2026_CALENDAR.map((e,i)=>({...e, id:'cal_seed_'+i})),
     timetable: defaultTimetable(),
     attendance: {},
+    subjectAttendance: {},
     scheme: [],
     annualPlan: [],
     assessments: [],
@@ -2723,6 +2764,113 @@ function markAllToday(v){
   save(); renderers.attendance(); toast('Marked all '+v+' for today');
 }
 
+/* ============================================================
+   SUBJECT REGISTER — per-subject attendance
+   state.subjectAttendance[date][subject][studentId] = 'P' | 'A' | 'L'
+   Filters student list to those who have the subject in their subjects[]
+   ============================================================ */
+function srToday(){
+  const el = document.getElementById('sr-date');
+  if(el){ el.value = localDateStr(new Date()); renderers.subjectRegister(); }
+}
+
+function populateSrSubjects(){
+  const sel = document.getElementById('sr-subject');
+  if(!sel) return;
+  /* Collect all subjects from learner profiles (the source of truth for enrollment) */
+  const all = new Set();
+  (state.students || []).forEach(s => {
+    (s.subjects || []).forEach(sub => { const t = (sub || '').trim(); if(t) all.add(t); });
+  });
+  /* Also include the teacher's own subject list as a fallback (for new schools) */
+  (state.subjects || []).forEach(sub => { const t = (sub || '').trim(); if(t) all.add(t); });
+  const list = Array.from(all).sort((a,b) => a.localeCompare(b));
+  const cur = sel.value;
+  sel.innerHTML = list.length
+    ? list.map(s => `<option value="${esc(s)}" ${s===cur?'selected':''}>${esc(s)}</option>`).join('')
+    : '<option value="">— add subjects to learners first —</option>';
+}
+
+renderers.subjectRegister = function(){
+  populateSrSubjects();
+  const dateEl = document.getElementById('sr-date');
+  if(dateEl && !dateEl.value) dateEl.value = localDateStr(new Date());
+  const subj = (document.getElementById('sr-subject') || {}).value || '';
+  const date = (document.getElementById('sr-date') || {}).value || localDateStr(new Date());
+  const hint = document.getElementById('sr-empty-hint');
+  const t = document.getElementById('sr-table');
+  const sum = document.getElementById('sr-summary');
+  if(!t || !sum) return;
+
+  if(!state.students.length){
+    hint.style.display = 'block';
+    hint.innerHTML = 'Add learners to your <strong>Class List</strong> first, then mark subjects on each profile.';
+    t.innerHTML = ''; sum.innerHTML = ''; return;
+  }
+  if(!subj){
+    hint.style.display = 'block';
+    hint.innerHTML = 'Pick a subject above. Subjects come from each learner\'s profile — open <strong>Class List</strong> → ✏️ → tick which subjects they take.';
+    t.innerHTML = ''; sum.innerHTML = ''; return;
+  }
+  /* Learners enrolled in this subject (case-insensitive match against their subjects[]) */
+  const subjLc = subj.toLowerCase();
+  const enrolled = state.students.filter(s => (s.subjects || []).some(x => (x || '').toLowerCase() === subjLc));
+  if(!enrolled.length){
+    hint.style.display = 'block';
+    hint.innerHTML = 'No learner has <strong>' + esc(subj) + '</strong> selected on their profile yet. Open <strong>Class List</strong> → ✏️ on a learner → add this subject.';
+    t.innerHTML = ''; sum.innerHTML = ''; return;
+  }
+  hint.style.display = 'none';
+  state.subjectAttendance = state.subjectAttendance || {};
+  const dayMap = state.subjectAttendance[date] || {};
+  const subjMap = dayMap[subj] || {};
+
+  let p=0,a=0,l=0;
+  let html = '<thead><tr><th>Learner</th><th>Status</th></tr></thead><tbody>';
+  enrolled.slice().sort(byName).forEach(s => {
+    const v = subjMap[s.id] || '_';
+    if(v==='P') p++; else if(v==='A') a++; else if(v==='L') l++;
+    html += `<tr><td class="name">${esc(s.name)}</td><td><span class="att-pill att-${v}" onclick="cycleSubjectAtt('${date}','${esc(subj)}','${s.id}')">${v==='_'?'·':v}</span></td></tr>`;
+  });
+  html += '</tbody>';
+  t.innerHTML = html;
+  const totalMarked = p + a + l;
+  const rate = totalMarked ? Math.round(100 * (p + l*0.5) / totalMarked) : 0;
+  sum.innerHTML = `
+    <div class="stat"><div class="stat-num">${p}</div><div class="stat-label">Present</div></div>
+    <div class="stat"><div class="stat-num">${a}</div><div class="stat-label">Absent</div></div>
+    <div class="stat"><div class="stat-num">${l}</div><div class="stat-label">Late</div></div>
+    <div class="stat"><div class="stat-num">${enrolled.length}</div><div class="stat-label">Enrolled</div></div>
+    <div class="stat"><div class="stat-num">${rate}%</div><div class="stat-label">Today's rate</div></div>
+  `;
+};
+
+function cycleSubjectAtt(date, subj, sid){
+  state.subjectAttendance = state.subjectAttendance || {};
+  state.subjectAttendance[date] = state.subjectAttendance[date] || {};
+  state.subjectAttendance[date][subj] = state.subjectAttendance[date][subj] || {};
+  const order = ['_','P','A','L'];
+  const cur = state.subjectAttendance[date][subj][sid] || '_';
+  state.subjectAttendance[date][subj][sid] = order[(order.indexOf(cur)+1) % order.length];
+  if(state.subjectAttendance[date][subj][sid] === '_') delete state.subjectAttendance[date][subj][sid];
+  save(); renderers.subjectRegister();
+}
+
+function markAllSubjectToday(v){
+  const subj = (document.getElementById('sr-subject') || {}).value || '';
+  const date = (document.getElementById('sr-date') || {}).value || localDateStr(new Date());
+  if(!subj){ toast('Pick a subject first'); return; }
+  state.subjectAttendance = state.subjectAttendance || {};
+  state.subjectAttendance[date] = state.subjectAttendance[date] || {};
+  state.subjectAttendance[date][subj] = state.subjectAttendance[date][subj] || {};
+  const subjLc = subj.toLowerCase();
+  state.students
+    .filter(s => (s.subjects || []).some(x => (x || '').toLowerCase() === subjLc))
+    .forEach(s => { state.subjectAttendance[date][subj][s.id] = v; });
+  save(); renderers.subjectRegister();
+  toast('Marked all ' + v + ' for ' + subj + ' on ' + fmtDate(date));
+}
+
 /* ---- Assessments ---- */
 renderers.assessments = function(){
   const list = state.assessments.slice().reverse();
@@ -2880,16 +3028,25 @@ const LOGS = {
     rowSummary: e=> { const s = state.students.find(x=>x.id===e.studentId); return `<strong class="row-key">${fmtDate(e.date)}</strong> · ${esc(s?s.name:'(learner)')} · ${esc(e.parentName||'')} <span style="font-size:12px;color:var(--muted)">${esc(e.method||'')}</span><div style="font-size:13px;margin-top:4px">${esc(e.reason||'')}</div>${e.outcome?'<div style="font-size:12.5px;color:var(--green);margin-top:2px">→ '+esc(e.outcome)+'</div>':''}`; }
   },
   meetings: {
-    title:'Meeting', addLabel:'Add meeting',
+    title:'Meeting minutes', addLabel:'Add minutes',
     fields:[
       {k:'date', label:'Date', type:'date'},
-      {k:'title', label:'Title'},
-      {k:'attendees', label:'Attendees'},
-      {k:'agenda', label:'Agenda', type:'textarea'},
-      {k:'actions', label:'Action items', type:'textarea'},
-      {k:'followUps', label:'Follow-ups', type:'textarea'}
+      {k:'startTime', label:'Start time', placeholder:'14:00'},
+      {k:'endTime', label:'End time', placeholder:'15:30'},
+      {k:'type', label:'Meeting type', type:'select', options:['Full Staff','HOD / Department','Senior Management','PTA','SDC / SDA','Subject Panel','Disciplinary','Boarding','Other']},
+      {k:'venue', label:'Venue', placeholder:'Staff room'},
+      {k:'chair', label:'Chair', placeholder:'Mr Moyo'},
+      {k:'secretary', label:'Minutes secretary', placeholder:'Mrs Banda'},
+      {k:'attendees', label:'Attendees (names, one per line)', type:'textarea'},
+      {k:'apologies', label:'Apologies (names, one per line)', type:'textarea'},
+      {k:'agenda', label:'Agenda items (one per line)', type:'textarea'},
+      {k:'discussion', label:'Discussion / minutes', type:'textarea'},
+      {k:'decisions', label:'Resolutions / decisions', type:'textarea'},
+      {k:'actions', label:'Action items (Who · What · By when)', type:'textarea'},
+      {k:'nextMeeting', label:'Next meeting date', type:'date'},
+      {k:'notes', label:'Other notes', type:'textarea'}
     ],
-    rowSummary: e=> `<strong class="row-key">${fmtDate(e.date)}</strong> · ${esc(e.title||'')} ${e.attendees?'<span style="color:var(--muted);font-size:12px">· '+esc(e.attendees)+'</span>':''}${e.agenda?'<div style="font-size:12.5px;margin-top:4px"><strong>Agenda:</strong> '+esc(e.agenda)+'</div>':''}${e.actions?'<div style="font-size:12.5px;color:var(--primary-dark);margin-top:2px"><strong>Actions:</strong> '+esc(e.actions)+'</div>':''}`
+    rowSummary: e=> `<strong class="row-key">${fmtDate(e.date)}</strong> ${e.type?'<span class="badge" style="background:var(--accent);color:var(--primary-darker);font-size:11px;padding:1px 8px;border-radius:5px;margin-left:6px">'+esc(e.type)+'</span>':''}${e.startTime?' <span style="color:var(--muted);font-size:12.5px">· '+esc(e.startTime)+(e.endTime?'–'+esc(e.endTime):'')+'</span>':''}${e.chair?'<div style="font-size:12.5px;margin-top:3px"><strong>Chair:</strong> '+esc(e.chair)+(e.secretary?' · <strong>Secretary:</strong> '+esc(e.secretary):'')+'</div>':''}${e.agenda?'<div style="font-size:12.5px;margin-top:3px"><strong>Agenda:</strong> '+esc(e.agenda).replace(/\n/g,' • ')+'</div>':''}${e.actions?'<div style="font-size:12.5px;color:var(--primary-dark);margin-top:3px"><strong>Actions:</strong> '+esc(e.actions).replace(/\n/g,' • ')+'</div>':''}${e.nextMeeting?'<div style="font-size:12px;color:var(--muted);margin-top:3px"><strong>Next:</strong> '+fmtDate(e.nextMeeting)+'</div>':''}`
   },
   cpd: {
     title:'CPD entry', addLabel:'Add CPD',
@@ -3131,6 +3288,82 @@ function saveLog(key, id, isEdit){
   save(); closeModal(); renderers[key]();
 }
 function delLog(key, id){ if(!confirm('Delete this entry?')) return; state[key] = state[key].filter(e=>e.id!==id); save(); closeModal(); renderers[key](); }
+
+/* ============================================================
+   GENERIC CSV IMPORT for log-style pages (inventory, contacts, meetings, etc.)
+   Maps CSV header columns to LOGS[key].fields by k or label (case-insensitive).
+   ============================================================ */
+function importLogsCSV(key){
+  const cfg = LOGS[key];
+  if(!cfg){ toast('Unknown log type: ' + key); return; }
+  const colList = cfg.fields.map(f => f.label).join(', ');
+  showModal(`
+    <h3>📥 Import ${esc(cfg.title.toLowerCase())} from CSV</h3>
+    <p style="font-size:13.5px;line-height:1.55;color:var(--ink)">
+      Upload a CSV whose header row matches these column names (extras are ignored, order doesn't matter):
+    </p>
+    <p style="background:var(--card-tint);padding:8px 11px;border-radius:7px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--primary-darker);line-height:1.5">${esc(colList)}</p>
+    <div style="margin:14px 0">
+      <input type="file" id="logs-csv-file" accept=".csv,text/csv" style="width:100%;padding:10px;border:1.5px dashed var(--accent);border-radius:8px;background:var(--card-tint)">
+    </div>
+    <p style="font-size:12.5px;color:var(--muted)">Tip: the CSV templates in your Downloads folder use these exact column names.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="processLogsCSV('${key}')">📥 Import</button>
+    </div>
+  `);
+}
+
+function processLogsCSV(key){
+  const cfg = LOGS[key];
+  const fileEl = document.getElementById('logs-csv-file');
+  const file = fileEl && fileEl.files[0];
+  if(!file){ toast('Pick a CSV file first'); return; }
+  const r = new FileReader();
+  r.onload = ()=>{
+    const rows = parseQuestionBankCSV(r.result);
+    if(rows.length < 2){ toast('CSV has no data rows'); return; }
+    const header = rows[0].map(h => (h || '').toLowerCase().trim());
+    /* Build a lookup from field key -> column index, matching on either f.k or f.label */
+    const map = {};
+    cfg.fields.forEach(f => {
+      let ix = header.indexOf(f.k.toLowerCase());
+      if(ix < 0) ix = header.indexOf((f.label || '').toLowerCase());
+      if(ix < 0){
+        /* Try matching the first word of the label (e.g. "Date acquired" -> "date") */
+        const lblFirst = ((f.label || '').toLowerCase().split(/[\s(]/)[0] || '').trim();
+        if(lblFirst) ix = header.indexOf(lblFirst);
+      }
+      map[f.k] = ix;
+    });
+    state[key] = state[key] || [];
+    const stamp = Date.now();
+    let added = 0, skipped = 0;
+    rows.slice(1).forEach((row, i) => {
+      const entry = { id: key + '_csv_' + stamp + '_' + i };
+      let any = false;
+      cfg.fields.forEach(f => {
+        const ix = map[f.k];
+        if(ix != null && ix >= 0){
+          const val = (row[ix] || '').trim();
+          if(val) any = true;
+          entry[f.k] = val;
+        } else {
+          entry[f.k] = '';
+        }
+      });
+      if(!any){ skipped++; return; }
+      state[key].push(entry);
+      added++;
+    });
+    save();
+    closeModal();
+    toast('✓ Imported ' + added + ' ' + cfg.title.toLowerCase() + (added === 1 ? '' : 's') + (skipped ? ' (' + skipped + ' blank rows skipped)' : ''));
+    if(typeof renderers[key] === 'function') renderers[key]();
+  };
+  r.onerror = ()=>{ toast('Could not read the file. Try again.'); };
+  r.readAsText(file);
+}
 
 /* ---- Todos ---- */
 function addTodo(){
