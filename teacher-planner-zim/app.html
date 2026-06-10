@@ -3367,7 +3367,7 @@ renderers.materials = function(){
     ? list.map(r=>{
         const isFile = r.file && r.file.startsWith('data:');
         const action = isFile
-          ? `<a class="btn btn-soft btn-sm" download="${esc(r.fileName||r.name)}" href="${r.file}">⬇️ Download</a>`
+          ? `<a class="btn btn-soft btn-sm" href="${r.file}" target="_blank" rel="noopener" title="Tap to open in new tab">📂 Open</a>`
           : (r.url ? `<a class="btn btn-soft btn-sm" href="${esc(r.url)}" target="_blank" rel="noopener">🔗 Open link</a>` : '');
         return `<div class="log-row" style="grid-template-columns:1fr auto 40px;align-items:center">
           <div>
@@ -3395,7 +3395,7 @@ function addMaterial(){
     </div>
     <div class="field-row">
       <div class="field"><label class="label">Level</label><select class="select" id="mat-level"><option value="">— Any —</option>${LEVELS.map(l=>`<option value="${l.k}">${l.n}</option>`).join('')}</select></div>
-      <div class="field"><label class="label">Year (optional)</label><input class="input" id="mat-year" placeholder="e.g. 2024"></div>
+      <div class="field"><label class="label">Year</label><input class="input" id="mat-year" value="${new Date().getFullYear()}" placeholder="e.g. 2024"><div style="font-size:11.5px;color:var(--muted);margin-top:3px">Auto-set to current year. Change if material is older.</div></div>
     </div>
     <div class="field"><label class="label">Link URL (Google Drive, Dropbox, YouTube, etc.)</label><input class="input" id="mat-url" placeholder="https://..."></div>
     <div class="field"><label class="label">Or upload small file (≤ 5 MB)</label><input type="file" id="mat-file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" class="input"></div>
@@ -4823,7 +4823,7 @@ function renderLibrary(){
 }
 
 function renderPastPaperRow(p){
-  const attach = p.file ? `<a class="btn btn-soft btn-sm" download="${esc(p.fileName||p.title)}" href="${p.file}">⬇️</a>` : (p.url ? `<a class="btn btn-soft btn-sm" href="${esc(p.url)}" target="_blank" rel="noopener">🔗</a>` : '');
+  const attach = p.file ? `<a class="btn btn-soft btn-sm" href="${p.file}" target="_blank" rel="noopener" title="Open in new tab">📂</a>` : (p.url ? `<a class="btn btn-soft btn-sm" href="${esc(p.url)}" target="_blank" rel="noopener">🔗</a>` : '');
   return `<div class="lib-item">
     <div class="lib-icon">📄</div>
     <div class="lib-body">
@@ -4835,7 +4835,7 @@ function renderPastPaperRow(p){
   </div>`;
 }
 function renderSchemeRow(s){
-  const attach = s.file ? `<a class="btn btn-soft btn-sm" download="${esc(s.fileName||s.title)}" href="${s.file}">⬇️</a>` : (s.url ? `<a class="btn btn-soft btn-sm" href="${esc(s.url)}" target="_blank" rel="noopener">🔗</a>` : '');
+  const attach = s.file ? `<a class="btn btn-soft btn-sm" href="${s.file}" target="_blank" rel="noopener" title="Open in new tab">📂</a>` : (s.url ? `<a class="btn btn-soft btn-sm" href="${esc(s.url)}" target="_blank" rel="noopener">🔗</a>` : '');
   return `<div class="lib-item">
     <div class="lib-icon">📋</div>
     <div class="lib-body">
@@ -4907,7 +4907,7 @@ function editLibraryItem(id){
       <div class="field"><label class="label">Title</label><input class="input" id="lib-title" value="${esc(data.title||'')}" placeholder="e.g. ZIMSEC O-Level Maths 2024 Paper 1"></div>
       <div class="field-row">
         <div class="field"><label class="label">Subject</label><select class="select" id="lib-subject"><option value="">— pick —</option>${subjOpts}</select></div>
-        <div class="field"><label class="label">Year</label><input class="input" id="lib-year" value="${esc(data.year||'')}" placeholder="e.g. 2024"></div>
+        <div class="field"><label class="label">Year</label><input class="input" id="lib-year" value="${esc(data.year || new Date().getFullYear())}" placeholder="e.g. 2024"></div>
       </div>
       <div class="field-row">
         <div class="field"><label class="label">Level</label><select class="select" id="lib-level">${levelOpts}</select></div>
@@ -4926,7 +4926,7 @@ function editLibraryItem(id){
       </div>
       <div class="field-row">
         <div class="field"><label class="label">Term</label><select class="select" id="lib-term"><option value="">— pick —</option>${['Term 1','Term 2','Term 3','Term 4','Whole year'].map(t=>`<option ${data.term===t?'selected':''}>${t}</option>`).join('')}</select></div>
-        <div class="field"><label class="label">Year</label><input class="input" id="lib-year" value="${esc(data.year||'')}"></div>
+        <div class="field"><label class="label">Year</label><input class="input" id="lib-year" value="${esc(data.year || new Date().getFullYear())}"></div>
       </div>
       <div class="field"><label class="label">Link (URL)</label><input class="input" id="lib-url" value="${esc(data.url||'')}"></div>
       <div class="field"><label class="label">Or upload file (≤5 MB)</label><input type="file" id="lib-file" accept=".pdf,.doc,.docx" class="input"></div>
