@@ -7913,6 +7913,9 @@ async function nuclearReset(){
 const _origResetAll = resetAll;
 window.resetAll = async function(){
   try {
+    /* SAFETY: take a recovery snapshot before wiping anything. Survives because
+       we only remove LS_KEY (not the recovery key). */
+    takePreResetSnapshot();
     localStorage.removeItem(LS_KEY);
     if('serviceWorker' in navigator){
       const regs = await navigator.serviceWorker.getRegistrations();
@@ -7925,6 +7928,262 @@ window.resetAll = async function(){
   } catch(e){}
   setTimeout(()=>location.reload(), 200);
 };
+
+/* ============================================================
+   DATA RECOVERY SYSTEM — 4 safety nets so a reset isn't terminal:
+     1. Pre-reset emergency snapshot (taken right before resetAll)
+     2. Daily rolling snapshots (one per day, last 7 kept)
+     3. Half-hour rolling snapshot (most recent state)
+     4. Type-school-name-to-confirm reset (prevents fat-fingers)
+   All snapshot keys derive from LS_KEY so the same code works on Zim/SA/Zambia.
+   Snapshots survive resetAll() (only LS_KEY is removed). They do NOT survive
+   nuclearReset() since that calls localStorage.clear() — that path is for users
+   who explicitly want a total wipe (forgot-PIN flow).
+   ============================================================ */
+const SNAP_RECOVERY = LS_KEY + '-snap-recovery';
+const SNAP_DAILY    = LS_KEY + '-snap-daily';
+const SNAP_HOURLY   = LS_KEY + '-snap-hourly';
+const SNAP_TTL_MS   = 14 * 24 * 60 * 60 * 1000;  /* 14 days */
+let _lastHourlySnap = 0;
+
+function takeAutoSnapshot(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return;
+    const now = Date.now();
+    /* Hourly: at most every 30 min */
+    if(now - _lastHourlySnap > 30 * 60 * 1000){
+      localStorage.setItem(SNAP_HOURLY, JSON.stringify({ timestamp: now, data: raw }));
+      _lastHourlySnap = now;
+    }
+    /* Daily: one snapshot per calendar date */
+    const today = localDateStr(new Date());
+    let snaps = {};
+    try { snaps = JSON.parse(localStorage.getItem(SNAP_DAILY) || '{}'); } catch(e){ snaps = {}; }
+    if(!snaps[today]){
+      snaps[today] = { timestamp: now, data: raw };
+      /* Keep last 7 days only (prune oldest) */
+      const keys = Object.keys(snaps).sort().reverse();
+      if(keys.length > 7){
+        keys.slice(7).forEach(k => delete snaps[k]);
+      }
+      localStorage.setItem(SNAP_DAILY, JSON.stringify(snaps));
+    }
+  } catch(e){ /* localStorage full or unavailable — silently skip */ }
+}
+
+/* Hook into save() so every state change feeds the snapshot system */
+const _origSaveForSnap = window.save;
+window.save = function(){
+  _origSaveForSnap();
+  takeAutoSnapshot();
+};
+
+function takePreResetSnapshot(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return;
+    localStorage.setItem(SNAP_RECOVERY, JSON.stringify({
+      timestamp: Date.now(),
+      reason: 'pre-reset',
+      data: raw
+    }));
+  } catch(e){}
+}
+
+function getSnapAge(ts){
+  const age = Date.now() - ts;
+  const hrs = Math.round(age / (60 * 60 * 1000));
+  if(hrs < 1) return 'less than an hour ago';
+  if(hrs < 24) return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ago';
+  const days = Math.round(hrs / 24);
+  return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+}
+
+function readSnap(key){
+  try {
+    const raw = localStorage.getItem(key);
+    if(!raw) return null;
+    const snap = JSON.parse(raw);
+    if(Date.now() - snap.timestamp > SNAP_TTL_MS){
+      localStorage.removeItem(key);
+      return null;
+    }
+    return snap;
+  } catch(e){ return null; }
+}
+
+function readDailySnaps(){
+  try {
+    const all = JSON.parse(localStorage.getItem(SNAP_DAILY) || '{}');
+    const fresh = {};
+    Object.entries(all).forEach(([date, snap]) => {
+      if(Date.now() - snap.timestamp <= SNAP_TTL_MS) fresh[date] = snap;
+    });
+    return fresh;
+  } catch(e){ return {}; }
+}
+
+function restoreFromSnap(key, dateKey){
+  let payload;
+  if(key === SNAP_DAILY){
+    const all = readDailySnaps();
+    const snap = all[dateKey];
+    if(!snap){ toast('Snapshot for that date no longer available'); return; }
+    payload = snap.data;
+  } else {
+    const snap = readSnap(key);
+    if(!snap){ toast('Snapshot not available'); return; }
+    payload = snap.data;
+  }
+  if(!confirm('Restore from this snapshot? Your current data will be REPLACED. (A snapshot of the current state will be taken first as an extra safety net.)')) return;
+  try {
+    /* Take a snapshot of current state before restoring, just in case */
+    takePreResetSnapshot();
+    localStorage.setItem(LS_KEY, payload);
+    toast('✓ Restoring — reloading…');
+    setTimeout(()=>location.reload(), 600);
+  } catch(e){
+    toast('Restore failed: ' + e.message);
+  }
+}
+
+function dismissRecoveryBanner(){
+  if(!confirm('Permanently delete the pre-reset recovery snapshot? You will not be able to restore from it later.')) return;
+  localStorage.removeItem(SNAP_RECOVERY);
+  const el = document.getElementById('recovery-banner');
+  if(el) el.remove();
+  toast('Recovery snapshot deleted');
+}
+
+function showRecoveryBannerIfNeeded(){
+  if(document.getElementById('recovery-banner')) return;
+  const snap = readSnap(SNAP_RECOVERY);
+  if(!snap) return;
+  const el = document.createElement('div');
+  el.id = 'recovery-banner';
+  el.style.cssText = 'position:sticky;top:0;z-index:9999;background:linear-gradient(135deg,#FBEAB5,#E8C97A);border-bottom:2px solid #b89535;padding:14px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;box-shadow:0 4px 12px rgba(0,0,0,0.10)';
+  el.innerHTML = `
+    <div style="font-size:26px;flex:0 0 auto">🛟</div>
+    <div style="flex:1;min-width:200px">
+      <div style="font-weight:800;color:#5e4a08;font-size:14.5px">Pre-reset recovery snapshot available</div>
+      <div style="font-size:12.5px;color:#3d2f04;line-height:1.4;margin-top:2px">A safety snapshot was saved <strong>${getSnapAge(snap.timestamp)}</strong>, just before the reset. Kept for 14 days.</div>
+    </div>
+    <button class="btn btn-gold btn-sm" onclick="restoreFromSnap('${SNAP_RECOVERY}')">🛟 Restore my data</button>
+    <button class="btn btn-ghost btn-sm" onclick="dismissRecoveryBanner()">Dismiss</button>
+  `;
+  document.body.insertBefore(el, document.body.firstChild);
+}
+
+/* Render the Recovery card inside Settings (shows all available snapshots) */
+function renderRecoveryCard(){
+  let card = document.getElementById('settings-recovery-card');
+  const settingsPage = document.getElementById('page-settings');
+  if(!settingsPage) return;
+  if(!card){
+    card = document.createElement('div');
+    card.id = 'settings-recovery-card';
+    card.className = 'card';
+    card.style.cssText = 'margin-top:18px';
+    settingsPage.appendChild(card);
+  }
+  const recovery = readSnap(SNAP_RECOVERY);
+  const hourly = readSnap(SNAP_HOURLY);
+  const daily = readDailySnaps();
+  const dailyKeys = Object.keys(daily).sort().reverse();
+  card.innerHTML = `
+    <h3 style="display:flex;align-items:center;gap:8px;margin-bottom:6px">🛟 Recovery snapshots</h3>
+    <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px">Automatic safety net. Snapshots are saved on this device and survive a Reset (but not a Nuclear reset). 14-day retention.</p>
+
+    <div style="display:grid;grid-template-columns:1fr;gap:10px">
+      ${recovery
+        ? `<div style="background:linear-gradient(135deg,#FBEAB5,#F5E5B5);border:1.5px solid #b89535;border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <div style="font-size:22px">🛟</div>
+            <div style="flex:1;min-width:200px">
+              <div style="font-weight:800;color:#5e4a08;font-size:14px">Pre-reset emergency snapshot</div>
+              <div style="font-size:12.5px;color:#3d2f04">Saved ${getSnapAge(recovery.timestamp)} — just before someone pressed Reset</div>
+            </div>
+            <button class="btn btn-gold btn-sm" onclick="restoreFromSnap('${SNAP_RECOVERY}')">Restore</button>
+          </div>`
+        : `<div style="background:var(--card-tint);border:1px dashed var(--line);border-radius:10px;padding:12px 14px;font-size:12.5px;color:var(--muted)">No pre-reset emergency snapshot. (Created automatically if you ever press Reset all data.)</div>`
+      }
+
+      ${hourly
+        ? `<div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <div style="font-size:22px">⏱️</div>
+            <div style="flex:1;min-width:200px">
+              <div style="font-weight:800;color:var(--primary-darker);font-size:14px">Most recent snapshot</div>
+              <div style="font-size:12.5px;color:var(--muted)">Saved ${getSnapAge(hourly.timestamp)} (refreshed every 30 minutes)</div>
+            </div>
+            <button class="btn btn-soft btn-sm" onclick="restoreFromSnap('${SNAP_HOURLY}')">Restore</button>
+          </div>`
+        : ''
+      }
+
+      ${dailyKeys.length
+        ? `<div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+            <div style="font-weight:800;color:var(--primary-darker);font-size:14px;margin-bottom:8px">📅 Daily snapshots (last ${dailyKeys.length})</div>
+            <div style="display:grid;grid-template-columns:1fr;gap:6px">
+              ${dailyKeys.map(d => `
+                <div style="display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--card-tint);border-radius:6px">
+                  <div style="flex:1;font-size:13px"><strong>${esc(d)}</strong> <span style="color:var(--muted);font-size:12px">· ${getSnapAge(daily[d].timestamp)}</span></div>
+                  <button class="btn btn-ghost btn-sm" onclick="restoreFromSnap('${SNAP_DAILY}','${esc(d)}')">Restore</button>
+                </div>`).join('')}
+            </div>
+          </div>`
+        : ''
+      }
+    </div>
+  `;
+}
+
+/* Patch confirmReset to require typing the school name (or DELETE) */
+const _origConfirmReset = confirmReset;
+window.confirmReset = function(){
+  const schoolName = ((state.school && state.school.name) || '').trim();
+  const target = schoolName.length >= 3 ? schoolName : 'DELETE';
+  showModal(`
+    <h3 style="color:#c0392b">⚠️ Delete ALL data?</h3>
+    <p style="font-size:13.5px;line-height:1.55;color:var(--ink)">This wipes every learner, lesson, assessment, attendance record and setting from this device.</p>
+    <div style="background:linear-gradient(135deg,#FBEAB5,#F5E5B5);border:1px solid #b89535;border-radius:8px;padding:11px 13px;font-size:13px;line-height:1.5;margin:10px 0">
+      🛟 <strong>A 14-day recovery snapshot will be saved first.</strong> If you regret it, go to <em>Settings → Recovery snapshots</em> to restore. Either way, please download a backup before resetting.
+    </div>
+    <p style="font-weight:700;margin-top:14px;font-size:13.5px">To confirm, type <code style="background:var(--card-tint);padding:2px 7px;border-radius:5px;color:var(--primary-darker);font-weight:700">${esc(target)}</code> below:</p>
+    <input class="input" id="reset-confirm-text" placeholder="${esc(target)}" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-soft" onclick="closeModal();exportData()">📥 Download backup first</button>
+      <button class="btn btn-danger" onclick="confirmResetType()">Confirm reset</button>
+    </div>
+  `);
+  setTimeout(()=>{
+    const el = document.getElementById('reset-confirm-text');
+    if(el) el.dataset.target = target;
+  }, 50);
+};
+
+function confirmResetType(){
+  const el = document.getElementById('reset-confirm-text');
+  const target = (el && el.dataset.target) || '';
+  const v = ((el && el.value) || '').trim();
+  if(v !== target){
+    toast('The text does not match. Reset cancelled for your safety.');
+    return;
+  }
+  closeModal();
+  resetAll();
+}
+
+/* Inject the recovery card whenever Settings is rendered + show banner on load */
+const _origRenderSettings = renderers.settings;
+renderers.settings = function(){
+  if(typeof _origRenderSettings === 'function') _origRenderSettings.apply(this, arguments);
+  try { renderRecoveryCard(); } catch(e){ console.warn('renderRecoveryCard', e); }
+};
+window.addEventListener('load', ()=>{ try { showRecoveryBannerIfNeeded(); } catch(e){} });
+window.addEventListener('DOMContentLoaded', ()=>{ try { showRecoveryBannerIfNeeded(); } catch(e){} });
+/* Take a first snapshot 5 seconds after boot so even brand-new sessions get protected */
+setTimeout(()=>{ try { takeAutoSnapshot(); } catch(e){} }, 5000);
 
 function logout(){
   if(!confirm('Sign out?')) return;
