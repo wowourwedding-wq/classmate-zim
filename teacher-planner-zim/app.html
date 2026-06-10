@@ -1627,6 +1627,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
         <div><h1>Inventory</h1><p>Track <strong>your class items</strong> (what's in your classroom), <strong>school items</strong> (whole-school assets) and view a <strong>consolidated</strong> list of both.</p></div>
         <div class="page-actions">
           <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+          <button class="btn btn-soft btn-sm" onclick="showSampleClassInventory()">📋 View sample (Class)</button>
           <button class="btn btn-soft btn-sm" onclick="importLogsCSV('inventory')">📥 Import CSV</button>
           <button class="btn btn-primary" onclick="addLog('inventory')">+ Add item</button>
         </div>
@@ -2887,6 +2888,151 @@ function showSampleMinutes(){
     </div>
   `;
   showModal('<h3 style="margin-bottom:8px">📋 Sample staff meeting minutes</h3>' + html);
+}
+
+/* ============================================================
+   CLASS INVENTORY — sample list
+   Shows a polished, complete example of what a single-class
+   inventory should cover. The same data is in
+   classmate-class-inventory-sample.csv in Downloads.
+   ============================================================ */
+const SAMPLE_CLASS_INV = [
+  ['Learner desks','Classroom',30,'Form 4A','Form 4A classroom','Good',25,'All 30 accounted for; 2 wobbly legs'],
+  ['Learner chairs','Classroom',30,'Form 4A','Form 4A classroom','Fair',12,'3 chairs need rubber stoppers'],
+  ['Teacher\'s desk + chair','Classroom',1,'Form 4A','Front of class','Good',85,'Lockable drawer'],
+  ['Whiteboard 1.2 x 2.4 m','Classroom',1,'Form 4A','Front wall','Good',45,'Re-order markers monthly'],
+  ['Noticeboard (cork)','Classroom',1,'Form 4A','Back wall','Good',30,'Timetable + news'],
+  ['Display board','Classroom',1,'Form 4A','Side wall','Good',25,'Learner work rotated fortnightly'],
+  ['Class register book','Office',1,'Form 4A','Teacher\'s drawer','Good',5,'Daily attendance'],
+  ['Lesson notes folder','Office',1,'Form 4A','Teacher\'s drawer','Good',5,'Per-subject dividers'],
+  ['Textbooks — Maths','Textbooks',30,'Form 4A','Bookshelf','Good',12,'One per learner'],
+  ['Textbooks — English','Textbooks',30,'Form 4A','Bookshelf','Good',10,'One per learner'],
+  ['Textbooks — Combined Sci','Textbooks',30,'Form 4A','Bookshelf','Fair',14,'4 books torn covers'],
+  ['Textbooks — Shona','Textbooks',30,'Form 4A','Bookshelf','Good',8,''],
+  ['Textbooks — History','Textbooks',30,'Form 4A','Bookshelf','Good',11,''],
+  ['Dictionary (English)','Library',2,'Form 4A','Bookshelf','Good',18,'For class reference'],
+  ['Dictionary (Shona-Eng)','Library',1,'Form 4A','Bookshelf','Fair',22,'Spine repair needed'],
+  ['Class library books','Library',45,'Form 4A','Reading corner','Good',6,'Donated 2024'],
+  ['Stationery box','Stationery',1,'Form 4A','Teacher\'s drawer','Good',15,'Pens, pencils, rulers, chalk'],
+  ['Chalk box (white)','Stationery',2,'Form 4A','Teacher\'s drawer','Good',2,'Re-order each term'],
+  ['Manila paper (A1)','Stationery',20,'Form 4A','Teacher\'s drawer','Good',1,'For posters'],
+  ['Display charts — Maths','Classroom',6,'Form 4A','Side wall','Good',8,'Algebra, geometry, trig'],
+  ['Display charts — Science','Classroom',4,'Form 4A','Back wall','Good',8,'Periodic table, body systems'],
+  ['World map','Classroom',1,'Form 4A','Side wall','Good',15,'Used in Geog + Hist'],
+  ['Zimbabwe map','Classroom',1,'Form 4A','Side wall','Good',12,'All provinces'],
+  ['First aid kit (basic)','Safety',1,'Form 4A','Teacher\'s desk','Good',20,'Plasters, antiseptic, pain tabs'],
+  ['Broom','Other',2,'Form 4A','Behind door','Fair',3,'Replace one'],
+  ['Dustpan','Other',2,'Form 4A','Behind door','Good',2,''],
+  ['Mop + bucket','Other',1,'Form 4A','Behind door','Good',8,'Tuesdays + Fridays'],
+  ['Litter bin','Other',2,'Form 4A','Corner','Good',6,'Paper + general'],
+  ['Curtains','Classroom',4,'Form 4A','Windows','Fair',18,'Need washing'],
+  ['Wall clock','Classroom',1,'Form 4A','Above whiteboard','Good',12,'Battery Jan 2026'],
+  ['Class prefects badge set','Other',4,'Form 4A','Drawer','Good',5,'Prefect, deputy, sec, treas'],
+];
+
+function showSampleClassInventory(){
+  let totalQty = 0, totalValue = 0;
+  const rows = SAMPLE_CLASS_INV.map((r,i) => {
+    const [item, cat, qty, cls, loc, cond, val, notes] = r;
+    totalQty += qty; totalValue += qty * val;
+    const condColor = cond === 'Good' ? '#1B5E20' : cond === 'Fair' ? '#E65100' : cond === 'New' ? '#0D47A1' : '#B71C1C';
+    return `<tr style="border-bottom:1px solid var(--line);${i%2?'background:var(--card-tint)':''}">
+      <td style="padding:6px 8px;font-weight:600">${esc(item)}</td>
+      <td style="padding:6px 8px;font-size:12.5px;color:var(--muted)">${esc(cat)}</td>
+      <td style="padding:6px 8px;text-align:center;font-weight:700">${qty}</td>
+      <td style="padding:6px 8px;font-size:12.5px">${esc(loc)}</td>
+      <td style="padding:6px 8px;font-size:12.5px;color:${condColor};font-weight:600">${esc(cond)}</td>
+      <td style="padding:6px 8px;text-align:right;font-size:12.5px">$${val}</td>
+      <td style="padding:6px 8px;font-size:12px;color:var(--muted)">${esc(notes)}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `
+    <div style="max-height:78vh;overflow-y:auto;padding-right:4px">
+      <div style="background:linear-gradient(135deg,#1B5E20,#2E7D32);color:#fff;padding:18px 20px;border-radius:10px;margin-bottom:16px">
+        <div style="font-size:12px;opacity:0.8;font-weight:600;letter-spacing:1px">SAMPLE CLASS INVENTORY</div>
+        <h2 style="margin:6px 0 0;color:#fff;font-size:20px;font-weight:800">Form 4A — Classroom Inventory</h2>
+        <div style="font-size:13px;opacity:0.85;margin-top:3px">Custodian: Form Teacher 4A · Date stocktake: 2026-06-09</div>
+      </div>
+
+      <p style="font-size:13px;color:var(--muted);line-height:1.55;background:#FFF5DC;border:1px solid #E8C97A;border-radius:8px;padding:10px 12px;margin-bottom:14px">
+        💡 This is a reference example for <strong>Class</strong> scope. Track what's specifically in your classroom — furniture, textbooks, charts, cleaning supplies, first aid. Shared school assets (computer lab, generator, minibus) go under <strong>School</strong> scope instead.
+      </p>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+        <div style="flex:1;min-width:120px;background:var(--card-tint);padding:10px 12px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--primary-darker)">${SAMPLE_CLASS_INV.length}</div>
+          <div style="font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Distinct items</div>
+        </div>
+        <div style="flex:1;min-width:120px;background:var(--card-tint);padding:10px 12px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--primary-darker)">${totalQty}</div>
+          <div style="font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Total qty</div>
+        </div>
+        <div style="flex:1;min-width:120px;background:var(--card-tint);padding:10px 12px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--primary-darker)">$${totalValue.toLocaleString()}</div>
+          <div style="font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Est. total value</div>
+        </div>
+      </div>
+
+      <table style="width:100%;font-size:13px;border-collapse:collapse">
+        <thead><tr style="background:var(--primary-darker);color:#fff">
+          <th style="text-align:left;padding:8px 8px">Item</th>
+          <th style="text-align:left;padding:8px 8px">Category</th>
+          <th style="text-align:center;padding:8px 8px">Qty</th>
+          <th style="text-align:left;padding:8px 8px">Location</th>
+          <th style="text-align:left;padding:8px 8px">Cond.</th>
+          <th style="text-align:right;padding:8px 8px">Unit $</th>
+          <th style="text-align:left;padding:8px 8px">Notes</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+
+      <div style="display:flex;gap:30px;margin-top:24px;padding-top:18px;border-top:1.5px solid var(--line)">
+        <div style="flex:1;text-align:center;font-size:12.5px">
+          <div style="border-bottom:1px solid #000;height:24px"></div>
+          <div style="margin-top:4px;font-weight:700">Form Teacher 4A</div>
+          <div style="color:var(--muted)">CUSTODIAN</div>
+        </div>
+        <div style="flex:1;text-align:center;font-size:12.5px">
+          <div style="border-bottom:1px solid #000;height:24px"></div>
+          <div style="margin-top:4px;font-weight:700">Deputy Head (Admin)</div>
+          <div style="color:var(--muted)">VERIFIED BY</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-soft" onclick="prefillSampleClassInventory()">📥 Load this as my Form 4A inventory</button>
+      <button class="btn btn-primary" onclick="closeModal()">Got it</button>
+    </div>
+  `;
+  showModal('<h3 style="margin-bottom:8px">📋 Sample class inventory — Form 4A</h3>' + html);
+}
+
+function prefillSampleClassInventory(){
+  state.inventory = state.inventory || [];
+  const stamp = Date.now();
+  SAMPLE_CLASS_INV.forEach((r, i) => {
+    const [item, category, qty, className, location, condition, value, notes] = r;
+    state.inventory.push({
+      id: 'inv_sample_' + stamp + '_' + i,
+      item, category,
+      qty: String(qty),
+      scope: 'Class',
+      className,
+      location,
+      condition,
+      dateAcquired: '',
+      value: String(value),
+      serial: '',
+      custodian: 'Form Teacher 4A',
+      notes
+    });
+  });
+  save();
+  closeModal();
+  toast('✓ Added ' + SAMPLE_CLASS_INV.length + ' sample Class items for Form 4A. Edit or delete as needed.');
+  setInventoryTab('class');
 }
 
 function prefillSampleMinutes(){
