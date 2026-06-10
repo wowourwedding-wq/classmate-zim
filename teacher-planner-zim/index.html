@@ -6149,8 +6149,57 @@ async function attemptLogin(){
 }
 
 function forgotPinPrompt(){
-  alert('PIN reset:\n\n• If you signed up with an email, ask your admin to reset your PIN, or contact support@classmate.zw.\n• Super Admin can reset PINs from Settings → Users.\n• If you ARE the Super Admin and forgot your PIN, you may need to clear app data and start fresh (this wipes everything on this device).');
+  showModal(`
+    <h3>🔑 Forgot your PIN?</h3>
+    <p style="font-size:14px;line-height:1.6;color:var(--ink)">Three options:</p>
+    <ol style="font-size:14px;line-height:1.7;padding-left:20px;color:var(--ink)">
+      <li><strong>Ask your Super Admin</strong> to reset your PIN from <em>Settings → Users & access → Reset PIN</em>.</li>
+      <li><strong>Email-based reset</strong> — coming in a future update. Make sure you've added an email to your account.</li>
+      <li><strong>Nuclear option</strong> — wipe ALL data on this device and start fresh. You'll lose every student, lesson, assessment and setting unless you exported a backup. <strong>Only do this if you're the Super Admin and truly stuck.</strong></li>
+    </ol>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="closeModal();nuclearReset()">💥 Wipe everything &amp; start over</button>
+    </div>
+  `);
 }
+
+/* Complete reset: clear localStorage + Service Worker + all caches + reload.
+   Used by forgot-PIN flow + the Reset button in Settings (when present). */
+async function nuclearReset(){
+  if(!confirm('⚠️ This permanently deletes ALL data on this device — students, lessons, assessments, settings, users, photos. Nothing can be recovered (no backup). Continue?')) return;
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if('caches' in window){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch(e){ /* keep going even if any step fails */ }
+  /* Hard reload bypassing any remaining cache */
+  setTimeout(()=>location.reload(), 200);
+}
+
+/* Patch the existing resetAll to also unregister SW + reload to login screen */
+const _origResetAll = resetAll;
+window.resetAll = async function(){
+  try {
+    localStorage.removeItem(LS_KEY);
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if('caches' in window){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch(e){}
+  setTimeout(()=>location.reload(), 200);
+};
 
 function logout(){
   if(!confirm('Sign out?')) return;
