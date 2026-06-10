@@ -6925,8 +6925,131 @@ window.renderLibToolbar = function(){
   /* Append new buttons */
   tb.insertAdjacentHTML('beforeend',
     `<button class="btn btn-soft btn-sm" onclick="openCurriculumBrowser()">📖 Browse curriculum</button>
-     <button class="btn btn-soft btn-sm" onclick="openPastePaperModal()">📋 Add from past paper</button>`);
+     <button class="btn btn-soft btn-sm" onclick="openPastePaperModal()">📋 Add from past paper</button>
+     <button class="btn btn-soft btn-sm" onclick="openQuestionBankCSVImport()">📥 Import CSV</button>
+     <button class="btn btn-ghost btn-sm" onclick="downloadQuestionBankTemplate()">📄 Template</button>`);
 };
+
+/* ============================================================
+   QUESTION BANK — CSV IMPORT (bulk-load 100s of questions at once)
+   Columns: Subject, Level, Topic, Question, Answer, Difficulty, Source
+   ============================================================ */
+function parseQuestionBankCSV(text){
+  const rows = [];
+  let i = 0, row = [], field = '', inQ = false;
+  while(i < text.length){
+    const c = text[i];
+    if(inQ){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i += 2; continue; }
+        inQ = false; i++;
+      } else { field += c; i++; }
+    } else {
+      if(c === '"'){ inQ = true; i++; }
+      else if(c === ','){ row.push(field); field = ''; i++; }
+      else if(c === '\n' || c === '\r'){
+        if(field !== '' || row.length){ row.push(field); rows.push(row); row = []; field = ''; }
+        if(c === '\r' && text[i+1] === '\n') i++;
+        i++;
+      } else { field += c; i++; }
+    }
+  }
+  if(field !== '' || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function downloadQuestionBankTemplate(){
+  const csv = 'Subject,Level,Topic,Question,Answer,Difficulty,Source\n' +
+    '"Mathematics","olevel","Algebra","Solve 2x + 5 = 13","x = 4","2","template"\n' +
+    '"Biology","olevel","Cell Biology","Name the organelle known as the powerhouse of the cell","Mitochondrion","1","template"\n' +
+    '"Chemistry","olevel","Acids and Bases","What colour does litmus paper turn in acid?","Red","1","template"\n' +
+    '"Principles of Accounts","olevel","Double Entry","Give the double entry for cash paid for rent","Dr Rent  Cr Cash","2","template"\n';
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'questionbank-template.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  toast('✓ Template downloaded. Open in Excel, fill in your questions, save, then Import CSV.');
+}
+
+function openQuestionBankCSVImport(){
+  showModal(`
+    <h3>📥 Import question bank from CSV</h3>
+    <p style="font-size:13.5px;line-height:1.55;color:var(--ink)">
+      Upload a CSV with these columns:<br>
+      <code style="background:var(--card-tint);padding:3px 7px;border-radius:4px;font-size:12.5px">Subject, Level, Topic, Question, Answer, Difficulty, Source</code>
+    </p>
+    <ul style="font-size:13px;color:var(--muted);line-height:1.6;padding-left:18px">
+      <li><strong>Subject</strong> — e.g. Mathematics, Biology, Principles of Accounts</li>
+      <li><strong>Level</strong> — one of: <code>ecd, primary, form12, olevel, alevel</code></li>
+      <li><strong>Topic</strong> — the syllabus topic (e.g. "Algebra", "Cell Biology")</li>
+      <li><strong>Question</strong> — the question text (required)</li>
+      <li><strong>Answer</strong> — optional model answer</li>
+      <li><strong>Difficulty</strong> — 1 (easy) to 5 (hard)</li>
+      <li><strong>Source</strong> — where it came from (e.g. "ZIMSEC 2024 Paper 1")</li>
+    </ul>
+    <div style="margin:14px 0">
+      <input type="file" id="qb-csv-file" accept=".csv,text/csv" style="width:100%;padding:10px;border:1.5px dashed var(--accent);border-radius:8px;background:var(--card-tint)">
+    </div>
+    <p style="font-size:12.5px;color:var(--muted)">Tip: Need a template? <a href="#" onclick="downloadQuestionBankTemplate();return false;" style="color:var(--primary);font-weight:600">Download CSV template</a></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="processQuestionBankCSV()">📥 Import questions</button>
+    </div>
+  `);
+}
+
+function processQuestionBankCSV(){
+  const fileEl = document.getElementById('qb-csv-file');
+  const file = fileEl && fileEl.files[0];
+  if(!file){ toast('Pick a CSV file first'); return; }
+  const r = new FileReader();
+  r.onload = ()=>{
+    const text = r.result;
+    const rows = parseQuestionBankCSV(text);
+    if(rows.length < 2){ toast('CSV has no data rows'); return; }
+    const header = rows[0].map(h => (h||'').toLowerCase().trim());
+    const idx = {
+      subject:    header.indexOf('subject'),
+      level:      header.indexOf('level'),
+      topic:      header.indexOf('topic'),
+      question:   header.indexOf('question'),
+      answer:     header.indexOf('answer'),
+      difficulty: header.indexOf('difficulty'),
+      source:     header.indexOf('source')
+    };
+    if(idx.question < 0){
+      toast('CSV is missing the Question column. Check the header row.');
+      return;
+    }
+    state.library = state.library || {pastPapers:[], schemes:[], worksheets:[], questionBank:[]};
+    state.library.questionBank = state.library.questionBank || [];
+    let added = 0, skipped = 0;
+    const stamp = Date.now();
+    rows.slice(1).forEach((row, i) => {
+      const q = (row[idx.question] || '').trim();
+      if(!q){ skipped++; return; }
+      state.library.questionBank.push({
+        id: 'qbcsv_' + stamp + '_' + i,
+        subject:    idx.subject    >= 0 ? (row[idx.subject]    || '').trim() : '',
+        level:      idx.level      >= 0 ? (row[idx.level]      || '').trim() : '',
+        topic:      idx.topic      >= 0 ? (row[idx.topic]      || '').trim() : '',
+        question:   q,
+        answer:     idx.answer     >= 0 ? (row[idx.answer]     || '').trim() : '',
+        difficulty: idx.difficulty >= 0 ? (row[idx.difficulty] || '3').trim() : '3',
+        source:     idx.source     >= 0 ? (row[idx.source]     || 'csv-import').trim() : 'csv-import'
+      });
+      added++;
+    });
+    save();
+    closeModal();
+    toast('✓ Imported ' + added + ' question' + (added === 1 ? '' : 's') + (skipped ? ' (' + skipped + ' empty rows skipped)' : ''));
+    if(typeof renderers.library === 'function') renderers.library();
+  };
+  r.onerror = ()=>{ toast('Could not read the file. Try again.'); };
+  r.readAsText(file);
+}
 
 /* Bulk-clear all learners + related records (admin-only).
    Keeps school, profile, calendar, lessons, library, users — only wipes
