@@ -6014,16 +6014,22 @@ function detectFileKind(dataUrl, fileName){
   return 'unknown';
 }
 
-/* Decode a data: URL into the raw text it carries (for .txt rendering) */
+/* Decode a data: URL into the raw text it carries (for .txt rendering).
+   Uses TextDecoder for proper UTF-8 support (handles é, ñ, box-drawing chars, emoji). */
 function decodeDataUrlAsText(dataUrl){
   try {
     const comma = dataUrl.indexOf(',');
     if(comma === -1) return '';
     const meta = dataUrl.slice(0, comma);
     const data = dataUrl.slice(comma + 1);
-    if(meta.endsWith(';base64')) return decodeURIComponent(escape(atob(data)));
+    if(meta.endsWith(';base64')){
+      const binStr = atob(data);
+      const bytes = new Uint8Array(binStr.length);
+      for(let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+      return new TextDecoder('utf-8').decode(bytes);
+    }
     return decodeURIComponent(data);
-  } catch(e){ return ''; }
+  } catch(e){ console.warn('decode error', e); return ''; }
 }
 
 function openProtectedViewer(opts){
@@ -6052,18 +6058,42 @@ function openProtectedViewer(opts){
   let viewerHtml = '';
   if(kind === 'pdf'){
     /* iframe with #toolbar=0&navpanes=0 hides Chrome's download/print buttons.
-       sandbox attribute blocks downloads from inside the PDF. */
-    viewerHtml = `<iframe src="${file}#toolbar=0&navpanes=0&scrollbar=1" style="width:100%;height:72vh;border:none;border-radius:8px;background:#fff" sandbox="allow-scripts allow-same-origin"></iframe>`;
+       NO sandbox attribute — Chrome/Edge PDF viewer needs full access to render.
+       PDFs over ~2 MB may take 1-2 seconds to render; small loading hint helps. */
+    viewerHtml = `
+      <div style="position:relative;width:100%;height:72vh;background:#fff;border-radius:8px">
+        <div id="pdf-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:var(--muted)">📄 Loading PDF…</div>
+        <iframe src="${file}#toolbar=0&navpanes=0&scrollbar=1" style="width:100%;height:72vh;border:none;border-radius:8px;background:#fff;position:relative" onload="document.getElementById('pdf-loading')&&document.getElementById('pdf-loading').remove()"></iframe>
+      </div>`;
   } else if(kind === 'image'){
-    viewerHtml = `<img src="${file}" alt="${esc(title)}" style="max-width:100%;max-height:72vh;display:block;margin:0 auto;border-radius:8px;user-drag:none;-webkit-user-drag:none;pointer-events:none">`;
+    viewerHtml = `<img src="${file}" alt="${esc(title)}" style="max-width:100%;max-height:72vh;display:block;margin:0 auto;border-radius:8px;-webkit-user-drag:none" ondragstart="return false">`;
   } else if(kind === 'text'){
     const txt = decodeDataUrlAsText(file);
-    viewerHtml = `<pre style="white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px;font-family:Georgia,serif;font-size:13.5px;line-height:1.65;color:#000;max-height:72vh;overflow-y:auto;user-select:none">${esc(txt)}</pre>`;
+    if(!txt.trim()){
+      viewerHtml = `<div style="background:var(--card-tint);border:1px solid var(--line);border-radius:8px;padding:30px;text-align:center;color:var(--ink)">
+        <div style="font-size:42px;margin-bottom:8px">📄</div>
+        <div style="font-weight:700;color:var(--primary-darker);margin-bottom:6px">${esc(fileName||title)}</div>
+        <div style="color:var(--muted);font-size:13px">The file looks empty or its encoding can't be read. If it's a Word document (.docx), please convert to PDF first.</div>
+      </div>`;
+    } else {
+      viewerHtml = `<pre style="white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px;font-family:Georgia,serif;font-size:13.5px;line-height:1.65;color:#000;max-height:72vh;overflow-y:auto;user-select:none">${esc(txt)}</pre>`;
+    }
+  } else if(kind === 'office'){
+    viewerHtml = `<div style="background:#FFF5DC;border:1.5px solid #E8C97A;border-radius:10px;padding:28px;text-align:center;color:#000">
+      <div style="font-size:42px;margin-bottom:10px">📝</div>
+      <div style="font-weight:800;color:#9c7e1a;font-size:15px;margin-bottom:6px">Word / Excel / PowerPoint files can't preview inside the app</div>
+      <div style="color:#7c601f;font-size:13.5px;line-height:1.6;max-width:420px;margin:0 auto">
+        For in-app viewing, please convert this file to <strong>PDF</strong> before uploading.<br><br>
+        Quick way in Microsoft Word:<br>
+        <strong>File → Save As → PDF</strong><br><br>
+        Then upload the .pdf — it'll display perfectly in the protected viewer.
+      </div>
+    </div>`;
   } else {
     viewerHtml = `<div style="background:var(--card-tint);border:1px solid var(--line);border-radius:8px;padding:30px;text-align:center;font-size:14px;color:var(--ink)">
       <div style="font-size:42px;margin-bottom:8px">📄</div>
       <div style="font-weight:700;color:var(--primary-darker);margin-bottom:6px">${esc(fileName||title)}</div>
-      <div style="color:var(--muted);font-size:13px">In-app preview not available for this file type. Ask the uploader to convert to PDF, image, or text.</div>
+      <div style="color:var(--muted);font-size:13px">In-app preview not available for this file type. PDF, image (PNG/JPG), and text (.txt) files preview directly.</div>
     </div>`;
   }
 
