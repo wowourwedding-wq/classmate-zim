@@ -4880,7 +4880,7 @@ function renderQuestionBank(questions){
           <div class="lib-body">
             <div style="font-size:14px;color:var(--ink);line-height:1.5">${esc(q.question)}</div>
             ${q.answer?`<div style="font-size:13px;color:var(--green);margin-top:5px;line-height:1.5"><strong>✓ Answer:</strong> ${esc(q.answer)}</div>`:''}
-            <div class="lib-meta">${q.difficulty?`<span class="badge">Difficulty ${esc(q.difficulty)}/5</span>`:''}${q.level?`<span>${esc((LEVELS.find(l=>l.k===q.level)||{}).n||q.level)}</span>`:''}</div>
+            <div class="lib-meta">${q.difficulty?`<span class="badge">Difficulty ${esc(q.difficulty)}/5</span>`:''}${q.grade?`<span class="badge" style="background:var(--accent);color:var(--primary-darker)">🎒 ${esc((GRADES.find(g=>g.k===q.grade)||{}).n||q.grade)}</span>`:''}${q.level?`<span>${esc((LEVELS.find(l=>l.k===q.level)||{}).n||q.level)}</span>`:''}</div>
           </div>
           <div class="lib-actions"><button class="btn btn-ghost btn-sm" onclick="editLibraryItem('${q.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteLibraryItem('${q.id}')">×</button></div>
         </div>`).join('')}</div>
@@ -6959,11 +6959,11 @@ function parseQuestionBankCSV(text){
 }
 
 function downloadQuestionBankTemplate(){
-  const csv = 'Subject,Level,Topic,Question,Answer,Difficulty,Source\n' +
-    '"Mathematics","olevel","Algebra","Solve 2x + 5 = 13","x = 4","2","template"\n' +
-    '"Biology","olevel","Cell Biology","Name the organelle known as the powerhouse of the cell","Mitochondrion","1","template"\n' +
-    '"Chemistry","olevel","Acids and Bases","What colour does litmus paper turn in acid?","Red","1","template"\n' +
-    '"Principles of Accounts","olevel","Double Entry","Give the double entry for cash paid for rent","Dr Rent  Cr Cash","2","template"\n';
+  const csv = 'Subject,Level,Grade,Topic,Question,Answer,Difficulty,Source\n' +
+    '"Mathematics","olevel","form4","Algebra","Solve 2x + 5 = 13","x = 4","2","template"\n' +
+    '"Biology","olevel","form4","Cell Biology","Name the organelle known as the powerhouse of the cell","Mitochondrion","1","template"\n' +
+    '"Chemistry","olevel","form3","Acids and Bases","What colour does litmus paper turn in acid?","Red","1","template"\n' +
+    '"Principles of Accounts","olevel","form4","Double Entry","Give the double entry for cash paid for rent","Dr Rent  Cr Cash","2","template"\n';
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -6978,11 +6978,12 @@ function openQuestionBankCSVImport(){
     <h3>📥 Import question bank from CSV</h3>
     <p style="font-size:13.5px;line-height:1.55;color:var(--ink)">
       Upload a CSV with these columns:<br>
-      <code style="background:var(--card-tint);padding:3px 7px;border-radius:4px;font-size:12.5px">Subject, Level, Topic, Question, Answer, Difficulty, Source</code>
+      <code style="background:var(--card-tint);padding:3px 7px;border-radius:4px;font-size:12.5px">Subject, Level, Grade, Topic, Question, Answer, Difficulty, Source</code>
     </p>
     <ul style="font-size:13px;color:var(--muted);line-height:1.6;padding-left:18px">
       <li><strong>Subject</strong> — e.g. Mathematics, Biology, Principles of Accounts</li>
-      <li><strong>Level</strong> — one of: <code>ecd, primary, form12, olevel, alevel</code></li>
+      <li><strong>Level</strong> — broad band: <code>ecd, primary, form12, olevel, alevel</code></li>
+      <li><strong>Grade</strong> — specific grade key: <code>grade1…grade7, form1…form6, ecdA, ecdB</code></li>
       <li><strong>Topic</strong> — the syllabus topic (e.g. "Algebra", "Cell Biology")</li>
       <li><strong>Question</strong> — the question text (required)</li>
       <li><strong>Answer</strong> — optional model answer</li>
@@ -7013,6 +7014,7 @@ function processQuestionBankCSV(){
     const idx = {
       subject:    header.indexOf('subject'),
       level:      header.indexOf('level'),
+      grade:      header.indexOf('grade'),
       topic:      header.indexOf('topic'),
       question:   header.indexOf('question'),
       answer:     header.indexOf('answer'),
@@ -7034,6 +7036,7 @@ function processQuestionBankCSV(){
         id: 'qbcsv_' + stamp + '_' + i,
         subject:    idx.subject    >= 0 ? (row[idx.subject]    || '').trim() : '',
         level:      idx.level      >= 0 ? (row[idx.level]      || '').trim() : '',
+        grade:      idx.grade      >= 0 ? (row[idx.grade]      || '').trim() : '',
         topic:      idx.topic      >= 0 ? (row[idx.topic]      || '').trim() : '',
         question:   q,
         answer:     idx.answer     >= 0 ? (row[idx.answer]     || '').trim() : '',
