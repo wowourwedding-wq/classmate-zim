@@ -522,7 +522,7 @@ h2.l-h .grad{background:linear-gradient(120deg,var(--primary-dark),var(--accent-
 .l-cb{background:rgba(255,255,255,.08);border:1.5px solid var(--accent);color:#fff;padding:13px 24px;border-radius:11px;font-weight:700;font-size:14.5px;display:flex;flex-direction:column;align-items:center;gap:3px;backdrop-filter:blur(10px)}
 .l-cb .nm{font-size:15px}
 .l-cb .sb{font-size:11px;color:var(--accent-light);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
-.l-pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:stretch}
+.l-pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;align-items:stretch}
 @media(max-width:880px){.l-pricing-grid{grid-template-columns:1fr;max-width:440px;margin:0 auto}}
 .l-tier{background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:30px 24px;display:flex;flex-direction:column;text-align:left;transition:transform .15s,box-shadow .2s;position:relative}
 .l-tier:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
@@ -964,7 +964,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
           <div class="ribbon">Most popular</div>
           <div class="nm">Single Teacher</div>
           <div class="ti">For one teacher</div>
-          <div class="price"><span class="amt">$10</span><span class="per">/ year</span></div>
+          <div class="price"><span class="amt">$15</span><span class="per">/ year</span></div>
           <div class="desc">Everything the planner offers, for one teacher.</div>
           <ul><li>All 33 sections</li><li>ZIMSEC + Cambridge subjects</li><li>Parent broadcast (WhatsApp + SMS)</li><li>Free updates all year</li></ul>
           <a href="https://wa.me/263?text=Hi%2C%20I%27d%20like%20to%20order%20ClassMate%20Zim" class="l-btn l-btn-gold" style="width:100%">Order on WhatsApp</a>
@@ -972,7 +972,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
         <div class="l-tier">
           <div class="nm">School Edition</div>
           <div class="ti">For schools</div>
-          <div class="price"><span class="amt">$5</span><span class="per">/ teacher / year</span></div>
+          <div class="price"><span class="amt">$10</span><span class="per">/ teacher / year</span></div>
           <div class="desc">From 5 teachers. <strong>Pre-loaded with your school's logo &amp; brand colours</strong> across every teacher's planner.</div>
           <ul>
             <li>Everything in Single Teacher</li>
@@ -983,6 +983,21 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
             <li>Bulk discount for 5+ teachers</li>
           </ul>
           <a href="https://wa.me/263?text=Hi%2C%20interested%20in%20School%20Edition%20for%20our%20school" class="l-btn l-btn-primary" style="width:100%">Talk to us</a>
+        </div>
+      
+        <div class="l-tier" style="border:2px solid var(--accent);background:linear-gradient(165deg,#fff,#FAF8F2)">
+          <div class="nm" style="color:var(--accent-dark)">🤖 Premium</div>
+          <div class="ti">Power user</div>
+          <div class="price"><span class="amt">$25</span><span class="per">/ year</span></div>
+          <div class="desc">For teachers who want the cutting edge — AI assistance, network sharing, priority support.</div>
+          <ul>
+            <li>Everything in Single Teacher</li>
+            <li><strong>🤖 AI Teaching Assistant</strong> <span style="font-size:11.5px;color:var(--muted)">(coming soon)</span></li>
+            <li><strong>🌐 Shared Library upload</strong> — contribute &amp; access cross-school papers</li>
+            <li><strong>⚡ Priority WhatsApp support</strong></li>
+            <li>🎓 Beta access to new features</li>
+          </ul>
+          <a href="https://wa.me/263?text=Hi%2C%20I%27d%20like%20Premium%20ClassMate%20Zim" class="l-btn l-btn-primary" style="width:100%">Join Premium</a>
         </div>
       </div>
       <div style="text-align:center;margin-top:32px;font-size:13.5px;color:var(--muted)">💡 Payment via <strong>EcoCash · Mukuru · InnBucks · USD cash</strong></div>
