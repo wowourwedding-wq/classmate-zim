@@ -1623,13 +1623,22 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
     <!-- INVENTORY -->
     <section class="page" id="page-inventory" style="display:none">
       <div class="page-head">
-        <div><h1>Classroom inventory</h1><p>Textbooks, sports equipment, lab materials, stationery. What you have, where it is, condition.</p></div>
+        <div><h1>Inventory</h1><p>Track <strong>your class items</strong> (what's in your classroom), <strong>school items</strong> (whole-school assets) and view a <strong>consolidated</strong> list of both.</p></div>
         <div class="page-actions">
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
           <button class="btn btn-soft btn-sm" onclick="importLogsCSV('inventory')">📥 Import CSV</button>
           <button class="btn btn-primary" onclick="addLog('inventory')">+ Add item</button>
         </div>
       </div>
-      <div class="card"><div id="inventory-list" class="log-table"></div></div>
+      <div class="card">
+        <div id="inv-tabs" class="lib-tabs" style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="lib-tab active" data-inv-tab="all" onclick="setInventoryTab('all')">📊 Consolidated</button>
+          <button class="lib-tab" data-inv-tab="class" onclick="setInventoryTab('class')">📚 Class</button>
+          <button class="lib-tab" data-inv-tab="school" onclick="setInventoryTab('school')">🏫 School</button>
+        </div>
+        <div id="inv-summary" class="att-summary" style="margin-bottom:14px"></div>
+        <div id="inventory-list" class="log-table"></div>
+      </div>
     </section>
 
     <!-- CONTACTS -->
@@ -3064,12 +3073,30 @@ const LOGS = {
     title:'Item', addLabel:'Add item',
     fields:[
       {k:'item', label:'Item'},
+      {k:'category', label:'Category', type:'select', options:['ICT Equipment','Classroom','Science Lab','Sports','Library','Infrastructure','Transport','Office Equipment','Hall Equipment','Safety','Agriculture','Textbooks','Stationery','Other']},
       {k:'qty', label:'Quantity', type:'number'},
-      {k:'condition', label:'Condition', type:'select', options:['New','Good','Fair','Poor','Damaged']},
+      {k:'scope', label:'Scope', type:'select', options:['Class','School']},
+      {k:'className', label:'Class (only if scope = Class)', placeholder:'Form 4A'},
       {k:'location', label:'Location'},
+      {k:'condition', label:'Condition', type:'select', options:['New','Good','Fair','Poor','Damaged']},
+      {k:'dateAcquired', label:'Date acquired', type:'date'},
+      {k:'value', label:'Estimated value', placeholder:'250'},
+      {k:'serial', label:'Serial number'},
+      {k:'custodian', label:'Custodian', placeholder:'ICT Head, Bursar...'},
       {k:'notes', label:'Notes', type:'textarea'}
     ],
-    rowSummary: e=> `<strong class="row-key">${esc(e.item||'')}</strong> <span style="color:var(--muted);font-size:12px">· qty ${esc(e.qty||0)} · ${esc(e.condition||'')}${e.location?' · '+esc(e.location):''}</span>${e.notes?'<div style="font-size:12.5px;margin-top:4px">'+esc(e.notes)+'</div>':''}`
+    rowSummary: e=> {
+      const scope = (e.scope||'School').toLowerCase();
+      const badge = scope === 'class'
+        ? `<span class="badge" style="background:#E8F5E9;color:#1B5E20;font-size:11px;padding:1px 8px;border-radius:5px;margin-right:6px">📚 Class${e.className?' · '+esc(e.className):''}</span>`
+        : `<span class="badge" style="background:#E3F2FD;color:#0D47A1;font-size:11px;padding:1px 8px;border-radius:5px;margin-right:6px">🏫 School</span>`;
+      const cat = e.category ? `<span class="badge" style="background:var(--accent);color:var(--primary-darker);font-size:11px;padding:1px 8px;border-radius:5px;margin-right:6px">${esc(e.category)}</span>` : '';
+      const value = e.value ? ` · est $${esc(e.value)}` : '';
+      const date = e.dateAcquired ? ` · acquired ${fmtDate(e.dateAcquired)}` : '';
+      const serial = e.serial ? ` · SN ${esc(e.serial)}` : '';
+      const cust = e.custodian ? ` · custodian ${esc(e.custodian)}` : '';
+      return `${badge}${cat}<strong class="row-key">${esc(e.item||'')}</strong> <span style="color:var(--muted);font-size:12px">· qty ${esc(e.qty||0)} · ${esc(e.condition||'')}${e.location?' · '+esc(e.location):''}${value}${date}</span>${(serial||cust)?'<div style="font-size:12px;color:var(--muted);margin-top:2px">'+serial+cust+'</div>':''}${e.notes?'<div style="font-size:12.5px;margin-top:4px">'+esc(e.notes)+'</div>':''}`;
+    }
   },
   contacts: {
     title:'Contact', addLabel:'Add contact',
@@ -3118,6 +3145,60 @@ function makeLogRenderer(key){
   };
 }
 ['scheme','annualPlan','behaviour','parentComms','meetings','cpd','inventory','contacts','exams','staff'].forEach(k=>{ renderers[k] = makeLogRenderer(k); });
+
+/* ============================================================
+   INVENTORY — custom renderer with Class / School / Consolidated tabs
+   Overrides the default makeLogRenderer for inventory only.
+   ============================================================ */
+let _inventoryTab = 'all';
+function setInventoryTab(tab){ _inventoryTab = tab; renderers.inventory(); }
+
+function _scopeOf(e){ return ((e.scope || 'School') + '').toLowerCase(); }
+
+renderers.inventory = function(){
+  /* Sync the tab buttons' active state */
+  const tabBtns = document.querySelectorAll('#inv-tabs .lib-tab');
+  tabBtns.forEach(b => { b.classList.toggle('active', b.dataset.invTab === _inventoryTab); });
+
+  const all = state.inventory || [];
+  const classItems  = all.filter(e => _scopeOf(e) === 'class');
+  const schoolItems = all.filter(e => _scopeOf(e) === 'school');
+
+  /* Per-scope totals (qty + estimated value) */
+  const totVal = list => list.reduce((s, e) => s + (Number(e.value) || 0) * (Number(e.qty) || 1), 0);
+  const totQty = list => list.reduce((s, e) => s + (Number(e.qty) || 0), 0);
+
+  const sumEl = document.getElementById('inv-summary');
+  if(sumEl){
+    let scopeLabel = _inventoryTab === 'all' ? 'Consolidated' : _inventoryTab === 'class' ? 'Class items' : 'School items';
+    sumEl.innerHTML = `
+      <div class="stat"><div class="stat-num">${all.length}</div><div class="stat-label">All entries</div></div>
+      <div class="stat"><div class="stat-num">${classItems.length}</div><div class="stat-label">📚 Class items</div></div>
+      <div class="stat"><div class="stat-num">${schoolItems.length}</div><div class="stat-label">🏫 School items</div></div>
+      <div class="stat"><div class="stat-num">${totQty(all)}</div><div class="stat-label">Total qty</div></div>
+      <div class="stat"><div class="stat-num">$${totVal(all).toLocaleString()}</div><div class="stat-label">Est. total value</div></div>
+    `;
+  }
+
+  const filtered = _inventoryTab === 'all' ? all
+    : _inventoryTab === 'class' ? classItems
+    : schoolItems;
+
+  const target = document.getElementById('inventory-list');
+  if(!target) return;
+  if(!filtered.length){
+    const emptyMsg = _inventoryTab === 'all'
+      ? 'No inventory items yet — click + Add item, or use 📥 Import CSV to bulk-load from the template in your Downloads folder.'
+      : _inventoryTab === 'class'
+        ? 'No items tagged as Class inventory yet. Add a new item and pick Scope = Class.'
+        : 'No items tagged as School inventory yet. Add a new item and pick Scope = School.';
+    target.innerHTML = '<div class="empty-list">' + emptyMsg + '</div>';
+    return;
+  }
+  target.innerHTML = filtered.slice().reverse().map(e =>
+    `<div class="log-row" style="grid-template-columns:1fr 40px;cursor:pointer" onclick="editLog('inventory','${e.id}')"><div>${LOGS.inventory.rowSummary(e)}</div><button class="del" onclick="event.stopPropagation();delLog('inventory','${e.id}')">×</button></div>`
+  ).join('');
+};
 
 /* ---- Headmaster ---- */
 renderers.headmaster = function(){
