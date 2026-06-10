@@ -6483,6 +6483,8 @@ renderers.assessments = function(){
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         ${avg !== null ? `<span class="badge" style="background:${avg>=70?'var(--green-bg)':avg>=50?'#FFF5DC':'#FFE5E5'};color:${avg>=70?'#3a8460':avg>=50?'#9c7e1a':'#c0392b'};font-weight:800">Class avg ${avg}%</span>` : ''}
         <span style="font-size:12px;color:var(--muted);align-self:center">${filled}/${total} marked · out of ${a.total}${a.weight?' · weight '+a.weight+'%':''}</span>
+        <button class="btn btn-sm btn-primary" onclick="openMarksCSVImport('${a.id}')">📥 Import marks</button>
+        <button class="btn btn-sm btn-ghost" onclick="downloadMarksTemplate('${a.id}')" title="Download blank CSV for this assessment">📄 Template</button>
         <button class="btn btn-sm btn-ghost" onclick="editAssessment('${a.id}')">Edit</button>
         <button class="btn btn-sm btn-danger" onclick="delAssessment('${a.id}')">Delete</button>
       </div>
