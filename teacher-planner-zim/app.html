@@ -5981,6 +5981,275 @@ function renderGradeReport(){
   el.innerHTML = html;
 }
 
+/* ============================================================
+   CURRICULUM BROWSER + PAST PAPER → QUESTION BANK EXTRACTOR
+   ============================================================ */
+
+/* Open a full curriculum browser — every subject + every topic for the
+   currently selected curriculum, organised by level. Printable. */
+function openCurriculumBrowser(){
+  const curr = (state.school && state.school.curriculum) || 'zimsec';
+  const allCurr = Object.keys(SYLLABUS_PRESETS);
+  const presets = SYLLABUS_PRESETS[curr] || {};
+
+  let body = `
+    <h3>📖 Curriculum Browser</h3>
+    <p class="modal-sub">Full topic list per subject per level. Use this to plan schemes, check coverage, or print as a reference.</p>
+    <div class="field-row">
+      <div class="field"><label class="label">Curriculum</label>
+        <select class="select" id="cb-curr" onchange="renderCurriculumBrowser()">
+          ${allCurr.map(c=>`<option value="${c}" ${c===curr?'selected':''}>${c.toUpperCase()}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field" style="display:flex;align-items:flex-end">
+        <button class="btn btn-soft" style="height:40px" onclick="printCurriculumBrowser()">🖨 Print full curriculum</button>
+      </div>
+    </div>
+    <div id="cb-body" style="max-height:55vh;overflow-y:auto;padding-right:8px"></div>
+    <div class="modal-actions"><button class="btn btn-primary" onclick="closeModal()">Close</button></div>
+  `;
+  showModal(body);
+  renderCurriculumBrowser();
+}
+
+function renderCurriculumBrowser(){
+  const curr = document.getElementById('cb-curr').value;
+  const presets = SYLLABUS_PRESETS[curr] || {};
+  const levels = Object.keys(presets);
+  const qb = (state.library && state.library.questionBank) || [];
+
+  let html = '';
+  levels.forEach(lvlKey => {
+    const lvlName = (LEVELS.find(l=>l.k===lvlKey)||{}).n || lvlKey;
+    const subjects = presets[lvlKey] || {};
+    const subjKeys = Object.keys(subjects).sort();
+    const totalTopics = subjKeys.reduce((s,k)=>s+subjects[k].length, 0);
+
+    html += `<details open style="border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:#fff">
+      <summary style="padding:11px 14px;cursor:pointer;background:var(--card-tint);border-radius:10px;font-weight:800;color:var(--primary-darker);font-size:14px">
+        ${esc(lvlName)} <span style="float:right;color:var(--muted);font-weight:500;font-size:12.5px">${subjKeys.length} subjects · ${totalTopics} topics</span>
+      </summary>
+      <div style="padding:8px 14px 14px">`;
+
+    subjKeys.forEach(sn => {
+      const topics = subjects[sn];
+      const qCount = qb.filter(q => q.subject === sn && q.level === lvlKey).length;
+      html += `
+        <details style="margin-bottom:6px;border:1px solid var(--line-soft);border-radius:8px;background:var(--card-tint)">
+          <summary style="padding:8px 12px;cursor:pointer;font-weight:700;font-size:13.5px;color:var(--ink)">
+            ${esc(sn)} <span style="color:var(--muted);font-weight:500;font-size:12px;margin-left:6px">(${topics.length} topics${qCount?` · ${qCount} Q-bank entries`:''})</span>
+          </summary>
+          <ul style="margin:0;padding:6px 16px 12px 32px;font-size:13px;line-height:1.7;color:var(--ink)">
+            ${topics.map(t=>`<li>${esc(t)}</li>`).join('')}
+          </ul>
+        </details>`;
+    });
+
+    html += '</div></details>';
+  });
+
+  document.getElementById('cb-body').innerHTML = html || '<div class="empty-list">No subjects in this curriculum yet.</div>';
+}
+
+function printCurriculumBrowser(){
+  const curr = document.getElementById('cb-curr').value;
+  const currName = curr.toUpperCase();
+  const presets = SYLLABUS_PRESETS[curr] || {};
+  const schoolName = (state.school && state.school.name) || 'Your School';
+  const w = window.open('', '_blank');
+  if(!w){ toast('Pop-up blocked — allow pop-ups to print'); return; }
+  let body = `<!doctype html><html><head><title>${esc(currName)} Curriculum — ${esc(schoolName)}</title>
+    <style>
+      body{font-family:Georgia,serif;line-height:1.5;color:#000;margin:0;padding:34px;max-width:800px}
+      h1{color:#1A2E4F;margin:0 0 6px;font-size:24px}
+      .sub{color:#666;font-size:13px;margin-bottom:24px}
+      h2{color:#1A2E4F;font-size:17px;margin-top:24px;border-bottom:2px solid #C9A86A;padding-bottom:4px}
+      h3{color:#1A2E4F;font-size:14px;margin-top:14px}
+      ul{font-size:12.5px;line-height:1.7;color:#222}
+      .stat{color:#888;font-size:11px;font-weight:normal;margin-left:6px}
+      @media print{ body{padding:14px} }
+    </style></head><body>
+    <h1>${esc(schoolName)}</h1>
+    <div class="sub">${esc(currName)} Curriculum — Full Topic Reference · Printed ${new Date().toLocaleDateString('en-GB')}</div>`;
+
+  Object.keys(presets).forEach(lvlKey => {
+    const lvlName = (LEVELS.find(l=>l.k===lvlKey)||{}).n || lvlKey;
+    const subjects = presets[lvlKey] || {};
+    body += `<h2>${esc(lvlName)}</h2>`;
+    Object.keys(subjects).sort().forEach(sn => {
+      const topics = subjects[sn];
+      body += `<h3>${esc(sn)} <span class="stat">(${topics.length} topics)</span></h3><ul>`;
+      topics.forEach(t => { body += `<li>${esc(t)}</li>`; });
+      body += '</ul>';
+    });
+  });
+  body += '</body></html>';
+  w.document.write(body); w.document.close();
+  setTimeout(()=>w.print(), 300);
+}
+
+/* ============================================================
+   GENERATE Q-BANK FROM PAST PAPER TEXT
+   ============================================================ */
+
+function openPastePaperModal(){
+  const subjs = subjectNames();
+  showModal(`
+    <h3>📋 Add questions from past paper</h3>
+    <p class="modal-sub">Paste questions from a past paper or worksheet — anything numbered like <code>1. ...</code> <code>2. ...</code> or <code>Q1 ...</code> <code>Q2 ...</code> gets split into individual Q-Bank entries. Type the topic to tag every question.</p>
+    <div class="field-row">
+      <div class="field"><label class="label">Subject</label>
+        <select class="select" id="pp-subject"><option value="">— pick —</option>${subjs.map(n=>`<option>${esc(n)}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label class="label">Level</label>
+        <select class="select" id="pp-level"><option value="">— any —</option>${LEVELS.map(l=>`<option value="${l.k}">${esc(l.n)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="label">Topic (tag all questions with this)</label>
+        <input class="input" id="pp-topic" placeholder="e.g. Algebra, Photosynthesis">
+      </div>
+      <div class="field"><label class="label">Source / paper number</label>
+        <input class="input" id="pp-source" placeholder="e.g. ZIMSEC 2024 Paper 2">
+      </div>
+    </div>
+    <div class="field"><label class="label">Paste the paper's questions here</label>
+      <textarea class="textarea" id="pp-text" style="min-height:240px;font-family:Georgia,serif;font-size:13.5px;line-height:1.65" placeholder="1. Define photosynthesis.&#10;&#10;2. State the products of the light-dependent reaction.&#10;&#10;3. Explain how temperature affects the rate of photosynthesis."></textarea>
+      <div style="font-size:12px;color:var(--muted);margin-top:5px">Tip: open the PDF in your phone's PDF viewer, select all text, copy, then paste here. The parser handles numbered (1., Q1, Question 1) and lettered formats.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-soft" onclick="previewParsedQuestions()">👀 Preview</button>
+      <button class="btn btn-primary" onclick="savePastedQuestions()">Add to Question Bank</button>
+    </div>
+  `);
+  setTimeout(()=>document.getElementById('pp-text').focus(), 60);
+}
+
+/* Robust parser: split text into individual questions. Handles:
+   - "1." / "1)" / "1:" at line start
+   - "Q1" / "Q.1" / "Question 1"
+   - "Section A" headings (skipped)
+   - Sub-parts (a), (b) stay attached to parent */
+function parsePastPaperText(raw){
+  if(!raw) return [];
+  /* Normalise line endings + strip the noisy bits */
+  const text = raw.replace(/\r\n/g, '\n').replace(/\t/g, ' ');
+  const lines = text.split('\n');
+  const questions = [];
+  let current = null;
+
+  const startRe = /^\s*(?:Q(?:uestion)?\.?\s*)?(\d{1,3})[\.\):]\s+(.*)$/i;
+  const sectionRe = /^\s*(?:section|part)\s+[A-Z]\b/i;
+  const totalMarksRe = /^\s*\[?\s*total[: ]/i;
+
+  for (const line of lines) {
+    if (sectionRe.test(line) || totalMarksRe.test(line)) continue;
+    const m = line.match(startRe);
+    if (m) {
+      /* New question */
+      if (current && current.text.trim()) questions.push(current);
+      current = { num: parseInt(m[1], 10), text: m[2] || '' };
+    } else if (current) {
+      /* Continuation line — append to current */
+      const trimmed = line.trim();
+      if (trimmed) current.text += (current.text.endsWith('\n') ? '' : ' ') + trimmed;
+    }
+  }
+  if (current && current.text.trim()) questions.push(current);
+
+  /* Final clean-up: trim whitespace, drop any that are too short */
+  return questions
+    .map(q => ({...q, text: q.text.replace(/\s+/g, ' ').trim()}))
+    .filter(q => q.text.length >= 5);
+}
+
+function previewParsedQuestions(){
+  const text = document.getElementById('pp-text').value;
+  const parsed = parsePastPaperText(text);
+  if (!parsed.length){
+    toast('No questions detected. Check that questions start with "1." or "Q1" etc.');
+    return;
+  }
+  const html = `
+    <h3>👀 Preview: ${parsed.length} question${parsed.length===1?'':'s'} detected</h3>
+    <div style="max-height:55vh;overflow-y:auto;background:var(--card-tint);border:1px solid var(--line);border-radius:10px;padding:10px">
+      ${parsed.map((q,i)=>`
+        <div style="border-bottom:1px solid var(--line-soft);padding:7px 0;font-size:13px;line-height:1.5">
+          <strong style="color:var(--primary-darker)">Q${q.num || (i+1)}.</strong> ${esc(q.text.length > 240 ? q.text.slice(0,240)+'…' : q.text)}
+        </div>
+      `).join('')}
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="openPastePaperModal()">← Back to edit</button>
+      <button class="btn btn-primary" onclick="savePastedQuestionsFromPreview()">Save all ${parsed.length} to Q-Bank</button>
+    </div>
+  `;
+  /* Stash for next save */
+  window._pendingPpParsed = parsed;
+  window._pendingPpMeta = {
+    subject: document.getElementById('pp-subject').value,
+    level: document.getElementById('pp-level').value,
+    topic: document.getElementById('pp-topic').value.trim(),
+    source: document.getElementById('pp-source').value.trim()
+  };
+  showModal(html);
+}
+
+function savePastedQuestionsFromPreview(){
+  const parsed = window._pendingPpParsed || [];
+  const meta = window._pendingPpMeta || {};
+  if(!parsed.length){ toast('Nothing to save'); return; }
+  state.library = state.library || {pastPapers:[], schemes:[], worksheets:[], questionBank:[]};
+  state.library.questionBank = state.library.questionBank || [];
+  parsed.forEach((q,i) => {
+    state.library.questionBank.push({
+      id: 'qbpp_' + Date.now() + '_' + i,
+      subject: meta.subject || '',
+      level: meta.level || '',
+      topic: meta.topic || '',
+      question: q.text,
+      answer: '',
+      difficulty: 3,
+      source: meta.source ? 'paper:' + meta.source : 'pasted-paper'
+    });
+  });
+  save();
+  closeModal();
+  toast(`✓ Added ${parsed.length} questions to the Question Bank`);
+  delete window._pendingPpParsed;
+  delete window._pendingPpMeta;
+  if(typeof renderers.library === 'function') renderers.library();
+}
+
+function savePastedQuestions(){
+  /* Skip preview, save directly */
+  const text = document.getElementById('pp-text').value;
+  const parsed = parsePastPaperText(text);
+  if(!parsed.length){ toast('No questions detected — try the Preview button to debug'); return; }
+  window._pendingPpParsed = parsed;
+  window._pendingPpMeta = {
+    subject: document.getElementById('pp-subject').value,
+    level: document.getElementById('pp-level').value,
+    topic: document.getElementById('pp-topic').value.trim(),
+    source: document.getElementById('pp-source').value.trim()
+  };
+  savePastedQuestionsFromPreview();
+}
+
+/* Patch the Library Question Bank toolbar to add Curriculum + Past Paper buttons */
+const _origRenderLibToolbar = renderLibToolbar;
+window.renderLibToolbar = function(){
+  _origRenderLibToolbar();
+  if(_libTab !== 'questionBank') return;
+  const tb = document.getElementById('lib-toolbar');
+  if(!tb) return;
+  /* Append new buttons */
+  tb.insertAdjacentHTML('beforeend',
+    `<button class="btn btn-soft btn-sm" onclick="openCurriculumBrowser()">📖 Browse curriculum</button>
+     <button class="btn btn-soft btn-sm" onclick="openPastePaperModal()">📋 Add from past paper</button>`);
+};
+
 /* Bulk-clear all learners + related records (admin-only).
    Keeps school, profile, calendar, lessons, library, users — only wipes
    the class roster + attendance + assessment scores + behaviour log +
