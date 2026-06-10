@@ -1322,6 +1322,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
           <button class="btn btn-soft" onclick="document.getElementById('cl-csv').click()">📥 Import CSV</button>
           <input type="file" id="cl-csv" accept=".csv,text/csv" style="display:none" onchange="importClassListCSV(this)">
           <button class="btn btn-soft btn-sm" onclick="downloadClassListTemplate()">📄 CSV template</button>
+          <button class="btn btn-danger btn-sm" onclick="clearClassList()" title="Wipe the whole class list — keeps your school, profile, lessons etc.">🗑 Clear class list</button>
           <button class="btn btn-primary" onclick="openStudentEditor()">+ Add learner</button>
         </div>
       </div>
@@ -5978,6 +5979,54 @@ function renderGradeReport(){
     html += `<div class="empty-list">No daily assessments tagged for ${esc(gradeName)} yet. When teachers tag their daily reflection with this grade, it shows up here.</div>`;
   }
   el.innerHTML = html;
+}
+
+/* Bulk-clear all learners + related records (admin-only).
+   Keeps school, profile, calendar, lessons, library, users — only wipes
+   the class roster + attendance + assessment scores + behaviour log +
+   parent comms. */
+function clearClassList(){
+  if(typeof isAdmin === 'function' && !isAdmin()){
+    toast('Admin only — only the Super Admin can clear the class list.');
+    return;
+  }
+  const count = (state.students || []).length;
+  if(count === 0){ toast('Class list is already empty.'); return; }
+  showModal(`
+    <h3>🗑 Clear the entire class list?</h3>
+    <p>This will permanently delete:</p>
+    <ul style="font-size:13.5px;line-height:1.7;padding-left:22px;color:var(--ink)">
+      <li><strong>${count}</strong> learner${count===1?'':'s'} + their profiles, subjects, sports, parent info</li>
+      <li>Every attendance record (Present / Absent / Late entries)</li>
+      <li>Every assessment score linked to learners</li>
+      <li>Every behaviour / discipline entry</li>
+      <li>Every logged parent contact</li>
+    </ul>
+    <p style="background:#FFF5DC;border:1px solid #E8C97A;border-radius:9px;padding:11px;font-size:13px;line-height:1.5"><strong>Your school info, profile, timetable, lessons, library, calendar, users, and settings are NOT affected.</strong> Just the class list and what's attached to learners.</p>
+    <p style="color:#c0392b;font-weight:700;text-align:center;margin-top:10px">There is no undo.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmClearClassList()">Yes, clear all ${count} learner${count===1?'':'s'}</button>
+    </div>
+  `);
+}
+function confirmClearClassList(){
+  state.students = [];
+  state.attendance = {};
+  /* Clear assessment scores but keep the assessments (so the categories stay) */
+  (state.assessments || []).forEach(a => { if(a.scores) a.scores = {}; });
+  state.behaviour = [];
+  state.parentComms = [];
+  /* Clean up cleaner roster slots that referenced learners */
+  Object.keys(state.cleaners || {}).forEach(wk => {
+    Object.keys(state.cleaners[wk]).forEach(d => {
+      state.cleaners[wk][d] = [];
+    });
+  });
+  save();
+  closeModal();
+  if(typeof renderers.classlist === 'function') renderers.classlist();
+  toast('✓ Class list cleared. Ready for a fresh import or new learners.');
 }
 
 /* ============================================================
