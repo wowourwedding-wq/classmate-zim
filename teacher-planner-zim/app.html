@@ -3367,7 +3367,7 @@ renderers.materials = function(){
     ? list.map(r=>{
         const isFile = r.file && r.file.startsWith('data:');
         const action = isFile
-          ? `<a class="btn btn-soft btn-sm" href="${r.file}" target="_blank" rel="noopener" title="Tap to open in new tab">📂 Open</a>`
+          ? `<button class="btn btn-soft btn-sm" onclick="openMaterialProtected('${esc(r.id)}')" title="Open protected in-app viewer">📂 Open</button>`
           : (r.url ? `<a class="btn btn-soft btn-sm" href="${esc(r.url)}" target="_blank" rel="noopener">🔗 Open link</a>` : '');
         return `<div class="log-row" style="grid-template-columns:1fr auto 40px;align-items:center">
           <div>
@@ -4823,7 +4823,7 @@ function renderLibrary(){
 }
 
 function renderPastPaperRow(p){
-  const attach = p.file ? `<a class="btn btn-soft btn-sm" href="${p.file}" target="_blank" rel="noopener" title="Open in new tab">📂</a>` : (p.url ? `<a class="btn btn-soft btn-sm" href="${esc(p.url)}" target="_blank" rel="noopener">🔗</a>` : '');
+  const attach = p.file ? `<button class="btn btn-soft btn-sm" onclick="openLibPaperProtected('${esc(p.id)}')" title="Open protected viewer">📂</button>` : (p.url ? `<a class="btn btn-soft btn-sm" href="${esc(p.url)}" target="_blank" rel="noopener" title="External link">🔗</a>` : '');
   return `<div class="lib-item">
     <div class="lib-icon">📄</div>
     <div class="lib-body">
@@ -4835,7 +4835,7 @@ function renderPastPaperRow(p){
   </div>`;
 }
 function renderSchemeRow(s){
-  const attach = s.file ? `<a class="btn btn-soft btn-sm" href="${s.file}" target="_blank" rel="noopener" title="Open in new tab">📂</a>` : (s.url ? `<a class="btn btn-soft btn-sm" href="${esc(s.url)}" target="_blank" rel="noopener">🔗</a>` : '');
+  const attach = s.file ? `<button class="btn btn-soft btn-sm" onclick="openLibSchemeProtected('${esc(s.id)}')" title="Open protected viewer">📂</button>` : (s.url ? `<a class="btn btn-soft btn-sm" href="${esc(s.url)}" target="_blank" rel="noopener" title="External link">🔗</a>` : '');
   return `<div class="lib-item">
     <div class="lib-icon">📋</div>
     <div class="lib-body">
@@ -5994,6 +5994,140 @@ function renderGradeReport(){
     html += `<div class="empty-list">No daily assessments tagged for ${esc(gradeName)} yet. When teachers tag their daily reflection with this grade, it shows up here.</div>`;
   }
   el.innerHTML = html;
+}
+
+/* ============================================================
+   PROTECTED IN-APP MATERIAL VIEWER
+   Files appear only inside the app — view-only, no download dialog,
+   no right-click save, PDF toolbar hidden, watermarked with teacher
+   + school name so screenshots are traceable.
+   ============================================================ */
+
+function detectFileKind(dataUrl, fileName){
+  /* dataUrl is a data:... URL; fileName helps for extension */
+  if(!dataUrl) return 'unknown';
+  const ext = (fileName||'').split('.').pop().toLowerCase();
+  if(dataUrl.startsWith('data:application/pdf') || ext === 'pdf') return 'pdf';
+  if(dataUrl.startsWith('data:image/') || ['png','jpg','jpeg','gif','webp','svg'].includes(ext)) return 'image';
+  if(dataUrl.startsWith('data:text/') || ['txt','md','csv','log'].includes(ext)) return 'text';
+  if(['doc','docx','ppt','pptx','xls','xlsx'].includes(ext)) return 'office';
+  return 'unknown';
+}
+
+/* Decode a data: URL into the raw text it carries (for .txt rendering) */
+function decodeDataUrlAsText(dataUrl){
+  try {
+    const comma = dataUrl.indexOf(',');
+    if(comma === -1) return '';
+    const meta = dataUrl.slice(0, comma);
+    const data = dataUrl.slice(comma + 1);
+    if(meta.endsWith(';base64')) return decodeURIComponent(escape(atob(data)));
+    return decodeURIComponent(data);
+  } catch(e){ return ''; }
+}
+
+function openProtectedViewer(opts){
+  const { title, file, fileName, externalUrl, subject, sourceLabel } = opts;
+  const teacher = (state.teacher && state.teacher.name) || (currentUser && currentUser()?.name) || 'Teacher';
+  const school = (state.school && state.school.name) || 'School';
+  const stampDate = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+  const watermark = `${esc(teacher)} · ${esc(school)} · ${esc(stampDate)}`;
+
+  /* External URLs: still external, but flag them */
+  if(externalUrl && !file){
+    showModal(`
+      <h3>🔗 ${esc(title)}</h3>
+      <p class="modal-sub">This material links to an external website. Opening it leaves the protected app view.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <a class="btn btn-primary" href="${esc(externalUrl)}" target="_blank" rel="noopener" onclick="closeModal()">Open external link →</a>
+      </div>
+    `);
+    return;
+  }
+
+  if(!file){ toast('No file to view'); return; }
+
+  const kind = detectFileKind(file, fileName);
+  let viewerHtml = '';
+  if(kind === 'pdf'){
+    /* iframe with #toolbar=0&navpanes=0 hides Chrome's download/print buttons.
+       sandbox attribute blocks downloads from inside the PDF. */
+    viewerHtml = `<iframe src="${file}#toolbar=0&navpanes=0&scrollbar=1" style="width:100%;height:72vh;border:none;border-radius:8px;background:#fff" sandbox="allow-scripts allow-same-origin"></iframe>`;
+  } else if(kind === 'image'){
+    viewerHtml = `<img src="${file}" alt="${esc(title)}" style="max-width:100%;max-height:72vh;display:block;margin:0 auto;border-radius:8px;user-drag:none;-webkit-user-drag:none;pointer-events:none">`;
+  } else if(kind === 'text'){
+    const txt = decodeDataUrlAsText(file);
+    viewerHtml = `<pre style="white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px;font-family:Georgia,serif;font-size:13.5px;line-height:1.65;color:#000;max-height:72vh;overflow-y:auto;user-select:none">${esc(txt)}</pre>`;
+  } else {
+    viewerHtml = `<div style="background:var(--card-tint);border:1px solid var(--line);border-radius:8px;padding:30px;text-align:center;font-size:14px;color:var(--ink)">
+      <div style="font-size:42px;margin-bottom:8px">📄</div>
+      <div style="font-weight:700;color:var(--primary-darker);margin-bottom:6px">${esc(fileName||title)}</div>
+      <div style="color:var(--muted);font-size:13px">In-app preview not available for this file type. Ask the uploader to convert to PDF, image, or text.</div>
+    </div>`;
+  }
+
+  const html = `
+    <div id="protected-viewer" oncontextmenu="return false" onselectstart="${kind==='text'?'return true':'return false'}" style="position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px">
+        <div>
+          <h3 style="margin:0;font-size:17px">${esc(title)}</h3>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">${subject?esc(subject)+' · ':''}${sourceLabel?esc(sourceLabel)+' · ':''}<strong>📵 View-only · protected content</strong></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal()" style="flex-shrink:0">✕ Close</button>
+      </div>
+      <div style="position:relative;border-radius:8px;overflow:hidden">
+        ${viewerHtml}
+        <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center">
+          <div style="transform:rotate(-30deg);font-size:42px;color:rgba(26,46,79,0.07);font-weight:900;letter-spacing:.1em;font-family:Arial,sans-serif;text-align:center;white-space:nowrap;user-select:none">CLASSMATE<br>${watermark}</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11.5px;color:var(--muted);text-align:center">
+        🔒 Material protected · Watermarked with viewer identity · No download · Screenshots traceable
+      </div>
+    </div>
+  `;
+  showModal(html);
+}
+
+/* Wrapper used by Materials list rows */
+function openMaterialProtected(id){
+  const m = (state.resources||[]).find(r => r.id === id);
+  if(!m){ toast('Material not found'); return; }
+  openProtectedViewer({
+    title: m.name || 'Untitled material',
+    file: m.file || null,
+    fileName: m.fileName || m.name || '',
+    externalUrl: !m.file && m.url ? m.url : null,
+    subject: m.subject || '',
+    sourceLabel: m.type ? m.type + (m.year ? ' · ' + m.year : '') : (m.year || '')
+  });
+}
+
+/* Wrappers for Library past papers + schemes */
+function openLibPaperProtected(id){
+  const p = (state.library && state.library.pastPapers || []).find(x => x.id === id);
+  if(!p){ toast('Paper not found'); return; }
+  openProtectedViewer({
+    title: p.title || 'Past paper',
+    file: p.file || null,
+    fileName: p.fileName || p.title || '',
+    externalUrl: !p.file && p.url ? p.url : null,
+    subject: p.subject || '',
+    sourceLabel: [p.examBoard, p.year, p.paperNumber].filter(Boolean).join(' · ')
+  });
+}
+function openLibSchemeProtected(id){
+  const s = (state.library && state.library.schemes || []).find(x => x.id === id);
+  if(!s){ toast('Scheme not found'); return; }
+  openProtectedViewer({
+    title: s.title || 'Scheme of work',
+    file: s.file || null,
+    fileName: s.fileName || s.title || '',
+    externalUrl: !s.file && s.url ? s.url : null,
+    subject: s.subject || '',
+    sourceLabel: [s.term, s.year].filter(Boolean).join(' · ')
+  });
 }
 
 /* ============================================================
