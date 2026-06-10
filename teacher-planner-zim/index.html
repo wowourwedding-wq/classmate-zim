@@ -5997,6 +5997,294 @@ function renderGradeReport(){
 }
 
 /* ============================================================
+   ASSESSMENT — CSV MARK IMPORT + class-list shortcut + Performance hero
+   ============================================================ */
+
+/* Download a per-assessment marks template — every learner with an empty Mark column */
+function downloadMarksTemplate(assessmentId){
+  const a = state.assessments.find(x=>x.id===assessmentId);
+  if(!a){ toast('Assessment not found'); return; }
+  const subject = a.subject || 'Subject';
+  const total = a.total || 100;
+  const learners = (state.students || []).slice().sort(byName);
+  if(!learners.length){ toast('Add learners first'); return; }
+  const csv = 'Learner Name,Mark (out of ' + total + ')\n' +
+    learners.map(s => `"${(s.name||'').replace(/"/g,'""')}",`).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a2 = document.createElement('a');
+  a2.href = URL.createObjectURL(blob);
+  a2.download = `marks-${subject.replace(/[^A-Za-z0-9]/g,'_')}-${a.type.replace(/[^A-Za-z0-9]/g,'_')}-${a.date||''}.csv`;
+  a2.click();
+  URL.revokeObjectURL(a2.href);
+  toast('📄 Template downloaded — fill in marks, then Import CSV');
+}
+
+function openMarksCSVImport(assessmentId){
+  const a = state.assessments.find(x=>x.id===assessmentId);
+  if(!a){ toast('Assessment not found'); return; }
+  showModal(`
+    <h3>📥 Import marks from CSV — ${esc(a.subject)} ${esc(a.type)}</h3>
+    <p class="modal-sub">Two ways. Either upload a CSV file or paste the rows here. Format: <code>Learner Name,Mark</code> — one per line. Names are matched case-insensitively to your class list.</p>
+    <div class="field"><label class="label">Upload CSV file</label>
+      <input type="file" id="mk-file" accept=".csv,text/csv" class="input" onchange="loadMarksCSVFile(this,'${a.id}')">
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Don't have a template? <button type="button" class="btn btn-soft btn-sm" style="font-size:11.5px;padding:3px 8px" onclick="downloadMarksTemplate('${a.id}')">📄 Download blank template</button></div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--muted);margin:8px 0">— OR —</div>
+    <div class="field"><label class="label">Paste rows directly</label>
+      <textarea class="textarea" id="mk-text" style="min-height:180px;font-family:monospace;font-size:13px" placeholder="Tendai Moyo,75&#10;Tariro Banda,82&#10;Tatenda Sibanda,68&#10;..."></textarea>
+    </div>
+    <div id="mk-preview" style="font-size:13px;margin-top:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-soft" onclick="previewMarksCSV('${a.id}')">👀 Preview</button>
+      <button class="btn btn-primary" onclick="importMarksCSV('${a.id}')">📥 Import marks</button>
+    </div>
+  `);
+}
+
+function loadMarksCSVFile(input, assessmentId){
+  const file = input.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{ document.getElementById('mk-text').value = r.result; previewMarksCSV(assessmentId); };
+  r.readAsText(file);
+}
+
+function parseMarksCSV(text, assessmentId){
+  const a = state.assessments.find(x=>x.id===assessmentId);
+  if(!a) return {matched:[], unmatched:[], invalid:[]};
+  const rows = parseCSV(text);
+  if(!rows.length) return {matched:[], unmatched:[], invalid:[]};
+  /* If first row looks like a header (contains "name" or "mark" text), skip it */
+  const firstCells = rows[0].map(c=>c.toLowerCase());
+  const hasHeader = firstCells.some(c => /name|learner|student|mark|score/.test(c));
+  const dataRows = hasHeader ? rows.slice(1) : rows;
+
+  const students = state.students || [];
+  const findStudent = (nameRaw) => {
+    if(!nameRaw) return null;
+    const name = nameRaw.toLowerCase().trim();
+    if(!name) return null;
+    /* Exact match first */
+    let s = students.find(st => (st.name||'').toLowerCase().trim() === name);
+    if(s) return s;
+    /* Then "starts with" or "contains" */
+    s = students.find(st => (st.name||'').toLowerCase().trim().startsWith(name));
+    if(s) return s;
+    s = students.find(st => (st.name||'').toLowerCase().includes(name));
+    return s;
+  };
+
+  const matched = [], unmatched = [], invalid = [];
+  dataRows.forEach(r => {
+    if(r.every(c => !c.trim())) return;
+    const nameCell = (r[0]||'').trim();
+    const markCell = (r[1]||'').trim();
+    if(!nameCell) return;
+    const mark = Number(markCell);
+    if(isNaN(mark) || markCell === ''){
+      invalid.push({name: nameCell, raw: markCell});
+      return;
+    }
+    if(mark < 0 || mark > a.total){
+      invalid.push({name: nameCell, raw: markCell + ' (out of range 0-'+a.total+')'});
+      return;
+    }
+    const stud = findStudent(nameCell);
+    if(stud) matched.push({student: stud, mark});
+    else unmatched.push({name: nameCell, mark});
+  });
+  return {matched, unmatched, invalid};
+}
+
+function previewMarksCSV(assessmentId){
+  const text = document.getElementById('mk-text').value;
+  const result = parseMarksCSV(text, assessmentId);
+  const preview = document.getElementById('mk-preview');
+  if(!result.matched.length && !result.unmatched.length && !result.invalid.length){
+    preview.innerHTML = '<div style="color:var(--muted);font-style:italic">No rows detected. Each row should be <code>Name,Mark</code>.</div>';
+    return;
+  }
+  preview.innerHTML = `
+    <div style="background:var(--card-tint);border:1px solid var(--line);border-radius:8px;padding:9px 12px">
+      <div style="font-size:13.5px;font-weight:700;color:var(--primary-darker)">📋 ${result.matched.length} ready · ${result.unmatched.length} not found · ${result.invalid.length} invalid</div>
+      ${result.unmatched.length ? `<div style="font-size:11.5px;color:var(--amber);margin-top:5px"><strong>Not found in class list:</strong> ${result.unmatched.slice(0,5).map(u=>esc(u.name)).join(', ')}${result.unmatched.length>5?` (+${result.unmatched.length-5} more)`:''}</div>` : ''}
+      ${result.invalid.length ? `<div style="font-size:11.5px;color:var(--red);margin-top:4px"><strong>Invalid marks:</strong> ${result.invalid.slice(0,5).map(u=>esc(u.name+' → '+u.raw)).join(', ')}${result.invalid.length>5?` (+${result.invalid.length-5} more)`:''}</div>` : ''}
+    </div>`;
+}
+
+function importMarksCSV(assessmentId){
+  const text = document.getElementById('mk-text').value;
+  const result = parseMarksCSV(text, assessmentId);
+  if(!result.matched.length){
+    toast('No matchable marks — check learner names match your class list');
+    return;
+  }
+  const a = state.assessments.find(x=>x.id===assessmentId);
+  if(!a) return;
+  a.scores = a.scores || {};
+  result.matched.forEach(({student, mark}) => { a.scores[student.id] = mark; });
+  save();
+  closeModal();
+  if(typeof renderers.assessments === 'function') renderers.assessments();
+  let msg = `✓ Imported ${result.matched.length} marks`;
+  if(result.unmatched.length) msg += ` (${result.unmatched.length} not found)`;
+  if(result.invalid.length) msg += ` (${result.invalid.length} invalid)`;
+  toast(msg);
+}
+
+/* Inject Import marks + Template buttons + Class shortcut */
+const _origRenderAssessments_v2 = renderers.assessments;
+renderers.assessments = function(){
+  _origRenderAssessments_v2();
+  /* Add Import marks button to every assessment card */
+  setTimeout(()=>{
+    document.querySelectorAll('#assess-list > .card').forEach((card, i) => {
+      if(card.querySelector('.mark-import-btn')) return;
+      const a = state.assessments.slice().reverse()[i];
+      if(!a) return;
+      const head = card.querySelector('.card-head > div:last-child');
+      if(!head) return;
+      const importBtn = document.createElement('button');
+      importBtn.className = 'btn btn-soft btn-sm mark-import-btn';
+      importBtn.innerHTML = '📥 Import marks';
+      importBtn.onclick = ()=> openMarksCSVImport(a.id);
+      head.insertBefore(importBtn, head.firstChild);
+    });
+  }, 50);
+};
+
+/* Inject "+ New assessment" shortcut into Class List page header */
+function injectAssessmentShortcutInClassList(){
+  const page = document.getElementById('page-classlist');
+  if(!page) return;
+  const actions = page.querySelector('.page-actions');
+  if(!actions || actions.querySelector('.cl-assess-btn')) return;
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-soft cl-assess-btn';
+  btn.innerHTML = '🎯 New assessment';
+  btn.title = 'Create a new test/exam/exercise for this class';
+  btn.onclick = ()=> { openAssessment(); /* Modal will open */ };
+  /* Insert after Import CSV button */
+  actions.insertBefore(btn, actions.firstChild);
+}
+
+const _origRenderClasslist_v2 = renderers.classlist;
+renderers.classlist = function(){
+  if(_origRenderClasslist_v2) _origRenderClasslist_v2();
+  injectAssessmentShortcutInClassList();
+};
+
+/* Hero top performer block on Performance page */
+const _origRenderPerformance = renderers.performance;
+renderers.performance = function(){
+  if(_origRenderPerformance) _origRenderPerformance();
+  if(!state.students.length || !(state.assessments||[]).length) return;
+
+  /* Compute per-student average + per-subject leader */
+  const overall = state.students.map(s => {
+    const scores = (state.assessments||[]).flatMap(a => {
+      const sc = (a.scores||{})[s.id];
+      return sc!=null && a.total ? [100*Number(sc)/Number(a.total)] : [];
+    });
+    return {student: s, avg: scores.length ? scores.reduce((x,y)=>x+y,0)/scores.length : null, count: scores.length};
+  }).filter(r => r.avg != null).sort((a,b) => b.avg - a.avg);
+
+  if(!overall.length) return;
+
+  const top1 = overall[0];
+  const top2 = overall[1] || null;
+  const top3 = overall[2] || null;
+
+  /* Per-subject best */
+  const bySubject = {};
+  (state.assessments||[]).forEach(a => {
+    if(!a.subject) return;
+    Object.entries(a.scores||{}).forEach(([sid, sc]) => {
+      if(sc == null || !a.total) return;
+      const pct = 100 * Number(sc) / Number(a.total);
+      bySubject[a.subject] = bySubject[a.subject] || {};
+      bySubject[a.subject][sid] = bySubject[a.subject][sid] || {sum:0, n:0};
+      bySubject[a.subject][sid].sum += pct;
+      bySubject[a.subject][sid].n++;
+    });
+  });
+  const subjectLeaders = {};
+  Object.entries(bySubject).forEach(([subj, byStud]) => {
+    let bestSid = null, bestAvg = -1;
+    Object.entries(byStud).forEach(([sid, {sum, n}]) => {
+      const avg = sum / n;
+      if(avg > bestAvg){ bestAvg = avg; bestSid = sid; }
+    });
+    if(bestSid){
+      const stud = state.students.find(s => s.id === bestSid);
+      if(stud) subjectLeaders[subj] = {student: stud, avg: bestAvg};
+    }
+  });
+
+  /* Inject hero banner above existing perf-grid */
+  let hero = document.getElementById('perf-hero');
+  const page = document.getElementById('page-performance');
+  if(!hero && page){
+    hero = document.createElement('div');
+    hero.id = 'perf-hero';
+    hero.style.cssText = 'margin-bottom:18px';
+    const grid = document.getElementById('perf-grid');
+    if(grid && grid.parentNode) grid.parentNode.insertBefore(hero, grid);
+  }
+  if(!hero) return;
+
+  const initials = (n)=> (n||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  const avatarHtml = (stud, size=60, color='gold')=> {
+    if(stud.avatar) return `<div style="width:${size}px;height:${size}px;border-radius:50%;border:3px solid #C9A86A;overflow:hidden;background:#fff"><img src="${esc(stud.avatar)}" style="width:100%;height:100%;object-fit:cover"></div>`;
+    const bg = color === 'gold' ? 'linear-gradient(135deg,#C9A86A,#A6824D)' : color === 'silver' ? 'linear-gradient(135deg,#C0C0C0,#888)' : 'linear-gradient(135deg,#CD7F32,#8B5A2B)';
+    return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:${Math.round(size*0.4)}px;font-family:Georgia,serif">${esc(initials(stud.name))}</div>`;
+  };
+
+  hero.innerHTML = `
+    <div class="card" style="background:linear-gradient(135deg,#FFFCEB 0%,#FFF3D6 100%);border:2px solid #C9A86A;text-align:center">
+      <div style="font-size:11.5px;font-weight:800;color:#9c7e1a;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">🏆 Highest Performer</div>
+      <div style="display:flex;justify-content:center;align-items:flex-end;gap:24px;margin:10px 0 14px;flex-wrap:wrap">
+        ${top2 ? `<div style="text-align:center">
+          <div style="font-size:24px;line-height:1;margin-bottom:6px">🥈</div>
+          ${avatarHtml(top2.student, 48, 'silver')}
+          <div style="font-weight:700;font-size:13px;color:#1A2E4F;margin-top:6px;max-width:110px">${esc(top2.student.name)}</div>
+          <div style="font-size:18px;font-weight:800;color:#888">${Math.round(top2.avg)}%</div>
+          <div style="font-size:10px;color:var(--muted)">${top2.count} mark${top2.count===1?'':'s'}</div>
+        </div>` : ''}
+        <div style="text-align:center">
+          <div style="font-size:34px;line-height:1;margin-bottom:4px">🥇</div>
+          ${avatarHtml(top1.student, 80, 'gold')}
+          <div style="font-weight:900;font-size:16px;color:#1A2E4F;margin-top:8px;max-width:160px">${esc(top1.student.name)}</div>
+          <div style="font-size:28px;font-weight:900;color:#9c7e1a">${Math.round(top1.avg)}%</div>
+          <div style="font-size:11px;color:var(--muted)">${top1.count} mark${top1.count===1?'':'s'} · class avg</div>
+        </div>
+        ${top3 ? `<div style="text-align:center">
+          <div style="font-size:24px;line-height:1;margin-bottom:6px">🥉</div>
+          ${avatarHtml(top3.student, 48, 'bronze')}
+          <div style="font-weight:700;font-size:13px;color:#1A2E4F;margin-top:6px;max-width:110px">${esc(top3.student.name)}</div>
+          <div style="font-size:18px;font-weight:800;color:#8B5A2B">${Math.round(top3.avg)}%</div>
+          <div style="font-size:10px;color:var(--muted)">${top3.count} mark${top3.count===1?'':'s'}</div>
+        </div>` : ''}
+      </div>
+      ${Object.keys(subjectLeaders).length ? `
+        <div style="border-top:1px solid #E8C97A;margin-top:8px;padding-top:10px">
+          <div style="font-size:11px;font-weight:800;color:#9c7e1a;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Subject Leaders</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+            ${Object.entries(subjectLeaders).sort((a,b)=>a[0].localeCompare(b[0])).map(([subj, {student, avg}])=>`
+              <div style="background:#fff;border:1px solid #E8C97A;border-radius:8px;padding:6px 10px;font-size:12.5px;display:flex;gap:6px;align-items:center">
+                <strong style="color:#1A2E4F">${esc(subj)}</strong>
+                <span style="color:var(--muted)">→</span>
+                <span style="font-weight:700">${esc(student.name)}</span>
+                <span style="color:#9c7e1a;font-weight:800">${Math.round(avg)}%</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>` : ''}
+    </div>
+  `;
+};
+
+/* ============================================================
    ASSESSMENT ENHANCEMENTS — full type list, filters, summaries
    ============================================================ */
 
