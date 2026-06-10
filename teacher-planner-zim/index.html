@@ -1604,6 +1604,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
         <div><h1>Staff meetings</h1><p>Minutes template — date, type, chair, attendees, apologies, agenda, discussion, decisions, action items, next meeting.</p></div>
         <div class="page-actions">
           <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+          <button class="btn btn-soft btn-sm" onclick="showSampleMinutes()">📋 View sample</button>
           <button class="btn btn-soft btn-sm" onclick="importLogsCSV('meetings')">📥 Import CSV</button>
           <button class="btn btn-primary" onclick="addLog('meetings')">+ Add minutes</button>
         </div>
@@ -2771,6 +2772,148 @@ function markAllToday(v){
   state.attendance[today] = state.attendance[today] || {};
   state.students.forEach(s=> state.attendance[today][s.id] = v);
   save(); renderers.attendance(); toast('Marked all '+v+' for today');
+}
+
+/* ============================================================
+   STAFF MEETING MINUTES — sample letter
+   Shows a polished, complete example so teachers see the format
+   they should aim for when filling in the minutes form.
+   ============================================================ */
+function showSampleMinutes(){
+  const html = `
+    <div style="max-height:78vh;overflow-y:auto;padding-right:4px">
+      <div style="background:linear-gradient(135deg,var(--primary),var(--primary-darker));color:#fff;padding:18px 20px;border-radius:10px;margin-bottom:16px">
+        <div style="font-size:12px;opacity:0.8;font-weight:600;letter-spacing:1px">SAMPLE MINUTES — full staff meeting</div>
+        <h2 style="margin:6px 0 0;color:#fff;font-size:20px;font-weight:800">{Your School Name}</h2>
+        <div style="font-size:13px;opacity:0.85;margin-top:3px">P.O. Box 123, {Your District}, Zimbabwe</div>
+      </div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.55;background:#FFF5DC;border:1px solid #E8C97A;border-radius:8px;padding:10px 12px">
+        💡 This is a reference example. Use it as a guide for what each field of the minutes form should contain. The same file is in your Downloads as <code>classmate-staff-meeting-sample-minutes.txt</code>.
+      </p>
+
+      <table style="width:100%;font-size:13.5px;border-collapse:collapse;margin-bottom:14px">
+        <tr><td style="padding:5px 8px;font-weight:700;width:35%;color:var(--primary-darker)">Meeting type</td><td style="padding:5px 8px">Full Staff</td></tr>
+        <tr><td style="padding:5px 8px;font-weight:700;color:var(--primary-darker)">Date</td><td style="padding:5px 8px">Monday, 9 June 2026</td></tr>
+        <tr><td style="padding:5px 8px;font-weight:700;color:var(--primary-darker)">Time</td><td style="padding:5px 8px">14:30 – 16:15</td></tr>
+        <tr><td style="padding:5px 8px;font-weight:700;color:var(--primary-darker)">Venue</td><td style="padding:5px 8px">Staff Room</td></tr>
+        <tr><td style="padding:5px 8px;font-weight:700;color:var(--primary-darker)">Chair</td><td style="padding:5px 8px">Mr T. Moyo (Head)</td></tr>
+        <tr><td style="padding:5px 8px;font-weight:700;color:var(--primary-darker)">Minutes Secretary</td><td style="padding:5px 8px">Mrs N. Chiweshe (Snr Mistress)</td></tr>
+      </table>
+
+      <h3 style="color:var(--primary-darker);border-bottom:2px solid var(--accent);padding-bottom:5px;margin-top:18px">1. Attendance</h3>
+      <p style="font-size:13.5px;line-height:1.6"><strong>Present (15):</strong> Mr T. Moyo (Head), Mr J. Tafadzwa (DH Academic), Mrs P. Nyirenda (DH Admin), Mrs N. Chiweshe, Mr S. Banda, Mr B. Chinhoyi, Mr R. Chigumira, Mrs E. Mhlanga, Mr K. Mukamuri, Mrs G. Sibanda, Mr E. Dube (Bursar), Mrs M. Kanyemba, Mrs L. Mhondoro, Mr A. Munyoro, Mrs S. Mavhunga.</p>
+      <p style="font-size:13.5px;line-height:1.6"><strong>Apologies (2):</strong><br>1. Mrs L. Mahachi — at Provincial Workshop, Mutare.<br>2. Mr P. Ndlovu — bereavement.</p>
+
+      <h3 style="color:var(--primary-darker);border-bottom:2px solid var(--accent);padding-bottom:5px;margin-top:18px">2. Opening &amp; Welcome</h3>
+      <p style="font-size:13.5px;line-height:1.6">The Head welcomed all members and opened the meeting with a prayer at 14:30. He thanked staff for their commitment during the half-term break.</p>
+
+      <h3 style="color:var(--primary-darker);border-bottom:2px solid var(--accent);padding-bottom:5px;margin-top:18px">3. Confirmation of Previous Minutes</h3>
+      <p style="font-size:13.5px;line-height:1.6">The minutes of the meeting held on 19 May 2026 were read, confirmed and signed.<br>Proposed: Mr S. Banda · Seconded: Mrs E. Mhlanga.</p>
+
+      <h3 style="color:var(--primary-darker);border-bottom:2px solid var(--accent);padding-bottom:5px;margin-top:18px">4. Matters Arising</h3>
+      <p style="font-size:13.5px;line-height:1.6"><strong>4.1 Library refurbishment</strong> — Mr Mukamuri reported paint purchased. Work begins 14 June.<br><strong>4.2 Sports Day preparations</strong> — All four houses ready, points board mounted.<br><strong>4.3 Staff tea roster</strong> — in operation; members reminded to honour their weeks.</p>
+
+      <h3 style="color:var(--primary-darker);border-bottom:2px solid var(--accent);padding-bottom:5px;margin-top:18px">5. New Agenda Items</h3>
+
+      <div style="background:var(--card-tint);padding:12px 14px;border-left:3px solid var(--primary);border-radius:6px;margin-bottom:10px">
+        <strong>5.1 Form 4 ZIMSEC mock examinations</strong>
+        <p style="font-size:13.5px;line-height:1.6;margin:6px 0 0">Mr Banda tabled the schedule for 23 June – 4 July. <strong>RESOLVED:</strong></p>
+        <ol style="font-size:13.5px;line-height:1.6;margin:4px 0 0;padding-left:22px">
+          <li>Mocks will run on the proposed dates.</li>
+          <li>All Form 4 teachers must submit coverage report to HOD by Tue 16 June.</li>
+          <li>Mock papers set by HODs, moderated by DH Academic before printing.</li>
+          <li>Invigilation timetable released by Fri 19 June.</li>
+        </ol>
+      </div>
+
+      <div style="background:var(--card-tint);padding:12px 14px;border-left:3px solid var(--primary);border-radius:6px;margin-bottom:10px">
+        <strong>5.2 Discipline — late-coming</strong>
+        <p style="font-size:13.5px;line-height:1.6;margin:6px 0 0">Mrs Nyirenda reported a sharp rise in late-coming, particularly Form 2 boys. <strong>RESOLVED:</strong></p>
+        <ol style="font-size:13.5px;line-height:1.6;margin:4px 0 0;padding-left:22px">
+          <li>Senior Master to brief all classes Monday 16 June.</li>
+          <li>Late learners to attend Saturday morning study (06:30) from 21 June.</li>
+          <li>Parents of repeat offenders summoned by DH Admin.</li>
+        </ol>
+      </div>
+
+      <div style="background:var(--card-tint);padding:12px 14px;border-left:3px solid var(--primary);border-radius:6px;margin-bottom:10px">
+        <strong>5.3 Boarding — weekend menu</strong>
+        <p style="font-size:13.5px;line-height:1.6;margin:6px 0 0">Reinstate bone-in chicken on Sunday menu. Cost: ~$250/month. APPROVED. Effective Sun 22 June.</p>
+      </div>
+
+      <div style="background:var(--card-tint);padding:12px 14px;border-left:3px solid var(--primary);border-radius:6px;margin-bottom:10px">
+        <strong>5.4 Resource sharing — schemes of work</strong>
+        <p style="font-size:13.5px;line-height:1.6;margin:6px 0 0">All schemes of work to be uploaded to ClassMate library by 30 June. Mr Mukamuri to provide a 15-minute orientation in the next meeting.</p>
+      </div>
+
+      <h3 style="color:var(--primary-darker);border-bottom:2px solid var(--accent);padding-bottom:5px;margin-top:18px">6. Any Other Business (AOB)</h3>
+      <p style="font-size:13.5px;line-height:1.6"><strong>6.1</strong> School choir selected for Provincial Festival, 18 July. Permission letters out by Fri 20 June.<br><strong>6.2</strong> Term 3 calendar to be circulated Fri 13 June.</p>
+
+      <h3 style="color:var(--primary-darker);border-bottom:2px solid var(--accent);padding-bottom:5px;margin-top:18px">7. Action Items</h3>
+      <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:6px">
+        <thead><tr style="background:var(--primary-darker);color:#fff"><th style="text-align:left;padding:7px 9px">Who</th><th style="text-align:left;padding:7px 9px">What</th><th style="text-align:left;padding:7px 9px">By when</th></tr></thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 9px">Mr Banda + HODs</td><td style="padding:6px 9px">Form 4 coverage report</td><td style="padding:6px 9px">Tue 16 Jun</td></tr>
+          <tr style="border-bottom:1px solid var(--line);background:var(--card-tint)"><td style="padding:6px 9px">All Form 4 teachers</td><td style="padding:6px 9px">Mocks paper submission</td><td style="padding:6px 9px">Tue 16 Jun</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 9px">Senior Master</td><td style="padding:6px 9px">Brief classes on late-coming</td><td style="padding:6px 9px">Mon 16 Jun</td></tr>
+          <tr style="border-bottom:1px solid var(--line);background:var(--card-tint)"><td style="padding:6px 9px">Mrs Mhondoro</td><td style="padding:6px 9px">Reinstate Sunday chicken</td><td style="padding:6px 9px">Sun 22 Jun</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 9px">Mr Mukamuri</td><td style="padding:6px 9px">Begin library refurb</td><td style="padding:6px 9px">Sat 14 Jun</td></tr>
+          <tr style="border-bottom:1px solid var(--line);background:var(--card-tint)"><td style="padding:6px 9px">Each HOD</td><td style="padding:6px 9px">Upload schemes to library</td><td style="padding:6px 9px">Mon 30 Jun</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 9px">Mrs Mhlanga</td><td style="padding:6px 9px">Choir festival permissions</td><td style="padding:6px 9px">Fri 20 Jun</td></tr>
+          <tr><td style="padding:6px 9px">The Head</td><td style="padding:6px 9px">Circulate Term 3 calendar</td><td style="padding:6px 9px">Fri 13 Jun</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--primary-darker);border-bottom:2px solid var(--accent);padding-bottom:5px;margin-top:18px">8. Closing &amp; Next Meeting</h3>
+      <p style="font-size:13.5px;line-height:1.6">The Head closed the meeting with a prayer at 16:15.<br><strong>Next meeting:</strong> Monday, 23 June 2026, 14:30 in the Staff Room.</p>
+
+      <div style="display:flex;gap:30px;margin-top:24px;padding-top:18px;border-top:1.5px solid var(--line)">
+        <div style="flex:1;text-align:center;font-size:12.5px">
+          <div style="border-bottom:1px solid #000;height:24px"></div>
+          <div style="margin-top:4px;font-weight:700">Mr T. Moyo</div>
+          <div style="color:var(--muted)">CHAIR (Head)</div>
+        </div>
+        <div style="flex:1;text-align:center;font-size:12.5px">
+          <div style="border-bottom:1px solid #000;height:24px"></div>
+          <div style="margin-top:4px;font-weight:700">Mrs N. Chiweshe</div>
+          <div style="color:var(--muted)">MINUTES SECRETARY</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-soft" onclick="prefillSampleMinutes()">📥 Use this as my new minutes</button>
+      <button class="btn btn-primary" onclick="closeModal()">Got it</button>
+    </div>
+  `;
+  showModal('<h3 style="margin-bottom:8px">📋 Sample staff meeting minutes</h3>' + html);
+}
+
+function prefillSampleMinutes(){
+  /* Drop the sample into the user's meetings list so they can edit it. */
+  state.meetings = state.meetings || [];
+  state.meetings.push({
+    id: 'meetings_sample_' + Date.now(),
+    date: localDateStr(new Date()),
+    startTime: '14:30',
+    endTime: '16:15',
+    type: 'Full Staff',
+    venue: 'Staff Room',
+    chair: 'Mr T. Moyo (Head)',
+    secretary: 'Mrs N. Chiweshe (Senior Mistress)',
+    attendees: 'Mr T. Moyo (Head)\nMr J. Tafadzwa (DH Academic)\nMrs P. Nyirenda (DH Admin)\nMrs N. Chiweshe\nMr S. Banda (HOD Maths)\nMr B. Chinhoyi (HOD Agric)\nMr R. Chigumira (HOD Sports)\nMrs E. Mhlanga (HOD Arts)\nMr K. Mukamuri (HOD ICT)\nMrs G. Sibanda (HOD Technical)\nMr E. Dube (Bursar)\nMrs M. Kanyemba (Secretary)\nMrs L. Mhondoro (Boarding Mistress)\nMr A. Munyoro (Senior Master)\nMrs S. Mavhunga (Sister-in-Charge)',
+    apologies: 'Mrs L. Mahachi — Provincial Workshop, Mutare\nMr P. Ndlovu — Bereavement',
+    agenda: '1. Form 4 ZIMSEC mock examinations\n2. Discipline — late-coming\n3. Boarding — weekend menu\n4. Resource sharing — schemes of work',
+    discussion: 'Mr Banda tabled the proposed mock examination schedule running 23 June – 4 July. Mrs Nyirenda reported a sharp rise in late-coming, particularly Form 2 boys. Mrs Mhondoro tabled a proposal to reinstate bone-in chicken on the Sunday menu. Mr Mukamuri proposed uploading all schemes of work to ClassMate for offline access.',
+    decisions: '5.1 Mocks will run on the proposed dates. All Form 4 teachers to submit coverage report by 16 June. Papers moderated by DH Academic.\n5.2 Senior Master to brief all classes Monday. Late learners attend Saturday morning study from 21 June. Parents of repeat offenders summoned.\n5.3 Sunday bone-in chicken approved, $250/month budget impact. Effective 22 June.\n5.4 All schemes uploaded to ClassMate library by 30 June.',
+    actions: 'Mr Banda · Form 4 coverage report · Tue 16 Jun\nAll Form 4 teachers · Mocks paper submission · Tue 16 Jun\nSenior Master · Brief classes on late-coming · Mon 16 Jun\nMrs Mhondoro · Reinstate Sunday chicken · Sun 22 Jun\nMr Mukamuri · Begin library refurb · Sat 14 Jun\nEach HOD · Upload schemes to library · Mon 30 Jun\nMrs Mhlanga · Choir festival permissions · Fri 20 Jun\nThe Head · Circulate Term 3 calendar · Fri 13 Jun',
+    nextMeeting: '',
+    notes: 'School choir selected for Provincial Festival, 18 July. Term 3 calendar to be circulated Fri 13 June.'
+  });
+  save();
+  closeModal();
+  toast('✓ Sample minutes added to your list — open it to edit and personalise.');
+  if(typeof renderers.meetings === 'function') renderers.meetings();
 }
 
 /* ============================================================
