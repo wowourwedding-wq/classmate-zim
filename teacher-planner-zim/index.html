@@ -3195,16 +3195,21 @@ function showSubjectEnrolments(){
     return;
   }
 
+  /* Store the subject list on window so the Open register buttons can reference
+     subjects by INDEX. Embedding subject names directly in onclick="..." breaks
+     when the name contains quotes/apostrophes (the bug that froze this button). */
+  window._enrolSubjects = allSubjects;
+
   const totalLearners = state.students.length;
-  const blocks = allSubjects.map(sub => {
+  const blocks = allSubjects.map((sub, i) => {
     const rs = roster[sub].slice().sort(byName);
     const pct = totalLearners ? Math.round(100 * rs.length / totalLearners) : 0;
     return `
       <div style="background:#fff;border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:9px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
-          <div style="font-weight:800;color:var(--primary-darker);font-size:14.5px;flex:1">${esc(sub)}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;flex-wrap:wrap">
+          <div style="font-weight:800;color:var(--primary-darker);font-size:14.5px;flex:1;min-width:130px">${esc(sub)}</div>
           <div style="font-size:12px;color:var(--muted);font-weight:600">${rs.length} learner${rs.length===1?'':'s'} · ${pct}%</div>
-          <button class="btn btn-soft btn-sm" onclick="closeModal();document.getElementById('sr-subject').value=${JSON.stringify(sub)};renderers.subjectRegister()">📒 Open register</button>
+          <button class="btn btn-soft btn-sm" onclick="openSubjectRegisterFor(${i})">📒 Open register</button>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:5px">
           ${rs.map(s => `<span style="background:var(--card-tint);padding:3px 9px;border-radius:5px;font-size:12.5px">${esc(s.name)}</span>`).join('')}
@@ -3223,6 +3228,31 @@ function showSubjectEnrolments(){
       <button class="btn btn-primary" onclick="closeModal()">Done</button>
     </div>
   `);
+}
+
+/* Open the Subject Register for a specific subject — used by the cards in the
+   Enrolments modal. Takes the INDEX into window._enrolSubjects so subject
+   names with quotes/apostrophes don't break the inline onclick handler. */
+function openSubjectRegisterFor(idx){
+  const subj = (window._enrolSubjects || [])[idx];
+  if(!subj){ toast('Could not find that subject'); return; }
+  closeModal();
+  /* If not already on the Subject Register page, navigate to it first.
+     Then set the dropdown and re-render. */
+  const apply = () => {
+    const sel = document.getElementById('sr-subject');
+    if(!sel){ toast('Subject Register not ready, try again'); return; }
+    /* Make sure the option exists (populateSrSubjects runs inside renderers.subjectRegister) */
+    if(typeof populateSrSubjects === 'function') populateSrSubjects();
+    sel.value = subj;
+    renderers.subjectRegister();
+  };
+  if(currentPage !== 'subjectRegister'){
+    go('subjectRegister');
+    setTimeout(apply, 80);
+  } else {
+    apply();
+  }
 }
 
 function cycleSubjectAtt(date, subj, sid){
