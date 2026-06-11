@@ -8880,6 +8880,11 @@ function setDirectoryTab(tab){ _directoryTab = tab; renderers.directory(); }
 
 const KEY_PARENT_ROLES = ['PTA Chair','PTA Vice-Chair','PTA Treasurer','PTA Secretary','SDC Chair','SDC Treasurer','SDC Member','Class Rep','Sponsor / Donor','Old Students Assoc','Health Liaison','Religious Liaison','Transport Coordinator','Other key role'];
 
+/* Parents Board representatives get their own tab. Any role containing the
+   word "board" lands there instead of Key Parents. */
+const BOARD_REP_ROLES = ['Board Chairperson','Board Vice-Chairperson','Board Secretary','Board Treasurer','Board Member','Class Board Rep'];
+function isBoardRole(role){ return /board/i.test(role || ''); }
+
 (function wrapDirectoryForKeyParents(){
   const orig = renderers.directory;
   if(typeof orig !== 'function') return;
@@ -8898,37 +8903,50 @@ const KEY_PARENT_ROLES = ['PTA Chair','PTA Vice-Chair','PTA Treasurer','PTA Secr
       }
     }
     if(tabs){
-      const keyCount = (state.schoolParents||[]).filter(p => p.role && String(p.role).trim()).length;
+      const withRole = (state.schoolParents||[]).filter(p => p.role && String(p.role).trim());
+      const boardCount = withRole.filter(p => isBoardRole(p.role)).length;
+      const keyCount = withRole.length - boardCount;
       const allCount = (state.schoolParents||[]).length;
       tabs.innerHTML = `
         <button class="lib-tab ${_directoryTab==='all'?'active':''}" onclick="setDirectoryTab('all')">👥 All parents (${allCount})</button>
         <button class="lib-tab ${_directoryTab==='key'?'active':''}" onclick="setDirectoryTab('key')">⭐ Key parents (${keyCount})</button>
+        <button class="lib-tab ${_directoryTab==='board'?'active':''}" onclick="setDirectoryTab('board')">🏛️ Parents Board (${boardCount})</button>
       `;
     }
     /* When Key tab is active, replace the list with only key parents.
        Also inject a dedicated action bar so the user can add one or bulk-import
        Key Parents without first going through the All Parents tab. */
-    if(_directoryTab === 'key'){
+    if(_directoryTab === 'key' || _directoryTab === 'board'){
       const listEl = document.getElementById('dir-list');
       if(!listEl) return;
-      const all = (state.schoolParents || []).filter(p => p.role && String(p.role).trim());
-      const actionBar = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:var(--card-tint);border-radius:8px">
+      const isBoard = _directoryTab === 'board';
+      const all = (state.schoolParents || []).filter(p => p.role && String(p.role).trim() && isBoardRole(p.role) === isBoard);
+      const actionBar = isBoard
+        ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:var(--card-tint);border-radius:8px">
+        <button class="btn btn-primary btn-sm" onclick="addBoardRep()">+ Add Board Rep</button>
+        <button class="btn btn-soft btn-sm" onclick="openBoardRepsCSVImport()">📥 Import CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadBoardRepsTemplate()">📄 CSV template</button>
+      </div>`
+        : `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:var(--card-tint);border-radius:8px">
         <button class="btn btn-primary btn-sm" onclick="addKeyParent()">+ Add Key Parent</button>
         <button class="btn btn-soft btn-sm" onclick="openKeyParentsCSVImport()">📥 Import CSV</button>
         <button class="btn btn-ghost btn-sm" onclick="downloadKeyParentsTemplate()">📄 CSV template</button>
       </div>`;
+      const badge = isBoard ? '🏛️' : '⭐';
       listEl.innerHTML = actionBar + (all.length
         ? all.sort((a,b) => (a.role||'').localeCompare(b.role||'') || (a.parentName||'').localeCompare(b.parentName||'')).map(p => `
           <div class="log-row" style="grid-template-columns:1fr 40px;cursor:pointer;padding:11px 14px" onclick="editDirEntry('${p.id}')">
             <div>
-              <span class="badge" style="background:var(--accent);color:var(--primary-darker);padding:2px 9px;border-radius:5px;font-size:11px;font-weight:700;margin-right:6px">⭐ ${esc(p.role)}</span>
+              <span class="badge" style="background:var(--accent);color:var(--primary-darker);padding:2px 9px;border-radius:5px;font-size:11px;font-weight:700;margin-right:6px">${badge} ${esc(p.role)}</span>
               <strong class="row-key">${esc(p.parentName||'(no name)')}</strong>
               <span style="color:var(--muted);font-size:12.5px"> · ${esc(p.phone||'no phone')}${p.email?' · ✉ '+esc(p.email):''}</span>
               <div style="font-size:12.5px;color:var(--muted);margin-top:3px">${p.learnerName?'👦 '+esc(p.learnerName):''}${p.class?' · 🏫 '+esc(p.class):''}${p.notes?' · '+esc(p.notes):''}</div>
             </div>
             <button class="del" onclick="event.stopPropagation();delDirEntry('${p.id}')">×</button>
           </div>`).join('')
-        : '<div class="empty-list">No key parents yet. Tap <strong>+ Add Key Parent</strong> above, or <strong>📥 Import CSV</strong> to bulk-load PTA, SDC, sponsors and class reps from a spreadsheet.</div>');
+        : (isBoard
+          ? '<div class="empty-list">No Parents Board reps yet. Tap <strong>+ Add Board Rep</strong> above, or <strong>📥 Import CSV</strong> to bulk-load the whole board — chairperson, secretary, treasurer, members and class board reps.</div>'
+          : '<div class="empty-list">No key parents yet. Tap <strong>+ Add Key Parent</strong> above, or <strong>📥 Import CSV</strong> to bulk-load PTA, SDC, sponsors and class reps from a spreadsheet.</div>'));
     }
   };
 })();
@@ -8970,7 +8988,44 @@ function openKeyParentsCSVImport(){
   );
 }
 
-function processKeyParentsCSV(){
+/* Add a single Parents Board rep — same editor, role defaults to Board Member. */
+function addBoardRep(){
+  addDirEntry(null);
+  setTimeout(function(){
+    const roleSel = document.getElementById('dp-role');
+    if(roleSel && !roleSel.value) roleSel.value = 'Board Member';
+  }, 80);
+}
+
+/* Download a CSV template tailored to the Parents Board. */
+function downloadBoardRepsTemplate(){
+  const csv = 'Parent Name,Phone,Email,Role,Learner Name,Class,Notes\n'
+    + '"Mr P. Gumbo","+263 77 444 0004","pgumbo@example.com","Board Chairperson","Panashe Gumbo","Form 5A","Chairs termly board meetings"\n'
+    + '"Mrs S. Dube","+263 71 555 0005","sdube@example.com","Board Secretary","Sibusisiwe Dube","Form 3B","Keeps minutes"\n'
+    + '"Mr K. Moyo","+263 77 666 0006","kmoyo@example.com","Board Treasurer","Kudakwashe Moyo","Form 1A","Reviews school accounts"\n'
+    + '"Mrs R. Ncube","+263 71 777 0007","rncube@example.com","Class Board Rep","Rutendo Ncube","Form 2A","Represents Form 2 parents"\n';
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'classmate-parents-board-template.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('✓ Template downloaded — fill it in and use 📥 Import CSV');
+}
+
+function openBoardRepsCSVImport(){
+  showModal(
+    '<h3>📥 Import Parents Board from CSV</h3>'
+    + '<p style="font-size:13.5px;line-height:1.55;color:var(--ink)">Upload a CSV with these columns (extras ignored, order doesn\'t matter):</p>'
+    + '<p style="background:var(--card-tint);padding:8px 11px;border-radius:7px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--primary-darker);line-height:1.5">Parent Name, Phone, Email, Role, Learner Name, Class, Notes</p>'
+    + '<p style="font-size:12.5px;color:var(--muted);line-height:1.5">Rows without a Role are imported as <strong>Board Member</strong> so the whole file lands in the 🏛️ Parents Board tab.</p>'
+    + '<div style="margin:14px 0"><input type="file" id="kp-csv-file" accept=".csv,text/csv" style="width:100%;padding:10px;border:1.5px dashed var(--accent);border-radius:8px;background:var(--card-tint)"></div>'
+    + '<p style="font-size:12.5px;color:var(--muted)">Need a template? <a href="#" onclick="downloadBoardRepsTemplate();return false;" style="color:var(--primary);font-weight:600">Download CSV template</a></p>'
+    + '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="processKeyParentsCSV(\'Board Member\')">📥 Import</button></div>'
+  );
+}
+
+function processKeyParentsCSV(defaultRole){
   const fileEl = document.getElementById('kp-csv-file');
   const file = fileEl && fileEl.files[0];
   if(!file){ toast('Pick a CSV file first'); return; }
@@ -9008,7 +9063,8 @@ function processKeyParentsCSV(){
       const id = 'sp_kp_' + stamp + '_' + i;
       const entry = { id, parentName: name, phone: phone };
       if(iEmail   >= 0){ const v = (row[iEmail]   || '').trim(); if(v) entry.email       = v; }
-      if(iRole    >= 0){ const v = (row[iRole]    || '').trim(); if(v) entry.role        = v; }
+      const roleVal = (iRole >= 0 ? (row[iRole] || '').trim() : '') || defaultRole || '';
+      if(roleVal) entry.role = roleVal;
       if(iLearner >= 0){ const v = (row[iLearner] || '').trim(); if(v) entry.learnerName = v; }
       if(iClass   >= 0){ const v = (row[iClass]   || '').trim(); if(v) entry.class       = v; }
       if(iNotes   >= 0){ const v = (row[iNotes]   || '').trim(); if(v) entry.notes       = v; }
@@ -9039,9 +9095,15 @@ window.addDirEntry = function(id){
     const cur = id ? (state.schoolParents || []).find(x=>x.id===id) : null;
     const row = document.createElement('div');
     row.className = 'field-row';
-    row.innerHTML = '<div class="field"><label class="label">Role (makes them a Key Parent)</label><select class="select" id="dp-role">'
+    const knownRoles = KEY_PARENT_ROLES.concat(BOARD_REP_ROLES);
+    const customRole = cur && cur.role && !knownRoles.includes(cur.role) ? '<option selected>' + esc(cur.role) + '</option>' : '';
+    row.innerHTML = '<div class="field"><label class="label">Role (Key Parent or Board Rep)</label><select class="select" id="dp-role">'
       + '<option value="">— regular parent —</option>'
+      + '<optgroup label="⭐ Key parent roles">'
       + KEY_PARENT_ROLES.map(r => '<option ' + (cur && cur.role === r ? 'selected' : '') + '>' + esc(r) + '</option>').join('')
+      + '</optgroup><optgroup label="🏛️ Parents Board roles">'
+      + BOARD_REP_ROLES.map(r => '<option ' + (cur && cur.role === r ? 'selected' : '') + '>' + esc(r) + '</option>').join('')
+      + '</optgroup>' + customRole
       + '</select></div>'
       + '<div class="field"><label class="label">Email (optional)</label><input class="input" id="dp-email" value="' + (cur && cur.email ? esc(cur.email) : '') + '"></div>';
     fieldDiv.parentNode.insertBefore(row, fieldDiv);

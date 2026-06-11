@@ -9,7 +9,7 @@
                                       don't have to re-download after updates.
 */
 
-const SHELL_CACHE = 'classmate-zim-v57';
+const SHELL_CACHE = 'classmate-zim-v58';
 const PAPERS_CACHE = 'classmate-zim-papers-v1';
 const SHELL = ['./', './index.html'];
 
