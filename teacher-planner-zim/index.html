@@ -1118,6 +1118,8 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
     <nav class="sb-nav">
       <button class="sb-item" data-page="behaviour"><span class="ico">⚖️</span>Behaviour</button>
       <button class="sb-item" data-page="parentComms"><span class="ico">📞</span>Parent Comms</button>
+      <button class="sb-item" data-page="lettersSent"><span class="ico">📜</span>Letters Sent</button>
+      <button class="sb-item" data-page="leadership"><span class="ico">🎖️</span>Student Leadership</button>
       <button class="sb-item" data-page="meetings"><span class="ico">🗣️</span>Staff Meetings</button>
       <button class="sb-item" data-page="cpd"><span class="ico">🎓</span>CPD Log</button>
       <button class="sb-item" data-page="broadcast"><span class="ico">📣</span>Parent Broadcast</button>
@@ -1597,6 +1599,29 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
         <div class="page-actions"><button class="btn btn-primary" onclick="addLog('parentComms')">+ Log contact</button></div>
       </div>
       <div class="card"><div id="parentComms-list" class="log-table"></div></div>
+    </section>
+
+    <!-- LETTERS SENT -->
+    <section class="page" id="page-lettersSent" style="display:none">
+      <div class="page-head">
+        <div><span class="tag">Auto-saved</span><h1>📜 Letters sent</h1><p>Every parent broadcast you send is saved here automatically — a searchable archive of every message that went out. Tap × to remove an entry from the archive.</p></div>
+        <div class="page-actions">
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+        </div>
+      </div>
+      <div class="card"><div id="ls-list"></div></div>
+    </section>
+
+    <!-- STUDENT LEADERSHIP -->
+    <section class="page" id="page-leadership" style="display:none">
+      <div class="page-head">
+        <div><span class="tag">Roles &amp; responsibilities</span><h1>🎖️ Student leadership</h1><p>Head boys/girls, deputies, prefects, class monitors, sports &amp; house captains. Grouped by role.</p></div>
+        <div class="page-actions">
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+          <button class="btn btn-primary" onclick="assignLeadership()">+ Assign a role</button>
+        </div>
+      </div>
+      <div class="card"><div id="leadership-list"></div></div>
     </section>
 
     <!-- MEETINGS -->
@@ -2238,6 +2263,7 @@ function defaultState(){
     timetable: defaultTimetable(),
     attendance: {},
     subjectAttendance: {},
+    lettersSent: [],
     scheme: [],
     annualPlan: [],
     assessments: [],
@@ -3821,8 +3847,10 @@ function processLogsCSV(key){
     state[key] = state[key] || [];
     const stamp = Date.now();
     let added = 0, skipped = 0;
+    const newIds = [];
     rows.slice(1).forEach((row, i) => {
-      const entry = { id: key + '_csv_' + stamp + '_' + i };
+      const id = key + '_csv_' + stamp + '_' + i;
+      const entry = { id };
       let any = false;
       cfg.fields.forEach(f => {
         const ix = map[f.k];
@@ -3836,8 +3864,10 @@ function processLogsCSV(key){
       });
       if(!any){ skipped++; return; }
       state[key].push(entry);
+      newIds.push(id);
       added++;
     });
+    if(typeof recordImport === 'function') recordImport(key, newIds);
     save();
     closeModal();
     toast('✓ Imported ' + added + ' ' + cfg.title.toLowerCase() + (added === 1 ? '' : 's') + (skipped ? ' (' + skipped + ' blank rows skipped)' : ''));
@@ -5171,11 +5201,20 @@ function importDirectoryCSV(input){
 }
 function confirmDirectoryImport(rows){
   const replace = document.getElementById('dir-replace').checked;
-  if(replace) state.schoolParents = [];
+  if(replace){
+    state.schoolParents = [];
+    /* Replacing wipes prior data, so undo for this run can no longer roll back to the pre-import state.
+       Clear any stale undo record to avoid misleading the user. */
+    if(state._lastImports) delete state._lastImports.schoolParents;
+  }
   let added = 0;
+  const newIds = [];
   rows.forEach((row,i)=>{
-    state.schoolParents.push({id:'sp_'+Date.now()+'_'+(i)+'_'+(added++), parentName:row.parentName||'', phone:row.phone||'', learnerName:row.learnerName||'', class:row.class||'', notes:row.notes||''});
+    const id = 'sp_'+Date.now()+'_'+(i)+'_'+(added++);
+    state.schoolParents.push({id, parentName:row.parentName||'', phone:row.phone||'', learnerName:row.learnerName||'', class:row.class||'', notes:row.notes||''});
+    newIds.push(id);
   });
+  if(!replace && typeof recordImport === 'function') recordImport('schoolParents', newIds);
   save(); closeModal(); renderers.directory();
   toast(`Imported ${added} parent${added===1?'':'s'}` + (replace ? ' (replaced existing)' : ''));
 }
@@ -7744,11 +7783,13 @@ function processQuestionBankCSV(){
     state.library.questionBank = state.library.questionBank || [];
     let added = 0, skipped = 0;
     const stamp = Date.now();
+    const newIds = [];
     rows.slice(1).forEach((row, i) => {
       const q = (row[idx.question] || '').trim();
       if(!q){ skipped++; return; }
+      const id = 'qbcsv_' + stamp + '_' + i;
       state.library.questionBank.push({
-        id: 'qbcsv_' + stamp + '_' + i,
+        id,
         subject:    idx.subject    >= 0 ? (row[idx.subject]    || '').trim() : '',
         level:      idx.level      >= 0 ? (row[idx.level]      || '').trim() : '',
         grade:      idx.grade      >= 0 ? (row[idx.grade]      || '').trim() : '',
@@ -7758,8 +7799,10 @@ function processQuestionBankCSV(){
         difficulty: idx.difficulty >= 0 ? (row[idx.difficulty] || '3').trim() : '3',
         source:     idx.source     >= 0 ? (row[idx.source]     || 'csv-import').trim() : 'csv-import'
       });
+      newIds.push(id);
       added++;
     });
+    if(typeof recordImport === 'function') recordImport('questionBank', newIds);
     save();
     closeModal();
     toast('✓ Imported ' + added + ' question' + (added === 1 ? '' : 's') + (skipped ? ' (' + skipped + ' empty rows skipped)' : ''));
@@ -8296,6 +8339,363 @@ window.addEventListener('load', ()=>{ try { showRecoveryBannerIfNeeded(); } catc
 window.addEventListener('DOMContentLoaded', ()=>{ try { showRecoveryBannerIfNeeded(); } catch(e){} });
 /* Take a first snapshot 5 seconds after boot so even brand-new sessions get protected */
 setTimeout(()=>{ try { takeAutoSnapshot(); } catch(e){} }, 5000);
+
+/* ============================================================
+   UNDO LAST CSV IMPORT — universal 24h safety net.
+   recordImport(key, ids) — called by every CSV importer after a successful run
+   undoLastImport(key)    — removes only the rows from that import; prior data stays
+   undoBannerHTML(key, label) — renders the gold "Undo last import" banner
+   Surviving entries (the ones the user had before the import) are NEVER touched.
+   ============================================================ */
+function recordImport(key, ids){
+  if(!ids || !ids.length) return;
+  state._lastImports = state._lastImports || {};
+  state._lastImports[key] = { ids: ids.slice(), timestamp: Date.now(), count: ids.length };
+}
+
+function undoLastImport(key){
+  const u = (state._lastImports || {})[key];
+  if(!u){ toast('Nothing to undo'); return; }
+  if(!confirm('Undo the last import? This removes ' + u.count + ' item' + (u.count===1?'':'s') + ' you just imported. Items added before stay safe.')) return;
+  const idSet = new Set(u.ids);
+  if(key === 'questionBank'){
+    state.library = state.library || {questionBank: []};
+    state.library.questionBank = (state.library.questionBank || []).filter(q => !idSet.has(q.id));
+  } else if(key === 'schoolParents'){
+    state.schoolParents = (state.schoolParents || []).filter(e => !idSet.has(e.id));
+  } else {
+    state[key] = (state[key] || []).filter(e => !idSet.has(e.id));
+  }
+  delete state._lastImports[key];
+  save();
+  toast('✓ Undid the last import of ' + u.count + ' item' + (u.count===1?'':'s'));
+  if(key === 'questionBank' && typeof renderers.library === 'function') renderers.library();
+  else if(key === 'schoolParents' && typeof renderers.directory === 'function') renderers.directory();
+  else if(typeof renderers[key] === 'function') renderers[key]();
+}
+
+function undoBannerHTML(key, label){
+  const u = (state._lastImports || {})[key];
+  if(!u || !u.ids || !u.ids.length) return '';
+  const age = Date.now() - u.timestamp;
+  if(age > 24 * 60 * 60 * 1000) return '';
+  const ageStr = age < 60*60*1000
+    ? Math.max(1, Math.round(age/60000)) + ' min ago'
+    : Math.max(1, Math.round(age/3600000)) + 'h ago';
+  return '<div style="background:linear-gradient(135deg,#FFF5DC,#F5E5B5);border:1.5px solid #E8C97A;border-radius:9px;padding:10px 13px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px">'
+    + '<div style="font-size:22px;flex:0 0 auto">↩️</div>'
+    + '<div style="flex:1;min-width:200px;font-size:13px;line-height:1.4">'
+    + '<strong>Just imported ' + u.count + ' ' + esc(label) + (u.count===1?'':'s') + '</strong> · ' + ageStr + '<br>'
+    + '<span style="font-size:12px;color:var(--muted)">Wrong file? Undo this import — entries you had before stay untouched.</span>'
+    + '</div>'
+    + '<button class="btn btn-soft btn-sm" onclick="undoLastImport(\'' + key + '\')">↩️ Undo last import</button>'
+    + '</div>';
+}
+
+/* Wrap the existing log-style renderers so the undo banner appears at the top of each page */
+(function wrapRenderersForUndo(){
+  const labels = { inventory: 'inventory item', contacts: 'contact', meetings: 'meeting', staff: 'staff member' };
+  Object.keys(labels).forEach(k => {
+    const orig = renderers[k];
+    if(typeof orig !== 'function') return;
+    renderers[k] = function(){
+      orig.apply(this, arguments);
+      const listEl = document.getElementById(k + '-list');
+      if(!listEl) return;
+      const html = undoBannerHTML(k, labels[k]);
+      if(html){
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        if(tmp.firstChild) listEl.insertBefore(tmp.firstChild, listEl.firstChild);
+      }
+    };
+  });
+  /* Directory uses its own renderer */
+  const _od = renderers.directory;
+  if(typeof _od === 'function'){
+    renderers.directory = function(){
+      _od.apply(this, arguments);
+      const listEl = document.getElementById('dir-list');
+      if(!listEl) return;
+      const html = undoBannerHTML('schoolParents', 'parent');
+      if(html){
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        if(tmp.firstChild) listEl.insertBefore(tmp.firstChild, listEl.firstChild);
+      }
+    };
+  }
+  /* Library — only show when on questionBank tab */
+  const _ol = renderers.library;
+  if(typeof _ol === 'function'){
+    renderers.library = function(){
+      _ol.apply(this, arguments);
+      if(typeof _libTab !== 'undefined' && _libTab === 'questionBank'){
+        const c = document.getElementById('lib-content');
+        if(!c) return;
+        const html = undoBannerHTML('questionBank', 'question');
+        if(html){
+          const tmp = document.createElement('div');
+          tmp.innerHTML = html;
+          if(tmp.firstChild) c.insertBefore(tmp.firstChild, c.firstChild);
+        }
+      }
+    };
+  }
+})();
+
+/* ============================================================
+   LETTERS SENT — auto-archive every parent broadcast that goes out.
+   Patches bcWhatsApp / bcCopySMS / bcCopyNumbers / bcExportCSV so each
+   one writes a record to state.lettersSent. Visible on the 📜 Letters Sent page.
+   ============================================================ */
+function archiveLetter(type, channel, body, recips){
+  state.lettersSent = state.lettersSent || [];
+  const names = recips.slice(0, 5).map(r => (r && (r.parentName || r.name)) || '').filter(Boolean);
+  const summary = names.join(', ') + (recips.length > 5 ? ' + ' + (recips.length - 5) + ' more' : '');
+  state.lettersSent.unshift({
+    id: 'ls_' + Date.now() + '_' + Math.floor(performance.now() % 9999),
+    type: type, channel: channel, body: body,
+    recipientCount: recips.length,
+    recipientNames: summary || '(no recipients captured)',
+    timestamp: Date.now(),
+    date: localDateStr(new Date())
+  });
+  save();
+}
+
+(function wrapBroadcastSenders(){
+  const targets = [
+    { name: 'bcWhatsApp', channel: 'WhatsApp' },
+    { name: 'bcCopySMS',  channel: 'SMS gateway CSV' },
+    { name: 'bcCopyNumbers', channel: 'Numbers (clipboard)' },
+    { name: 'bcExportCSV',  channel: 'CSV download' }
+  ];
+  targets.forEach(function(t){
+    const orig = window[t.name];
+    if(typeof orig !== 'function') return;
+    window[t.name] = function(){
+      orig.apply(this, arguments);
+      try {
+        const body = ((document.getElementById('bc-body')||{}).value || '').trim();
+        const recips = typeof bcRecipients === 'function' ? bcRecipients() : [];
+        if(body && recips.length){
+          archiveLetter('Parent Broadcast', t.channel, body, recips);
+        }
+      } catch(e){ /* never block the user's send if archiving fails */ }
+    };
+  });
+})();
+
+renderers.lettersSent = function(){
+  const list = state.lettersSent || [];
+  const el = document.getElementById('ls-list');
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML = '<div class="empty-list">No letters sent yet. Anything sent from <strong>📣 Parent Broadcast</strong> is saved here automatically.</div>';
+    return;
+  }
+  const groups = {};
+  list.forEach(l => { (groups[l.date] = groups[l.date] || []).push(l); });
+  const dates = Object.keys(groups).sort().reverse();
+  el.innerHTML = dates.map(d => `
+    <div style="font-weight:800;color:var(--primary-darker);font-size:13px;padding:8px 0 6px;border-bottom:1.5px solid var(--accent);margin-bottom:8px">${fmtDateLong(d)}</div>
+    ${groups[d].map(l => `<div style="background:#fff;border:1px solid var(--line);border-radius:9px;padding:13px;margin-bottom:10px">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:7px;flex-wrap:wrap">
+        <span class="badge" style="background:var(--accent);color:var(--primary-darker);padding:2px 9px;border-radius:5px;font-size:11.5px;font-weight:700">${esc(l.type)}</span>
+        <span style="font-size:12.5px;color:var(--muted)">via ${esc(l.channel)}</span>
+        <span style="font-size:12.5px;color:var(--muted)">· to ${l.recipientCount} recipient${l.recipientCount===1?'':'s'}</span>
+        <span style="flex:1"></span>
+        <button class="btn btn-ghost btn-sm" onclick="deleteLetter('${l.id}')" title="Delete from archive">×</button>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);line-height:1.5;white-space:pre-wrap;background:var(--card-tint);padding:10px 12px;border-radius:8px">${esc(l.body)}</div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:6px">→ ${esc(l.recipientNames)}</div>
+    </div>`).join('')}
+  `).join('');
+};
+
+function deleteLetter(id){
+  if(!confirm('Delete this letter from the archive?')) return;
+  state.lettersSent = (state.lettersSent || []).filter(l => l.id !== id);
+  save(); renderers.lettersSent();
+  toast('Letter removed from archive');
+}
+
+/* ============================================================
+   STUDENT LEADERSHIP — head boy/girl, deputies, prefects, monitors,
+   sports/house captains. Stored as student.leadership (string).
+   ============================================================ */
+const LEADERSHIP_ROLES = ['Head Boy','Head Girl','Deputy Head Boy','Deputy Head Girl','Senior Prefect','Prefect','Class Monitor','Library Prefect','Sports Captain','House Captain','Music Captain','Chapel Prefect','Tuck Shop Prefect','Dining Hall Prefect','Boarding Prefect'];
+
+renderers.leadership = function(){
+  const el = document.getElementById('leadership-list');
+  if(!el) return;
+  const students = (state.students || []).filter(s => s.leadership && String(s.leadership).trim());
+  if(!students.length){
+    el.innerHTML = '<div class="empty-list">No leadership roles assigned yet. Tap <strong>+ Assign a role</strong> to add a head boy/girl, prefect, monitor or captain.</div>';
+    return;
+  }
+  const groups = {};
+  students.forEach(s => { (groups[s.leadership] = groups[s.leadership] || []).push(s); });
+  /* Order: known roles first in canonical order, then any custom roles alphabetically */
+  const known = LEADERSHIP_ROLES.filter(r => groups[r]);
+  const custom = Object.keys(groups).filter(r => !LEADERSHIP_ROLES.includes(r)).sort();
+  const roleOrder = known.concat(custom);
+  el.innerHTML = roleOrder.map(role => `
+    <div style="margin-bottom:14px">
+      <div style="font-weight:800;color:var(--primary-darker);font-size:14px;padding:6px 0;border-bottom:1.5px solid var(--accent);margin-bottom:8px">
+        🎖️ ${esc(role)} <span style="float:right;font-size:12px;color:var(--muted);font-weight:600">${groups[role].length}</span>
+      </div>
+      ${groups[role].slice().sort(byName).map(s => `<div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:6px;padding:8px 10px;background:var(--card-tint);border-radius:6px;margin-bottom:5px">
+        <div>
+          <strong style="font-size:13.5px">${esc(s.name)}</strong>
+          ${(s.classGrade||s.class)?`<span style="color:var(--muted);font-size:12px;margin-left:7px">${esc(s.classGrade || s.class)}</span>`:''}
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="assignLeadership('${s.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="clearLeadership('${s.id}')" title="Remove from leadership">×</button>
+      </div>`).join('')}
+    </div>
+  `).join('');
+};
+
+function assignLeadership(studentId){
+  const list = (state.students || []).slice().sort(byName);
+  if(!list.length){ toast('Add learners to your Class List first'); return; }
+  const cur = studentId ? list.find(x => x.id === studentId) : null;
+  const studentOptions = list.map(x =>
+    `<option value="${esc(x.id)}" ${cur && cur.id === x.id ? 'selected' : ''}>${esc(x.name)}${(x.classGrade||x.class)?' · '+esc(x.classGrade || x.class):''}</option>`
+  ).join('');
+  const roleOptions = LEADERSHIP_ROLES.map(r =>
+    `<option ${cur && cur.leadership === r ? 'selected' : ''}>${esc(r)}</option>`
+  ).join('');
+  showModal(`
+    <h3>🎖️ Assign leadership role</h3>
+    <div class="field-row">
+      <div class="field"><label class="label">Learner</label><select class="select" id="ld-student">${studentOptions}</select></div>
+      <div class="field"><label class="label">Role</label><select class="select" id="ld-role"><option value="">— pick —</option>${roleOptions}</select></div>
+    </div>
+    <div class="field"><label class="label">Custom role (overrides the pick above)</label><input class="input" id="ld-custom" placeholder="e.g. Drama Captain" value="${cur && cur.leadership && !LEADERSHIP_ROLES.includes(cur.leadership) ? esc(cur.leadership) : ''}"></div>
+    <p style="font-size:12.5px;color:var(--muted);line-height:1.5">Save the same learner with a new role to update — they only appear once in the leadership list (no duplicates).</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLeadership()">Save</button>
+    </div>
+  `);
+}
+
+function saveLeadership(){
+  const sid = (document.getElementById('ld-student')||{}).value;
+  const custom = ((document.getElementById('ld-custom')||{}).value || '').trim();
+  const picked = (document.getElementById('ld-role')||{}).value || '';
+  const role = custom || picked;
+  if(!sid){ toast('Pick a learner'); return; }
+  if(!role){ toast('Pick or type a role'); return; }
+  const s = (state.students||[]).find(x => x.id === sid);
+  if(!s){ toast('Learner not found'); return; }
+  s.leadership = role;
+  save(); closeModal(); renderers.leadership(); toast('✓ ' + s.name + ' set as ' + role);
+}
+
+function clearLeadership(studentId){
+  const s = (state.students||[]).find(x => x.id === studentId);
+  if(!s) return;
+  if(!confirm('Remove ' + s.name + ' from the leadership list?')) return;
+  delete s.leadership;
+  save(); renderers.leadership();
+}
+
+/* ============================================================
+   KEY PARENTS TAB on the School Directory — separates regular parents
+   from key parents who hold a role (PTA Chair, SDC Treasurer, Class Rep,
+   Sponsor, etc.). Wraps the existing directory renderer to add tabs.
+   ============================================================ */
+let _directoryTab = 'all';
+function setDirectoryTab(tab){ _directoryTab = tab; renderers.directory(); }
+
+const KEY_PARENT_ROLES = ['PTA Chair','PTA Vice-Chair','PTA Treasurer','PTA Secretary','SDC Chair','SDC Treasurer','SDC Member','Class Rep','Sponsor / Donor','Old Students Assoc','Health Liaison','Religious Liaison','Transport Coordinator','Other key role'];
+
+(function wrapDirectoryForKeyParents(){
+  const orig = renderers.directory;
+  if(typeof orig !== 'function') return;
+  renderers.directory = function(){
+    orig.apply(this, arguments);
+    /* Add tab strip above the filter row if not already there */
+    let tabs = document.getElementById('dir-tabs');
+    if(!tabs){
+      const filterRow = (document.getElementById('dir-filter-class')||{}).closest && document.getElementById('dir-filter-class').closest('.field-row');
+      if(filterRow){
+        tabs = document.createElement('div');
+        tabs.id = 'dir-tabs';
+        tabs.className = 'lib-tabs';
+        tabs.style.cssText = 'display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap';
+        filterRow.parentNode.insertBefore(tabs, filterRow);
+      }
+    }
+    if(tabs){
+      const keyCount = (state.schoolParents||[]).filter(p => p.role && String(p.role).trim()).length;
+      const allCount = (state.schoolParents||[]).length;
+      tabs.innerHTML = `
+        <button class="lib-tab ${_directoryTab==='all'?'active':''}" onclick="setDirectoryTab('all')">👥 All parents (${allCount})</button>
+        <button class="lib-tab ${_directoryTab==='key'?'active':''}" onclick="setDirectoryTab('key')">⭐ Key parents (${keyCount})</button>
+      `;
+    }
+    /* When Key tab is active, replace the list with only key parents */
+    if(_directoryTab === 'key'){
+      const listEl = document.getElementById('dir-list');
+      if(!listEl) return;
+      const all = (state.schoolParents || []).filter(p => p.role && String(p.role).trim());
+      listEl.innerHTML = all.length
+        ? all.sort((a,b) => (a.role||'').localeCompare(b.role||'') || (a.parentName||'').localeCompare(b.parentName||'')).map(p => `
+          <div class="log-row" style="grid-template-columns:1fr 40px;cursor:pointer;padding:11px 14px" onclick="editDirEntry('${p.id}')">
+            <div>
+              <span class="badge" style="background:var(--accent);color:var(--primary-darker);padding:2px 9px;border-radius:5px;font-size:11px;font-weight:700;margin-right:6px">⭐ ${esc(p.role)}</span>
+              <strong class="row-key">${esc(p.parentName||'(no name)')}</strong>
+              <span style="color:var(--muted);font-size:12.5px"> · ${esc(p.phone||'no phone')}${p.email?' · ✉ '+esc(p.email):''}</span>
+              <div style="font-size:12.5px;color:var(--muted);margin-top:3px">${p.learnerName?'👦 '+esc(p.learnerName):''}${p.class?' · 🏫 '+esc(p.class):''}${p.notes?' · '+esc(p.notes):''}</div>
+            </div>
+            <button class="del" onclick="event.stopPropagation();delDirEntry('${p.id}')">×</button>
+          </div>`).join('')
+        : '<div class="empty-list">No key parents yet. Open <strong>👥 All parents</strong>, tap a parent, and pick a <strong>Role</strong> (PTA Chair, SDC Treasurer, Sponsor, etc.) to add them here.</div>';
+    }
+  };
+})();
+
+/* Patch addDirEntry to inject a Role + Email field, then patch saveDirEntry to persist them. */
+const _origAddDirEntry = addDirEntry;
+window.addDirEntry = function(id){
+  _origAddDirEntry(id);
+  setTimeout(function(){
+    if(document.getElementById('dp-role')) return;
+    const notesField = document.getElementById('dp-notes');
+    if(!notesField) return;
+    const fieldDiv = notesField.parentElement;
+    if(!fieldDiv || !fieldDiv.parentNode) return;
+    const cur = id ? (state.schoolParents || []).find(x=>x.id===id) : null;
+    const row = document.createElement('div');
+    row.className = 'field-row';
+    row.innerHTML = '<div class="field"><label class="label">Role (makes them a Key Parent)</label><select class="select" id="dp-role">'
+      + '<option value="">— regular parent —</option>'
+      + KEY_PARENT_ROLES.map(r => '<option ' + (cur && cur.role === r ? 'selected' : '') + '>' + esc(r) + '</option>').join('')
+      + '</select></div>'
+      + '<div class="field"><label class="label">Email (optional)</label><input class="input" id="dp-email" value="' + (cur && cur.email ? esc(cur.email) : '') + '"></div>';
+    fieldDiv.parentNode.insertBefore(row, fieldDiv);
+  }, 30);
+};
+
+const _origSaveDirEntry = saveDirEntry;
+window.saveDirEntry = function(id, isEdit){
+  const role = (document.getElementById('dp-role')||{}).value || '';
+  const email = ((document.getElementById('dp-email')||{}).value || '').trim();
+  _origSaveDirEntry(id, isEdit);
+  /* The original saveDirEntry closed the modal; now stamp role + email onto the saved record. */
+  const p = (state.schoolParents || []).find(x => x.id === id);
+  if(p){
+    if(role) p.role = role; else delete p.role;
+    if(email) p.email = email; else delete p.email;
+    save();
+    if(typeof renderers.directory === 'function') renderers.directory();
+  }
+};
 
 function logout(){
   if(!confirm('Sign out?')) return;
