@@ -1407,6 +1407,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
         <div><span class="tag">Per-subject roll</span><h1>📒 Subject Register</h1><p>Not all learners in a class take the same subjects. Mark attendance for the learners enrolled in <em>this</em> subject only. Independent of the general class register.</p></div>
         <div class="page-actions">
           <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+          <button class="btn btn-soft btn-sm" onclick="showSubjectEnrolments()">👥 View enrolments</button>
           <button class="btn btn-primary btn-sm" onclick="markAllSubjectToday('P')">Mark all Present</button>
         </div>
       </div>
@@ -2340,7 +2341,21 @@ function go(page){
     try { renderers[page](); }
     catch(err){
       console.error('Render error on', page, err);
-      if(el) el.innerHTML = `<div class="card"><h3 style="color:var(--red);margin-bottom:10px">Something went wrong on this page</h3><p style="color:var(--muted);font-size:14px;margin-bottom:12px">${esc(err.message)}</p><button class="btn btn-ghost btn-sm" onclick="go('dashboard')">Back to dashboard</button> <button class="btn btn-danger btn-sm" onclick="confirmReset()">Reset all data</button></div>`;
+      if(el) el.innerHTML = `<div class="card">
+        <h3 style="color:var(--red);margin-bottom:10px">Something went wrong on this page</h3>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:6px">${esc(err.message)}</p>
+        <p style="color:var(--muted);font-size:12.5px;margin-bottom:14px">Your data is safe. Try the options below — none of them will delete anything.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="go('dashboard')">🏠 Back to dashboard</button>
+          <button class="btn btn-soft btn-sm" onclick="location.reload()">🔄 Reload page</button>
+          <button class="btn btn-soft btn-sm" onclick="exportData()">📥 Download backup (just in case)</button>
+        </div>
+        <details style="margin-top:14px"><summary style="cursor:pointer;font-size:12.5px;color:var(--muted)">Advanced — only if support asks</summary>
+          <div style="margin-top:10px;padding:10px 12px;background:var(--card-tint);border-radius:8px;font-size:12.5px;color:var(--muted);line-height:1.5">
+            If a developer is helping you, they may ask to see the error or a copy of your data. <strong>Do not press Reset</strong> unless you have already downloaded a backup. To wipe everything, go to Settings → Delete all data (you'll need to type your school name to confirm).
+          </div>
+        </details>
+      </div>`;
     }
   }
   window.scrollTo(0,0);
@@ -3072,21 +3087,32 @@ function srToday(){
   if(el){ el.value = localDateStr(new Date()); renderers.subjectRegister(); }
 }
 
+/* Subjects on students are stored as strings ('Mathematics'),
+   but state.subjects holds objects ({id, name, level, code}).
+   This helper returns a trimmed string from either shape. */
+function _subjName(v){
+  if(v == null) return '';
+  if(typeof v === 'string') return v.trim();
+  if(typeof v === 'object' && typeof v.name === 'string') return v.name.trim();
+  return '';
+}
+
 function populateSrSubjects(){
   const sel = document.getElementById('sr-subject');
   if(!sel) return;
   /* Collect all subjects from learner profiles (the source of truth for enrollment) */
   const all = new Set();
   (state.students || []).forEach(s => {
-    (s.subjects || []).forEach(sub => { const t = (sub || '').trim(); if(t) all.add(t); });
+    (s.subjects || []).forEach(sub => { const t = _subjName(sub); if(t) all.add(t); });
   });
-  /* Also include the teacher's own subject list as a fallback (for new schools) */
-  (state.subjects || []).forEach(sub => { const t = (sub || '').trim(); if(t) all.add(t); });
+  /* Also include the teacher's own subject list as a fallback (for new schools).
+     Items here are objects {name, ...} so we extract .name via _subjName(). */
+  (state.subjects || []).forEach(sub => { const t = _subjName(sub); if(t) all.add(t); });
   const list = Array.from(all).sort((a,b) => a.localeCompare(b));
   const cur = sel.value;
   sel.innerHTML = list.length
-    ? list.map(s => `<option value="${esc(s)}" ${s===cur?'selected':''}>${esc(s)}</option>`).join('')
-    : '<option value="">— add subjects to learners first —</option>';
+    ? '<option value="">— pick a subject —</option>' + list.map(s => `<option value="${esc(s)}" ${s===cur?'selected':''}>${esc(s)}</option>`).join('')
+    : '<option value="">— add subjects to learners first (Class List → ✏️) —</option>';
 }
 
 renderers.subjectRegister = function(){
@@ -3112,7 +3138,7 @@ renderers.subjectRegister = function(){
   }
   /* Learners enrolled in this subject (case-insensitive match against their subjects[]) */
   const subjLc = subj.toLowerCase();
-  const enrolled = state.students.filter(s => (s.subjects || []).some(x => (x || '').toLowerCase() === subjLc));
+  const enrolled = state.students.filter(s => (s.subjects || []).some(x => _subjName(x).toLowerCase() === subjLc));
   if(!enrolled.length){
     hint.style.display = 'block';
     hint.innerHTML = 'No learner has <strong>' + esc(subj) + '</strong> selected on their profile yet. Open <strong>Class List</strong> → ✏️ on a learner → add this subject.';
@@ -3143,6 +3169,62 @@ renderers.subjectRegister = function(){
   `;
 };
 
+/* Show a single modal listing every subject + the learners enrolled in it.
+   Lets the teacher see at a glance who takes what. */
+function showSubjectEnrolments(){
+  /* Build the subject -> learner roster */
+  const roster = {};
+  (state.students || []).forEach(s => {
+    (s.subjects || []).forEach(sub => {
+      const t = _subjName(sub);
+      if(!t) return;
+      (roster[t] = roster[t] || []).push(s);
+    });
+  });
+  const allSubjects = Object.keys(roster).sort((a,b) => a.localeCompare(b));
+
+  if(!allSubjects.length){
+    showModal(`
+      <h3>👥 Subject enrolments</h3>
+      <div style="background:var(--card-tint);border-radius:8px;padding:16px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.5">
+        No learner has any subjects assigned yet.<br><br>
+        Open <strong>Class List</strong> → ✏️ on a learner → tick which subjects they take, then come back here.
+      </div>
+      <div class="modal-actions"><button class="btn btn-primary" onclick="closeModal()">Got it</button></div>
+    `);
+    return;
+  }
+
+  const totalLearners = state.students.length;
+  const blocks = allSubjects.map(sub => {
+    const rs = roster[sub].slice().sort(byName);
+    const pct = totalLearners ? Math.round(100 * rs.length / totalLearners) : 0;
+    return `
+      <div style="background:#fff;border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:9px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
+          <div style="font-weight:800;color:var(--primary-darker);font-size:14.5px;flex:1">${esc(sub)}</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:600">${rs.length} learner${rs.length===1?'':'s'} · ${pct}%</div>
+          <button class="btn btn-soft btn-sm" onclick="closeModal();document.getElementById('sr-subject').value=${JSON.stringify(sub)};renderers.subjectRegister()">📒 Open register</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${rs.map(s => `<span style="background:var(--card-tint);padding:3px 9px;border-radius:5px;font-size:12.5px">${esc(s.name)}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  showModal(`
+    <h3 style="margin-bottom:4px">👥 Subject enrolments</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Each card shows who is enrolled in that subject. Tap <em>Open register</em> to mark attendance for that subject.</p>
+    <div style="max-height:60vh;overflow-y:auto;padding-right:4px">
+      ${blocks}
+    </div>
+    <div class="modal-actions" style="margin-top:10px">
+      <button class="btn btn-primary" onclick="closeModal()">Done</button>
+    </div>
+  `);
+}
+
 function cycleSubjectAtt(date, subj, sid){
   state.subjectAttendance = state.subjectAttendance || {};
   state.subjectAttendance[date] = state.subjectAttendance[date] || {};
@@ -3163,7 +3245,7 @@ function markAllSubjectToday(v){
   state.subjectAttendance[date][subj] = state.subjectAttendance[date][subj] || {};
   const subjLc = subj.toLowerCase();
   state.students
-    .filter(s => (s.subjects || []).some(x => (x || '').toLowerCase() === subjLc))
+    .filter(s => (s.subjects || []).some(x => _subjName(x).toLowerCase() === subjLc))
     .forEach(s => { state.subjectAttendance[date][subj][s.id] = v; });
   save(); renderers.subjectRegister();
   toast('Marked all ' + v + ' for ' + subj + ' on ' + fmtDate(date));
