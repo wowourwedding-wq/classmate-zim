@@ -3372,7 +3372,7 @@ renderers.performance = function(){
   const atRisk = avgByStudent.filter(x=> (x.avg!=null && x.avg<50) || (x.attRate!=null && x.attRate<80));
 
   document.getElementById('perf-grid').innerHTML = `
-    <div class="perf-box"><h4>🏆 Top performers</h4>${top.length ? top.map(s=>`<div class="perf-row"><span class="nm">${esc(s.name)}</span><span class="vl">${Math.round(s.avg)}% · ${s.assessCount} marks</span></div>`).join('') : '<div class="empty-list">No marks yet.</div>'}</div>
+    <div class="perf-box"><h4>🏆 Top performers</h4>${top.length ? top.map(s=>`<div class="perf-row"><span class="nm">${esc(s.name)}</span><span class="vl">${Math.round(s.avg)}% avg · ${s.assessCount} assessment${s.assessCount===1?'':'s'}</span></div>`).join('') : '<div class="empty-list">No marks yet.</div>'}</div>
     <div class="perf-box"><h4>⚠️ At-risk learners</h4>${atRisk.length ? atRisk.map(s=>`<div class="perf-row"><span class="nm">${esc(s.name)}</span><span class="vl" style="color:var(--red)">${s.avg!=null?Math.round(s.avg)+'%':'—'}${s.attRate!=null?' · '+Math.round(s.attRate)+'% att':''}</span></div>`).join('') : '<div class="empty-list">No learners flagged.</div>'}</div>
     <div class="perf-box"><h4>📉 Needs support</h4>${bottom.length ? bottom.map(s=>`<div class="perf-row"><span class="nm">${esc(s.name)}</span><span class="vl">${Math.round(s.avg)}%</span></div>`).join('') : '<div class="empty-list">No marks yet.</div>'}</div>
     <div class="perf-box"><h4>📊 Class summary</h4>
