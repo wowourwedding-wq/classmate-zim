@@ -8688,6 +8688,62 @@ function clearLeadership(studentId){
   save(); renderers.leadership();
 }
 
+/* Show a CSV in a modal with multiple ways to get it out — copy, email, save.
+   Useful when the user can't find downloads on their phone. */
+function showCSVExportModal(opts){
+  const title = opts.title || 'Export CSV';
+  const filename = opts.filename || 'export.csv';
+  const csv = opts.csv || '';
+  const helpText = opts.helpText || 'Copy, email it to yourself, or save as a file. Pick whichever is easiest.';
+  const subjectLine = opts.subjectLine || 'ClassMate CSV — ' + filename;
+  const rowCount = csv.split('\n').filter(l => l.trim()).length - 1;
+
+  const escCsv = (csv || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  showModal(
+    '<h3 style="margin-bottom:6px">' + esc(title) + '</h3>'
+    + '<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px">' + esc(helpText) + '</p>'
+    + '<div style="background:var(--card-tint);border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:12.5px;color:var(--primary-darker);margin-bottom:8px"><strong>' + rowCount + ' row' + (rowCount===1?'':'s') + '</strong> · filename: <code>' + esc(filename) + '</code></div>'
+    + '<textarea id="csv-export-text" readonly style="width:100%;height:200px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.5;padding:10px;border:1.5px dashed var(--accent);border-radius:8px;background:#fff;color:var(--ink);resize:vertical">' + escCsv + '</textarea>'
+    + '<div class="modal-actions" style="flex-wrap:wrap;gap:6px;margin-top:14px">'
+    + '<button class="btn btn-ghost" onclick="closeModal()">Close</button>'
+    + '<button class="btn btn-soft" onclick="csvExportCopy()">📋 Copy all</button>'
+    + '<button class="btn btn-soft" onclick="csvExportEmail(\'' + esc(subjectLine).replace(/\\/g,'\\\\').replace(/\'/g,"\\'") + '\')">📧 Email to me</button>'
+    + '<button class="btn btn-primary" onclick="csvExportSave(\'' + esc(filename).replace(/\\/g,'\\\\').replace(/\'/g,"\\'") + '\')">💾 Save as file</button>'
+    + '</div>'
+  );
+  setTimeout(() => {
+    const ta = document.getElementById('csv-export-text');
+    if(ta){ ta.focus(); ta.select(); }
+  }, 100);
+}
+function csvExportCopy(){
+  const ta = document.getElementById('csv-export-text');
+  if(!ta) return;
+  ta.select();
+  if(typeof copyToClipboard === 'function'){ copyToClipboard(ta.value); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(ta.value); }
+  else { try { document.execCommand('copy'); } catch(e){} }
+  toast('✓ Copied to clipboard — paste into Excel, WhatsApp, email, anywhere');
+}
+function csvExportEmail(subject){
+  const ta = document.getElementById('csv-export-text');
+  if(!ta) return;
+  const url = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(ta.value);
+  window.location.href = url;
+  toast('📧 Email client opening — CSV is in the body, paste into a .csv attachment if you prefer');
+}
+function csvExportSave(filename){
+  const ta = document.getElementById('csv-export-text');
+  if(!ta) return;
+  const blob = new Blob([ta.value], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('💾 Saved — check your Downloads folder. If you can\'t see it, Copy or Email instead.');
+}
+
 /* Export the user's actual class list as a leadership template — one row per
    learner, with their existing leadership role pre-filled. The teacher edits
    the Role column for whichever learners they want as leaders (leaving others
@@ -8712,13 +8768,15 @@ function exportClassListAsLeadershipTemplate(){
     const role = (s.leadership || '').replace(/"/g, '""');
     lines.push('"' + name + '","' + cls + '","' + role + '"');
   });
-  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'classmate-class-leadership-' + localDateStr(new Date()) + '.csv';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  toast('✓ Class list (' + state.students.length + ' learners) exported — fill in roles, then 📥 Import CSV');
+  const csv = lines.join('\n');
+  const filename = 'classmate-class-leadership-' + localDateStr(new Date()) + '.csv';
+  showCSVExportModal({
+    title: '📋 Class list export (' + state.students.length + ' learners)',
+    filename: filename,
+    csv: csv,
+    helpText: 'Three ways to get this out: 📋 Copy and paste into Excel · 📧 Email it to yourself · 💾 Save as a file. Fill in the Role column for the learners you want as leaders, then come back and tap 📥 Import CSV.',
+    subjectLine: 'ClassMate — class leadership template ' + localDateStr(new Date())
+  });
 }
 
 /* Keep the old generic template for backward-compat with the modal link. */
