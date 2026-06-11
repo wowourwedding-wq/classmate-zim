@@ -1639,8 +1639,8 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
         <div><span class="tag">Roles &amp; responsibilities</span><h1>🎖️ Student leadership</h1><p>Head boys/girls, deputies, prefects, class monitors, sports &amp; house captains. Grouped by role.</p></div>
         <div class="page-actions">
           <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+          <button class="btn btn-soft btn-sm" onclick="exportClassListAsLeadershipTemplate()">📋 Export class list</button>
           <button class="btn btn-soft btn-sm" onclick="openLeadershipCSVImport()">📥 Import CSV</button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadLeadershipTemplate()">📄 Template</button>
           <button class="btn btn-primary" onclick="assignLeadership()">+ Assign a role</button>
         </div>
       </div>
@@ -8688,8 +8688,46 @@ function clearLeadership(studentId){
   save(); renderers.leadership();
 }
 
-/* Download a CSV template for bulk-assigning leadership roles. */
+/* Export the user's actual class list as a leadership template — one row per
+   learner, with their existing leadership role pre-filled. The teacher edits
+   the Role column for whichever learners they want as leaders (leaving others
+   blank) and re-imports via 📥 Import CSV. This avoids typing names that have
+   to match exactly. */
+function exportClassListAsLeadershipTemplate(){
+  if(!state.students || !state.students.length){
+    toast('Add learners to your Class List first — nothing to export.');
+    return;
+  }
+  /* CSV header + comment row explaining the available roles */
+  const roles = (typeof LEADERSHIP_ROLES !== 'undefined' && LEADERSHIP_ROLES.length)
+    ? LEADERSHIP_ROLES.join(' | ')
+    : 'Head Boy | Head Girl | Deputy Head Boy | Deputy Head Girl | Senior Prefect | Prefect | Class Monitor | Library Prefect | Sports Captain | House Captain';
+  const lines = [
+    'Learner Name,Class,Role',
+    '"(suggested roles: ' + roles.replace(/"/g, '""') + ')","",""'
+  ];
+  state.students.slice().sort(byName).forEach(s => {
+    const name = (s.name || '').replace(/"/g, '""');
+    const cls  = (s.classGrade || s.class || '').replace(/"/g, '""');
+    const role = (s.leadership || '').replace(/"/g, '""');
+    lines.push('"' + name + '","' + cls + '","' + role + '"');
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'classmate-class-leadership-' + localDateStr(new Date()) + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('✓ Class list (' + state.students.length + ' learners) exported — fill in roles, then 📥 Import CSV');
+}
+
+/* Keep the old generic template for backward-compat with the modal link. */
 function downloadLeadershipTemplate(){
+  /* Prefer the live class list if any — much more useful than fake names. */
+  if(state.students && state.students.length){
+    exportClassListAsLeadershipTemplate();
+    return;
+  }
   const csv = 'Learner Name,Role\n'
     + '"Tatenda Moyo","Head Boy"\n'
     + '"Rumbi Sibanda","Head Girl"\n'
@@ -8707,7 +8745,7 @@ function downloadLeadershipTemplate(){
   a.download = 'classmate-leadership-template.csv';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  toast('✓ Template downloaded — fill in your learners + roles, then 📥 Import CSV');
+  toast('Generic template downloaded — add learners to Class List for a personalised template');
 }
 
 function openLeadershipCSVImport(){
