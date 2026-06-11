@@ -3762,7 +3762,10 @@ function renderBackupStatus(){
     icon = '✅'; color = '#2a6e44'; bg = 'var(--green-bg)';
     msg = `Last backup <strong>${days === 0 ? 'today' : days === 1 ? 'yesterday' : days + ' days ago'}</strong> (${fmtDateLong(last)}). Your data is safe.`;
   }
-  el.innerHTML = `<div style="display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:11px;background:${bg};color:${color};font-size:14px;margin-bottom:6px"><span style="font-size:22px">${icon}</span><div>${msg}</div></div>`;
+  el.innerHTML = `<div style="display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:11px;background:${bg};color:${color};font-size:14px;margin-bottom:6px"><span style="font-size:22px">${icon}</span><div>${msg}</div></div>`
+    + (typeof hasPreWipeSnapshot === 'function' && hasPreWipeSnapshot()
+      ? `<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-radius:11px;background:linear-gradient(135deg,#FBEAB5,#E8C97A);color:#5a4708;font-size:14px;margin-bottom:6px"><span style="font-size:22px">🛟</span><div style="flex:1;min-width:180px"><strong>Erased-data safety copy found.</strong> Data wiped during setup or a reset can be brought back.</div><button class="btn btn-gold btn-sm" onclick="restorePreWipeBackup()">↩️ Restore erased data</button></div>`
+      : '');
 }
 
 renderers.settings = function(){ bindInputs(); renderThemePicker(); renderEditionPicker(); renderBackupStatus(); };
@@ -4045,9 +4048,42 @@ function importData(input){
   r.readAsText(file); input.value='';
 }
 function confirmReset(){
-  showModal(`<h3>Delete all data?</h3><p class="modal-sub">This wipes everything from this device. No undo.</p><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-danger" onclick="resetAll()">Yes, delete everything</button></div>`);
+  showModal(`<h3>Delete all data?</h3><p class="modal-sub">This wipes everything from this device. A hidden safety copy is kept — you can bring it back via Settings → Restore erased data.</p><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-danger" onclick="resetAll()">Yes, delete everything</button></div>`);
 }
-function resetAll(){ localStorage.removeItem(LS_KEY); state = defaultState(); save(); closeModal(); bindInputs(); go('dashboard'); toast('All data deleted'); }
+function resetAll(){ stashPreWipeSnapshot(); localStorage.removeItem(LS_KEY); state = defaultState(); save(); closeModal(); bindInputs(); go('dashboard'); toast('All data deleted · safety copy kept in Settings → Restore'); }
+
+/* ---------- Pre-wipe safety net ----------
+   Any flow that erases the whole state (first-time setup wipe, Delete-all)
+   first stashes the current saved state under a sibling localStorage key,
+   so one wrong tap is never permanent. Restore from Settings → Backup card. */
+const PREWIPE_KEY = LS_KEY + '-prewipe';
+function stashPreWipeSnapshot(){
+  try {
+    const cur = localStorage.getItem(LS_KEY);
+    if(!cur) return;
+    /* Never replace a richer snapshot with a smaller one (e.g. wiping twice) */
+    const prev = localStorage.getItem(PREWIPE_KEY);
+    if(prev && prev.length > cur.length) return;
+    localStorage.setItem(PREWIPE_KEY, cur);
+  } catch(e){}
+}
+function hasPreWipeSnapshot(){
+  try { return !!localStorage.getItem(PREWIPE_KEY); } catch(e){ return false; }
+}
+function restorePreWipeBackup(){
+  let snap = null;
+  try { snap = localStorage.getItem(PREWIPE_KEY); } catch(e){}
+  if(!snap){ toast('No erased-data safety copy found on this device'); return; }
+  if(!confirm('Bring back the data that was on this device before it was erased? Your sign-in accounts are kept as they are now.')) return;
+  try {
+    const s = JSON.parse(snap);
+    const keepUsers = state.users, keepSession = state.currentSession;
+    state = Object.assign(defaultState(), s);
+    if(keepUsers && keepUsers.length){ state.users = keepUsers; state.currentSession = keepSession; }
+    save(); bindInputs(); go('dashboard');
+    toast('✓ Restored the data from before the erase');
+  } catch(e){ toast('The safety copy could not be read'); }
+}
 function showInstallHelp(){
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   const html = isIOS
@@ -7990,8 +8026,8 @@ function showFirstTimeSetup(){
           <input id="au-pin2" type="password" inputmode="numeric" maxlength="6" placeholder="••••" style="width:100%;padding:11px 13px;border:1.5px solid #ddd;border-radius:9px;font-size:16px;letter-spacing:.2em;text-align:center;box-sizing:border-box"></div>
       </div>
       <label style="display:flex;gap:10px;align-items:flex-start;background:#FFF5DC;border:1px solid #E8C97A;border-radius:9px;padding:11px;cursor:pointer;font-size:13px">
-        <input type="checkbox" id="au-wipe" checked style="margin-top:3px;flex-shrink:0">
-        <span><strong>Start with a clean slate</strong> — clear any existing data on this device (students, lessons, profile etc.). Recommended for a fresh setup.</span>
+        <input type="checkbox" id="au-wipe" style="margin-top:3px;flex-shrink:0">
+        <span><strong>Start with a clean slate</strong> — erase data already on this device (students, lessons, profile etc.). <strong style="color:#c0392b">Leave UNTICKED to keep everything you have already entered.</strong> A safety copy is kept either way (Settings → Restore).</span>
       </label>
       <div id="au-err" style="font-size:13px;color:#c0392b;font-weight:600;min-height:18px"></div>
       <button id="au-submit" onclick="finishFirstTimeSetup()" style="background:linear-gradient(135deg,#1A2E4F,#0F1B30);color:#fff;border:none;border-radius:10px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;margin-top:4px">🔐 Create Admin Account</button>
@@ -8018,6 +8054,7 @@ async function finishFirstTimeSetup(){
   const pinHash = await hashPin(pin);
 
   if(wipe){
+    stashPreWipeSnapshot();
     const fresh = defaultState();
     /* Keep users/session fields out of the reset and reapply */
     Object.keys(state).forEach(k=>{ if(k !== 'users' && k !== 'currentSession') state[k] = fresh[k]; });
