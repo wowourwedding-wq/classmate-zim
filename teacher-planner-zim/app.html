@@ -7996,12 +7996,19 @@ function authOverlay(html){
 }
 function closeAuthOverlay(){ const o = document.getElementById('auth-overlay'); if(o) o.remove(); }
 
+/* Per-app-open confirmation: sessionStorage clears when the app/tab is closed,
+   so every fresh open shows the login screen first — pre-filled with the
+   remembered user, one tap to enter. */
+function markAuthConfirmed(){ try { sessionStorage.setItem('cm-auth-ok','1'); } catch(e){} }
+function authConfirmedThisOpen(){ try { return sessionStorage.getItem('cm-auth-ok') === '1'; } catch(e){ return true; } }
+
 /* Boot-time gate. Call before enterApp / showWelcome. */
 function authGate(){
   state.users = state.users || [];
   if(!state.users.length){ showFirstTimeSetup(); return false; }
   const u = currentUser();
   if(!u){ showLoginScreen(); return false; }
+  if(!authConfirmedThisOpen()){ showLoginScreen(); return false; }
   return true;
 }
 
@@ -8065,6 +8072,7 @@ async function finishFirstTimeSetup(){
     pinHash, createdAt: Date.now(), lastLogin: Date.now()
   }];
   state.currentSession = {userId: state.users[0].id, role: 'admin', loginTime: Date.now()};
+  markAuthConfirmed();
   state.teacher = state.teacher || {};
   state.teacher.name = name;
   state.teacher.email = email;
@@ -8081,16 +8089,21 @@ async function finishFirstTimeSetup(){
 
 function showLoginScreen(){
   const users = state.users || [];
+  const rememberedId = state.currentSession && state.currentSession.userId;
+  const remembered = users.find(u => u.id === rememberedId) || null;
   authOverlay(`
     <div style="text-align:center;margin-bottom:18px">
       <div style="font-size:42px">🔐</div>
       <h2 style="font-size:21px;margin:6px 0 4px;color:#1A2E4F;font-weight:900">Sign in to ClassMate</h2>
-      <p style="color:#666;font-size:14px;margin:0">Pick your name + enter your PIN</p>
+      <p style="color:#666;font-size:14px;margin:0">${remembered ? 'Welcome back — one tap and you\'re in' : 'Pick your name + enter your PIN'}</p>
     </div>
     <div style="display:flex;flex-direction:column;gap:11px">
+      ${remembered ? `
+      <button id="au-quick" onclick="quickContinue()" style="background:linear-gradient(135deg,#C9A227,#E8C97A);color:#1A2E4F;border:none;border-radius:12px;padding:16px;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 4px 14px rgba(201,162,39,.35)">👋 Continue as ${esc(remembered.name)} →</button>
+      <div style="text-align:center;color:#999;font-size:12px;margin:2px 0">— or sign in as someone else —</div>` : ''}
       <div><label style="font-size:12.5px;font-weight:700;color:#1A2E4F;display:block;margin-bottom:3px">Who are you?</label>
         <select id="au-user" style="width:100%;padding:12px 13px;border:1.5px solid #ddd;border-radius:9px;font-size:14.5px;box-sizing:border-box;background:#fff">
-          ${users.map(u=>`<option value="${esc(u.id)}">${esc(u.name)} · ${esc(AUTH_ROLES[u.role]?.n||u.role)}</option>`).join('')}
+          ${users.map(u=>`<option value="${esc(u.id)}" ${remembered && u.id===remembered.id ? 'selected' : ''}>${esc(u.name)} · ${esc(AUTH_ROLES[u.role]?.n||u.role)}</option>`).join('')}
         </select></div>
       <div><label style="font-size:12.5px;font-weight:700;color:#1A2E4F;display:block;margin-bottom:3px">Your PIN</label>
         <input id="au-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" onkeypress="if(event.key==='Enter')attemptLogin()" style="width:100%;padding:13px;border:1.5px solid #ddd;border-radius:9px;font-size:18px;letter-spacing:.3em;text-align:center;box-sizing:border-box"></div>
@@ -8099,7 +8112,26 @@ function showLoginScreen(){
       <div style="text-align:center;font-size:12.5px;color:#999;margin-top:6px"><a href="#" onclick="forgotPinPrompt();return false" style="color:#1A2E4F">Forgot PIN?</a></div>
     </div>
   `);
-  setTimeout(()=>document.getElementById('au-pin').focus(), 80);
+  setTimeout(()=>{
+    const quick = document.getElementById('au-quick');
+    if(quick) quick.focus(); else document.getElementById('au-pin').focus();
+  }, 80);
+}
+
+/* One-tap entry for the remembered user (the person who signed in last on this
+   device). No PIN re-entry — switching to a DIFFERENT user still needs a PIN. */
+function quickContinue(){
+  const user = currentUser();
+  if(!user){ showLoginScreen(); return; }
+  state.currentSession.loginTime = Date.now();
+  user.lastLogin = Date.now();
+  markAuthConfirmed();
+  save();
+  closeAuthOverlay();
+  document.getElementById('view-landing').style.display = 'none';
+  document.getElementById('view-app').style.display = 'block';
+  if(typeof enterApp === 'function') enterApp();
+  setTimeout(()=>toast('Welcome back, ' + user.name), 200);
 }
 
 async function attemptLogin(){
@@ -8115,6 +8147,7 @@ async function attemptLogin(){
   if(!ok){ err('Wrong PIN — try again'); btn.disabled = false; btn.textContent = 'Sign in →'; document.getElementById('au-pin').value = ''; return; }
   state.currentSession = {userId, role: user.role, loginTime: Date.now()};
   user.lastLogin = Date.now();
+  markAuthConfirmed();
   save();
   closeAuthOverlay();
   /* Go straight into the planner, bypassing the welcome screen */
@@ -9165,6 +9198,7 @@ window.saveDirEntry = function(id, isEdit){
 function logout(){
   if(!confirm('Sign out?')) return;
   state.currentSession = null;
+  try { sessionStorage.removeItem('cm-auth-ok'); } catch(e){}
   save();
   showLoginScreen();
 }
