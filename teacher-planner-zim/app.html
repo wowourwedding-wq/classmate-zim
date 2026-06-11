@@ -689,6 +689,21 @@ h2.l-h .grad{background:linear-gradient(120deg,var(--primary-dark),var(--accent-
 #install-bar button.dismiss{background:transparent;border:none;color:var(--primary-darker);font-size:24px;line-height:1;cursor:pointer;padding:0 6px;flex:0 0 auto;font-weight:700;opacity:.65}
 #install-bar button.dismiss:hover{opacity:1}
 @media(max-width:520px){#install-bar{padding:10px 12px;font-size:13px}#install-bar span{font-size:13px}#install-bar button.install-cta{padding:8px 14px;font-size:13px}}
+/* Hide install banner + sidebar + chrome on print so worksheets, letters
+   and reports come out clean. */
+@media print {
+  #install-bar,
+  .sidebar,
+  .sb-nav,
+  .sb-header,
+  .sb-footer,
+  #recovery-banner,
+  .page-actions,
+  .page-head .tag,
+  .lib-tabs,
+  .toast { display: none !important; }
+  body, .app, .content, main { background: #fff !important; }
+}
 
 /* === iOS INSTALL MODAL — step-by-step instructions === */
 #ios-install-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
@@ -1118,7 +1133,7 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
     <nav class="sb-nav">
       <button class="sb-item" data-page="behaviour"><span class="ico">⚖️</span>Behaviour</button>
       <button class="sb-item" data-page="parentComms"><span class="ico">📞</span>Parent Comms</button>
-      <button class="sb-item" data-page="lettersSent"><span class="ico">📜</span>Letters Sent</button>
+      <button class="sb-item" data-page="lettersSent"><span class="ico">📜</span>Letters</button>
       <button class="sb-item" data-page="leadership"><span class="ico">🎖️</span>Student Leadership</button>
       <button class="sb-item" data-page="meetings"><span class="ico">🗣️</span>Staff Meetings</button>
       <button class="sb-item" data-page="cpd"><span class="ico">🎓</span>CPD Log</button>
@@ -1601,15 +1616,21 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
       <div class="card"><div id="parentComms-list" class="log-table"></div></div>
     </section>
 
-    <!-- LETTERS SENT -->
+    <!-- LETTERS — templates + sent archive in one place -->
     <section class="page" id="page-lettersSent" style="display:none">
       <div class="page-head">
-        <div><span class="tag">Auto-saved</span><h1>📜 Letters sent</h1><p>Every parent broadcast you send is saved here automatically — a searchable archive of every message that went out. Tap × to remove an entry from the archive.</p></div>
+        <div><span class="tag">Templates &amp; archive</span><h1>📜 Letters</h1><p>Ready-to-use formal letter templates plus an auto-saved archive of every letter and broadcast you send. One tab for everything letter-related.</p></div>
         <div class="page-actions">
           <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
         </div>
       </div>
-      <div class="card"><div id="ls-list"></div></div>
+      <div class="card">
+        <div class="lib-tabs" style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="lib-tab active" data-letters-tab="templates" onclick="setLettersTab('templates')">📝 Templates</button>
+          <button class="lib-tab" data-letters-tab="sent" onclick="setLettersTab('sent')">📜 Sent history</button>
+        </div>
+        <div id="ls-content"></div>
+      </div>
     </section>
 
     <!-- STUDENT LEADERSHIP -->
@@ -1618,6 +1639,8 @@ body.has-logo .mobile-bar .school-logo-mini{display:inline-block}
         <div><span class="tag">Roles &amp; responsibilities</span><h1>🎖️ Student leadership</h1><p>Head boys/girls, deputies, prefects, class monitors, sports &amp; house captains. Grouped by role.</p></div>
         <div class="page-actions">
           <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+          <button class="btn btn-soft btn-sm" onclick="openLeadershipCSVImport()">📥 Import CSV</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadLeadershipTemplate()">📄 Template</button>
           <button class="btn btn-primary" onclick="assignLeadership()">+ Assign a role</button>
         </div>
       </div>
@@ -5602,15 +5625,51 @@ function renderSchemeRow(s){
 }
 function renderWorksheetRow(w){
   const qCount = (w.questions||[]).length;
-  return `<div class="lib-item">
+  return `<div class="lib-item" style="cursor:pointer" onclick="viewWorksheet('${w.id}')">
     <div class="lib-icon">📝</div>
     <div class="lib-body">
       <div class="lib-title">${esc(w.title||'(untitled worksheet)')}</div>
       <div class="lib-meta">${w.subject?`<span>${esc(w.subject)}</span>`:''}${w.topic?`<span>📍 ${esc(w.topic)}</span>`:''}${w.level?`<span class="badge">${esc((LEVELS.find(l=>l.k===w.level)||{}).n||w.level)}</span>`:''}<span class="badge gold">${qCount} question${qCount===1?'':'s'}</span></div>
       ${w.instructions?`<div style="font-size:12.5px;margin-top:5px;color:var(--muted);font-style:italic">${esc(w.instructions)}</div>`:''}
     </div>
-    <div class="lib-actions"><button class="btn btn-gold btn-sm" onclick="printWorksheet('${w.id}',false)">🖨️ Print</button><button class="btn btn-soft btn-sm" onclick="printWorksheet('${w.id}',true)">+Marking</button><button class="btn btn-ghost btn-sm" onclick="editLibraryItem('${w.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteLibraryItem('${w.id}')">×</button></div>
+    <div class="lib-actions" onclick="event.stopPropagation()"><button class="btn btn-soft btn-sm" onclick="viewWorksheet('${w.id}')">👁 View</button><button class="btn btn-gold btn-sm" onclick="printWorksheet('${w.id}',false)">🖨️ Print</button><button class="btn btn-soft btn-sm" onclick="printWorksheet('${w.id}',true)">+Marking</button><button class="btn btn-ghost btn-sm" onclick="editLibraryItem('${w.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteLibraryItem('${w.id}')">×</button></div>
   </div>`;
+}
+
+/* View a worksheet inline — shows the title, instructions and every selected
+   question in a modal. Lets the teacher confirm the contents before printing. */
+function viewWorksheet(id){
+  const w = (state.library && state.library.worksheets || []).find(x => x.id === id);
+  if(!w){ toast('Worksheet not found'); return; }
+  const qs = w.questions || [];
+  const subj = w.subject ? '<span>' + esc(w.subject) + '</span>' : '';
+  const topic = w.topic ? '<span>📍 ' + esc(w.topic) + '</span>' : '';
+  const level = w.level ? '<span class="badge">' + esc((LEVELS.find(l=>l.k===w.level)||{}).n || w.level) + '</span>' : '';
+  const grade = w.grade ? '<span class="badge gold">' + esc((GRADES.find(g=>g.k===w.grade)||{}).n || w.grade) + '</span>' : '';
+  const qList = qs.length
+    ? '<ol style="padding-left:22px;line-height:1.7;font-size:14px;color:var(--ink)">' +
+        qs.map(q => {
+          const text = q.question || q.text || q;
+          const ans = q.answer || '';
+          const marks = q.marks ? ' <span style="color:var(--muted);font-size:12.5px;font-weight:600">[' + esc(String(q.marks)) + ' marks]</span>' : '';
+          return '<li style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed var(--line)">'
+            + '<div>' + esc(text) + marks + '</div>'
+            + (ans ? '<div style="font-size:13px;color:var(--green);margin-top:5px;line-height:1.5"><strong>✓ Answer:</strong> ' + esc(ans) + '</div>' : '')
+            + '</li>';
+        }).join('') + '</ol>'
+    : '<div class="empty-list">This worksheet has no questions yet. Open ✏️ Edit to add questions, or use <strong>Generate worksheet from topic</strong>.</div>';
+  showModal(
+    '<h3 style="margin-bottom:4px">📝 ' + esc(w.title || '(untitled worksheet)') + '</h3>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:12.5px;color:var(--muted)">' + subj + topic + level + grade + '<span class="badge">' + qs.length + ' question' + (qs.length===1?'':'s') + '</span></div>'
+    + (w.instructions ? '<p style="background:var(--card-tint);border-left:3px solid var(--accent);padding:9px 11px;border-radius:6px;font-size:13px;color:var(--ink);font-style:italic;margin-bottom:14px">' + esc(w.instructions) + '</p>' : '')
+    + '<div style="max-height:55vh;overflow-y:auto;padding-right:6px">' + qList + '</div>'
+    + '<div class="modal-actions" style="margin-top:14px">'
+    + '<button class="btn btn-ghost" onclick="closeModal()">Close</button>'
+    + '<button class="btn btn-soft" onclick="closeModal();editLibraryItem(\'' + esc(w.id) + '\')">✏️ Edit</button>'
+    + '<button class="btn btn-soft" onclick="closeModal();printWorksheet(\'' + esc(w.id) + '\',true)">🖨 Print + marking</button>'
+    + '<button class="btn btn-primary" onclick="closeModal();printWorksheet(\'' + esc(w.id) + '\',false)">🖨 Print</button>'
+    + '</div>'
+  );
 }
 function renderQuestionBank(questions){
   // Group by subject + topic
@@ -8487,12 +8546,37 @@ function archiveLetter(type, channel, body, recips){
   });
 })();
 
+let _lettersTab = 'templates';
+function setLettersTab(t){ _lettersTab = t; renderers.lettersSent(); }
+
 renderers.lettersSent = function(){
-  const list = state.lettersSent || [];
-  const el = document.getElementById('ls-list');
+  /* Sync tab active states */
+  document.querySelectorAll('[data-letters-tab]').forEach(b => {
+    b.classList.toggle('active', b.dataset.lettersTab === _lettersTab);
+  });
+  const el = document.getElementById('ls-content');
   if(!el) return;
+
+  if(_lettersTab === 'templates'){
+    /* Templates grid — same content as the old Letters modal */
+    if(typeof LETTER_TEMPLATES === 'undefined' || !LETTER_TEMPLATES.length){
+      el.innerHTML = '<div class="empty-list">Letter templates not loaded.</div>';
+      return;
+    }
+    el.innerHTML = '<p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px">' + LETTER_TEMPLATES.length + ' ready-to-use formal letters. Tap any tile to customise, save and print on your school letterhead.</p>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">'
+      + LETTER_TEMPLATES.map(t => '<button class="btn btn-soft" style="text-align:left;padding:14px 12px;height:auto;line-height:1.3;display:flex;flex-direction:column;gap:6px;align-items:flex-start" onclick="openLetterEditor(\'' + esc(t.id) + '\')">'
+        + '<div style="font-size:28px">' + t.icon + '</div>'
+        + '<div style="font-weight:800;font-size:13px;color:var(--primary-darker);text-align:left">' + esc(t.title) + '</div>'
+        + '</button>').join('')
+      + '</div>';
+    return;
+  }
+
+  /* Sent history */
+  const list = state.lettersSent || [];
   if(!list.length){
-    el.innerHTML = '<div class="empty-list">No letters sent yet. Anything sent from <strong>📣 Parent Broadcast</strong> is saved here automatically.</div>';
+    el.innerHTML = '<div class="empty-list">No letters sent or saved yet. Compose one from <strong>📝 Templates</strong> or send a broadcast from <strong>📣 Parent Broadcast</strong> — both auto-archive here.</div>';
     return;
   }
   const groups = {};
@@ -8604,6 +8688,92 @@ function clearLeadership(studentId){
   save(); renderers.leadership();
 }
 
+/* Download a CSV template for bulk-assigning leadership roles. */
+function downloadLeadershipTemplate(){
+  const csv = 'Learner Name,Role\n'
+    + '"Tatenda Moyo","Head Boy"\n'
+    + '"Rumbi Sibanda","Head Girl"\n'
+    + '"Tafadzwa Chinhoyi","Deputy Head Boy"\n'
+    + '"Nokuthula Mavhunga","Deputy Head Girl"\n'
+    + '"Kuda Madondo","Senior Prefect"\n'
+    + '"Memory Mawere","Prefect"\n'
+    + '"Brian Ndlovu","Class Monitor"\n'
+    + '"Stella Chigumira","Library Prefect"\n'
+    + '"Tonderai Hove","Sports Captain"\n'
+    + '"Blessing Karombo","House Captain"\n';
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'classmate-leadership-template.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('✓ Template downloaded — fill in your learners + roles, then 📥 Import CSV');
+}
+
+function openLeadershipCSVImport(){
+  showModal(
+    '<h3>📥 Import student leadership from CSV</h3>'
+    + '<p style="font-size:13.5px;line-height:1.55;color:var(--ink)">Upload a CSV with these columns:</p>'
+    + '<p style="background:var(--card-tint);padding:8px 11px;border-radius:7px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--primary-darker);line-height:1.5">Learner Name, Role</p>'
+    + '<p style="font-size:12.5px;color:var(--muted);line-height:1.5">Learner name is matched against your Class List (case-insensitive). Rows where no learner matches are skipped — you\'ll see how many in the result toast.</p>'
+    + '<div style="margin:14px 0"><input type="file" id="ld-csv-file" accept=".csv,text/csv" style="width:100%;padding:10px;border:1.5px dashed var(--accent);border-radius:8px;background:var(--card-tint)"></div>'
+    + '<p style="font-size:12.5px;color:var(--muted)">Need a template? <a href="#" onclick="downloadLeadershipTemplate();return false;" style="color:var(--primary);font-weight:600">Download CSV template</a></p>'
+    + '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="processLeadershipCSV()">📥 Import</button></div>'
+  );
+}
+
+function processLeadershipCSV(){
+  const fileEl = document.getElementById('ld-csv-file');
+  const file = fileEl && fileEl.files[0];
+  if(!file){ toast('Pick a CSV file first'); return; }
+  const r = new FileReader();
+  r.onload = function(){
+    const rows = parseQuestionBankCSV(r.result);
+    if(rows.length < 2){ toast('CSV has no data rows'); return; }
+    const header = rows[0].map(h => (h || '').toLowerCase().trim());
+    const iName = (function(){
+      const cands = ['learner name','learner','student name','student','name','child','pupil'];
+      for(const c of cands){ const i = header.indexOf(c); if(i >= 0) return i; }
+      return 0;  /* assume first column is the name */
+    })();
+    const iRole = (function(){
+      const cands = ['role','position','leadership','title'];
+      for(const c of cands){ const i = header.indexOf(c); if(i >= 0) return i; }
+      return 1;  /* assume second column is the role */
+    })();
+    if(!state.students || !state.students.length){
+      toast('Add learners to your Class List first');
+      return;
+    }
+    let matched = 0, unmatched = 0, blank = 0;
+    const notFound = [];
+    rows.slice(1).forEach(function(row){
+      const name = (row[iName] || '').trim();
+      const role = (row[iRole] || '').trim();
+      if(!name || !role){ blank++; return; }
+      const lc = name.toLowerCase();
+      const stud = state.students.find(s => (s.name || '').toLowerCase() === lc)
+                || state.students.find(s => (s.name || '').toLowerCase().includes(lc))
+                || state.students.find(s => lc.includes((s.name || '').toLowerCase()));
+      if(!stud){ unmatched++; notFound.push(name); return; }
+      stud.leadership = role;
+      matched++;
+    });
+    save();
+    closeModal();
+    let msg = '✓ Assigned ' + matched + ' role' + (matched === 1 ? '' : 's');
+    if(unmatched) msg += ' · ' + unmatched + ' name' + (unmatched===1?'':'s') + ' not in class list';
+    if(blank) msg += ' · ' + blank + ' blank';
+    toast(msg);
+    if(notFound.length && notFound.length <= 5){
+      setTimeout(() => toast('Not found: ' + notFound.join(', ')), 2500);
+    }
+    if(typeof renderers.leadership === 'function') renderers.leadership();
+  };
+  r.onerror = function(){ toast('Could not read the file'); };
+  r.readAsText(file);
+}
+
 /* ============================================================
    KEY PARENTS TAB on the School Directory — separates regular parents
    from key parents who hold a role (PTA Chair, SDC Treasurer, Class Rep,
@@ -8639,12 +8809,19 @@ const KEY_PARENT_ROLES = ['PTA Chair','PTA Vice-Chair','PTA Treasurer','PTA Secr
         <button class="lib-tab ${_directoryTab==='key'?'active':''}" onclick="setDirectoryTab('key')">⭐ Key parents (${keyCount})</button>
       `;
     }
-    /* When Key tab is active, replace the list with only key parents */
+    /* When Key tab is active, replace the list with only key parents.
+       Also inject a dedicated action bar so the user can add one or bulk-import
+       Key Parents without first going through the All Parents tab. */
     if(_directoryTab === 'key'){
       const listEl = document.getElementById('dir-list');
       if(!listEl) return;
       const all = (state.schoolParents || []).filter(p => p.role && String(p.role).trim());
-      listEl.innerHTML = all.length
+      const actionBar = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:var(--card-tint);border-radius:8px">
+        <button class="btn btn-primary btn-sm" onclick="addKeyParent()">+ Add Key Parent</button>
+        <button class="btn btn-soft btn-sm" onclick="openKeyParentsCSVImport()">📥 Import CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadKeyParentsTemplate()">📄 CSV template</button>
+      </div>`;
+      listEl.innerHTML = actionBar + (all.length
         ? all.sort((a,b) => (a.role||'').localeCompare(b.role||'') || (a.parentName||'').localeCompare(b.parentName||'')).map(p => `
           <div class="log-row" style="grid-template-columns:1fr 40px;cursor:pointer;padding:11px 14px" onclick="editDirEntry('${p.id}')">
             <div>
@@ -8655,10 +8832,103 @@ const KEY_PARENT_ROLES = ['PTA Chair','PTA Vice-Chair','PTA Treasurer','PTA Secr
             </div>
             <button class="del" onclick="event.stopPropagation();delDirEntry('${p.id}')">×</button>
           </div>`).join('')
-        : '<div class="empty-list">No key parents yet. Open <strong>👥 All parents</strong>, tap a parent, and pick a <strong>Role</strong> (PTA Chair, SDC Treasurer, Sponsor, etc.) to add them here.</div>';
+        : '<div class="empty-list">No key parents yet. Tap <strong>+ Add Key Parent</strong> above, or <strong>📥 Import CSV</strong> to bulk-load PTA, SDC, sponsors and class reps from a spreadsheet.</div>');
     }
   };
 })();
+
+/* Add a single Key Parent — opens the existing parent editor but defaults the
+   Role field to PTA Chair so the entry lands in the Key Parents tab. */
+function addKeyParent(){
+  addDirEntry(null);
+  setTimeout(function(){
+    const roleSel = document.getElementById('dp-role');
+    if(roleSel && !roleSel.value) roleSel.value = 'PTA Chair';
+  }, 80);
+}
+
+/* Download a CSV template tailored to Key Parents (includes the Role column). */
+function downloadKeyParentsTemplate(){
+  const csv = 'Parent Name,Phone,Email,Role,Learner Name,Class,Notes\n'
+    + '"Mr T. Chinhoyi","+263 77 111 0001","tchinhoyi@example.com","PTA Chair","Tafadzwa Chinhoyi","Form 4A","Available evenings"\n'
+    + '"Mrs N. Mavhunga","+263 71 222 0002","nmavhunga@example.com","PTA Vice-Chair","Nokuthula Mavhunga","Form 6A","Lawyer; assists with policy"\n'
+    + '"Mr R. Sibanda","+263 77 333 0003","rsibanda@example.com","PTA Treasurer","Rumbi Sibanda","Form 2B","Accountant; handles audits"\n';
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'classmate-key-parents-template.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('✓ Template downloaded — fill it in and use 📥 Import CSV');
+}
+
+function openKeyParentsCSVImport(){
+  showModal(
+    '<h3>📥 Import Key Parents from CSV</h3>'
+    + '<p style="font-size:13.5px;line-height:1.55;color:var(--ink)">Upload a CSV with these columns (extras ignored, order doesn\'t matter):</p>'
+    + '<p style="background:var(--card-tint);padding:8px 11px;border-radius:7px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--primary-darker);line-height:1.5">Parent Name, Phone, Email, Role, Learner Name, Class, Notes</p>'
+    + '<p style="font-size:12.5px;color:var(--muted);line-height:1.5">Rows without a Role become regular parents (still imported, but they\'ll show in 👥 All parents).</p>'
+    + '<div style="margin:14px 0"><input type="file" id="kp-csv-file" accept=".csv,text/csv" style="width:100%;padding:10px;border:1.5px dashed var(--accent);border-radius:8px;background:var(--card-tint)"></div>'
+    + '<p style="font-size:12.5px;color:var(--muted)">Need a template? <a href="#" onclick="downloadKeyParentsTemplate();return false;" style="color:var(--primary);font-weight:600">Download CSV template</a></p>'
+    + '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="processKeyParentsCSV()">📥 Import</button></div>'
+  );
+}
+
+function processKeyParentsCSV(){
+  const fileEl = document.getElementById('kp-csv-file');
+  const file = fileEl && fileEl.files[0];
+  if(!file){ toast('Pick a CSV file first'); return; }
+  const r = new FileReader();
+  r.onload = function(){
+    const rows = parseQuestionBankCSV(r.result);
+    if(rows.length < 2){ toast('CSV has no data rows'); return; }
+    const header = rows[0].map(h => (h || '').toLowerCase().trim());
+    const idx = function(...candidates){
+      for(const c of candidates){
+        const i = header.indexOf(c);
+        if(i >= 0) return i;
+      }
+      return -1;
+    };
+    const iName    = idx('parent name', 'parent', 'name', 'guardian');
+    const iPhone   = idx('phone', 'mobile', 'contact', 'cell');
+    const iEmail   = idx('email', 'e-mail');
+    const iRole    = idx('role');
+    const iLearner = idx('learner name', 'learner', 'child', 'student');
+    const iClass   = idx('class', 'form', 'grade');
+    const iNotes   = idx('notes', 'note');
+    if(iName < 0 && iPhone < 0){
+      toast('CSV is missing a Parent Name or Phone column');
+      return;
+    }
+    state.schoolParents = state.schoolParents || [];
+    const stamp = Date.now();
+    const newIds = [];
+    let added = 0, skipped = 0;
+    rows.slice(1).forEach(function(row, i){
+      const name = iName >= 0 ? (row[iName] || '').trim() : '';
+      const phone = iPhone >= 0 ? (row[iPhone] || '').trim() : '';
+      if(!name && !phone){ skipped++; return; }
+      const id = 'sp_kp_' + stamp + '_' + i;
+      const entry = { id, parentName: name, phone: phone };
+      if(iEmail   >= 0){ const v = (row[iEmail]   || '').trim(); if(v) entry.email       = v; }
+      if(iRole    >= 0){ const v = (row[iRole]    || '').trim(); if(v) entry.role        = v; }
+      if(iLearner >= 0){ const v = (row[iLearner] || '').trim(); if(v) entry.learnerName = v; }
+      if(iClass   >= 0){ const v = (row[iClass]   || '').trim(); if(v) entry.class       = v; }
+      if(iNotes   >= 0){ const v = (row[iNotes]   || '').trim(); if(v) entry.notes       = v; }
+      state.schoolParents.push(entry);
+      newIds.push(id);
+      added++;
+    });
+    if(typeof recordImport === 'function') recordImport('schoolParents', newIds);
+    save();
+    closeModal();
+    toast('✓ Imported ' + added + ' parent' + (added === 1 ? '' : 's') + (skipped ? ' (' + skipped + ' blank rows skipped)' : ''));
+    if(typeof renderers.directory === 'function') renderers.directory();
+  };
+  r.onerror = function(){ toast('Could not read the file'); };
+  r.readAsText(file);
+}
 
 /* Patch addDirEntry to inject a Role + Email field, then patch saveDirEntry to persist them. */
 const _origAddDirEntry = addDirEntry;
@@ -9120,14 +9390,60 @@ function openLetterEditor(templateId){
     <div class="field"><label class="label">Letter body — edit freely before printing</label>
       <textarea class="textarea" id="lt-body" data-tpl="${esc(templateId)}" style="min-height:340px;font-family:Georgia,serif;font-size:13.5px;line-height:1.6"></textarea>
     </div>
-    <div class="modal-actions">
+    <div class="modal-actions" style="flex-wrap:wrap;gap:6px">
       <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
       <button class="btn btn-soft" onclick="copyLetter()">📋 Copy</button>
+      <button class="btn btn-soft" onclick="saveLetter()">💾 Save</button>
       <button class="btn btn-soft" onclick="emailLetter()">📧 Email</button>
+      <button class="btn btn-soft" onclick="sendLetterWhatsApp()">📱 WhatsApp</button>
       <button class="btn btn-primary" onclick="printLetter()">🖨 Print / PDF</button>
     </div>
   `);
   refillLetter();
+}
+
+/* Save the letter to the Sent history without sending it externally. */
+function saveLetter(){
+  const ta = document.getElementById('lt-body');
+  if(!ta){ toast('Open a template first'); return; }
+  const body = ta.value || '';
+  if(!body.trim()){ toast('Nothing to save'); return; }
+  const tpl = LETTER_TEMPLATES.find(t => t.id === ta.dataset.tpl);
+  const studSel = document.getElementById('lt-student');
+  const stud = studSel && studSel.value ? (state.students || []).find(s => s.id === studSel.value) : null;
+  const recip = stud
+    ? [{ parentName: stud.parentName || ('Parent of ' + stud.name), name: stud.name }]
+    : [{ parentName: 'Manually saved', name: '' }];
+  if(typeof archiveLetter === 'function'){
+    archiveLetter(tpl ? tpl.title : 'Letter', 'Saved (no send)', body, recip);
+  }
+  toast('✓ Letter saved to the Sent archive');
+}
+
+/* Send the letter via WhatsApp — opens wa.me with the body pre-filled. */
+function sendLetterWhatsApp(){
+  const ta = document.getElementById('lt-body');
+  if(!ta){ toast('Open a template first'); return; }
+  const body = ta.value || '';
+  if(!body.trim()){ toast('Nothing to send'); return; }
+  const tpl = LETTER_TEMPLATES.find(t => t.id === ta.dataset.tpl);
+  const studSel = document.getElementById('lt-student');
+  const stud = studSel && studSel.value ? (state.students || []).find(s => s.id === studSel.value) : null;
+  /* normalisePhone() exists in the broadcast module */
+  let phone = '';
+  if(stud){
+    const raw = stud.parentPhone || stud.phone || '';
+    if(raw && typeof normalisePhone === 'function') phone = normalisePhone(raw);
+  }
+  const recip = stud
+    ? [{ parentName: stud.parentName || ('Parent of ' + stud.name), name: stud.name }]
+    : [{ parentName: 'WhatsApp recipient', name: '' }];
+  if(typeof archiveLetter === 'function'){
+    archiveLetter(tpl ? tpl.title : 'Letter', 'WhatsApp', body, recip);
+  }
+  const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(body);
+  window.open(url, '_blank');
+  toast(phone ? '📱 WhatsApp opened + archived' : '📱 WhatsApp opened (no parent phone — paste the number in WA) + archived');
 }
 
 function refillLetter(){
@@ -9191,23 +9507,14 @@ function printLetter(){
   setTimeout(()=>{ try { w.print(); } catch(e){} }, 300);
 }
 
-/* Inject 📝 Letters into sidebar (under Resources section) at boot */
+/* Letters now lives as a single sidebar entry under Daily Work — that page
+   contains BOTH 📝 Templates and 📜 Sent history tabs. The old separate
+   RESOURCES-section injection is a no-op so the sidebar isn't duplicated.
+   We also remove any pre-existing duplicate that may have been rendered
+   by an older build before this consolidation. */
 function injectLettersSidebarItem(){
-  if(document.getElementById('sb-letters')) return;
-  const sb = document.querySelector('.sidebar');
-  if(!sb) return;
-  /* Find the Resources section title */
-  const sectionTitles = Array.from(sb.querySelectorAll('.sb-section-title'));
-  const resTitle = sectionTitles.find(t=>t.textContent.trim().toLowerCase() === 'resources');
-  if(!resTitle) return;
-  const resNav = resTitle.nextElementSibling;
-  if(!resNav || !resNav.classList.contains('sb-nav')) return;
-  const btn = document.createElement('button');
-  btn.className = 'sb-item';
-  btn.id = 'sb-letters';
-  btn.innerHTML = '<span class="ico">📝</span>Letters';
-  btn.addEventListener('click', ()=>openLettersPage());
-  resNav.appendChild(btn);
+  const stale = document.getElementById('sb-letters');
+  if(stale) stale.remove();
 }
 
 /* ============================================================
