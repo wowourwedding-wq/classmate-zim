@@ -2206,7 +2206,17 @@ const QUOTES = [
   {q:'I have decided to stick with love. Hate is too great a burden to bear.',a:'Martin Luther King Jr.'},
   {q:'Whatever you do, work at it with all your heart, as working for the Lord, not for human masters.',a:'Colossians 3:23'},
   {q:'She is clothed with strength and dignity; she can laugh at the days to come.',a:'Proverbs 31:25'},
-  {q:'A good teacher is like a candle — it consumes itself to light the way for others.',a:'Mustafa Kemal Atatürk'}
+  {q:'A good teacher is like a candle — it consumes itself to light the way for others.',a:'Mustafa Kemal Atatürk'},
+  {q:'Teaching is the one profession that creates all other professions.',a:'Unknown'},
+  {q:'The beautiful thing about learning is that no one can take it away from you.',a:'B.B. King'},
+  {q:'Children must be taught how to think, not what to think.',a:'Margaret Mead'},
+  {q:'However long the night, the dawn will break.',a:'African proverb'},
+  {q:'Wisdom is like a baobab tree; no one individual can embrace it.',a:'African proverb'},
+  {q:'Commit to the Lord whatever you do, and he will establish your plans.',a:'Proverbs 16:3'},
+  {q:'Every child you teach carries your lesson into rooms you will never enter.',a:'Unknown'},
+  {q:'Do not judge me by my successes; judge me by how many times I fell down and got back up again.',a:'Nelson Mandela'},
+  {q:'If you want to go fast, go alone. If you want to go far, go together.',a:'African proverb'},
+  {q:'A child who is not embraced by the village will burn it down to feel its warmth.',a:'African proverb'}
 ];
 
 const LEVELS = [
@@ -2448,11 +2458,16 @@ document.getElementById('modal-bg').addEventListener('click', e=>{ if(e.target.i
 /* ---------- Renderers ---------- */
 const renderers = {};
 
-/* ---- Quote of the day ---- */
+/* ---- Quote rotation: a fresh quote on every login (counter bumped in
+   markAuthConfirmed), falling back to day-of-year before first login ---- */
 function todaysQuote(){
-  const d = new Date();
-  const idx = (d.getFullYear()*1000 + Math.floor((d-new Date(d.getFullYear(),0,0))/86400000)) % QUOTES.length;
-  return QUOTES[idx];
+  let n = NaN;
+  try { n = parseInt(localStorage.getItem('cm-quote-idx'), 10); } catch(e){}
+  if(isNaN(n)){
+    const d = new Date();
+    n = d.getFullYear()*1000 + Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);
+  }
+  return QUOTES[((n % QUOTES.length) + QUOTES.length) % QUOTES.length];
 }
 
 /* ---- Backup reminder helpers ---- */
@@ -7999,7 +8014,13 @@ function closeAuthOverlay(){ const o = document.getElementById('auth-overlay'); 
 /* Per-app-open confirmation: sessionStorage clears when the app/tab is closed,
    so every fresh open shows the login screen first — pre-filled with the
    remembered user, one tap to enter. */
-function markAuthConfirmed(){ try { sessionStorage.setItem('cm-auth-ok','1'); } catch(e){} }
+function markAuthConfirmed(){
+  try {
+    sessionStorage.setItem('cm-auth-ok','1');
+    /* Advance the dashboard quote — a fresh one greets every login */
+    localStorage.setItem('cm-quote-idx', String((parseInt(localStorage.getItem('cm-quote-idx'),10)||0) + 1));
+  } catch(e){}
+}
 function authConfirmedThisOpen(){ try { return sessionStorage.getItem('cm-auth-ok') === '1'; } catch(e){ return true; } }
 
 /* Boot-time gate. Call before enterApp / showWelcome. */
